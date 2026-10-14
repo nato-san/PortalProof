@@ -1,4 +1,4 @@
-# PortalProof V3 Submission Checklist
+# PortalProof Submission Checklist
 
 ## Check-in Submission / 中間提出
 

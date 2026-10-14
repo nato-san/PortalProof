@@ -139,7 +139,7 @@ function App() {
       <header className="hero">
         <div>
           <p className="eyebrow">Portaldot Hacker House 2026 / Ecosystem DApps</p>
-          <h1>PortalProof V3</h1>
+          <h1>PortalProof</h1>
           <p>
             A creator request URL, order proof NFT, delivery record, and payment evidence certificate
             for Portaldot V3 testnet.

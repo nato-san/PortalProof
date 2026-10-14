@@ -1,12 +1,12 @@
-# PortalProof V3
+# PortalProof
 
 日本語は英語セクションの直後に併記しています。
 
 ## One-sentence Overview
 
-PortalProof V3 is a creator workflow DApp that lets creators publish a request flow, record agreed work terms on Portaldot V3 testnet, and generate a delivery/payment proof certificate.
+PortalProof is a creator workflow DApp that lets creators publish a request flow, record agreed work terms on Portaldot V3 testnet, and generate a delivery/payment proof certificate.
 
-日本語訳: PortalProof V3は、クリエイターが依頼受付フローを公開し、合意した仕事内容をPortaldot V3テストネットに記録し、納品・支払い証明書を生成するDAppです。
+日本語訳: PortalProofは、クリエイターが依頼受付フローを公開し、合意した仕事内容をPortaldot V3テストネットに記録し、納品・支払い証明書を生成するDAppです。
 
 ## Track
 

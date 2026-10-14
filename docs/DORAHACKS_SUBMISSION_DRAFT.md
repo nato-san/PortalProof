@@ -2,13 +2,13 @@
 
 ## Project Name / プロジェクト名
 
-PortalProof V3
+PortalProof
 
 ## One-sentence Overview / 1文概要
 
-PortalProof V3 records creator work agreements, delivery proof, and payment evidence on Portaldot V3 testnet.
+PortalProof records creator work agreements, delivery proof, and payment evidence on Portaldot V3 testnet.
 
-日本語訳: PortalProof V3は、クリエイターの仕事合意、納品証明、支払い証跡をPortaldot V3テストネットに記録します。
+日本語訳: PortalProofは、クリエイターの仕事合意、納品証明、支払い証跡をPortaldot V3テストネットに記録します。
 
 ## Track / トラック
 
