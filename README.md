@@ -28,7 +28,7 @@ Portaldot V3 supports EVM/Solidity contracts and ERC-style application developme
 - Delivery URL hash recording
 - Payment TxHash evidence recording
 - QR certificate preview
-- Clear separation between mock UI state and real on-chain transaction evidence
+- Clear separation between local draft data and real on-chain transaction evidence
 
 日本語訳:
 
@@ -38,7 +38,7 @@ Portaldot V3 supports EVM/Solidity contracts and ERC-style application developme
 - 納品URL Hash記録
 - 支払いTxHash証跡記録
 - QR付き証明書プレビュー
-- UI上の仮状態と実オンチェーンTx証跡の明確な分離
+- ローカル入力データと実オンチェーンTx証跡の明確な分離
 
 ## Portaldot V3 Testnet
 
@@ -161,11 +161,11 @@ Open-source dependencies are listed in `package.json`.
 ## Known Limitations
 
 - Payment TxHash verification is not fully automated yet.
-- The first check-in version prioritizes verifiable order proof transactions over polished UI.
+- The current version prioritizes verifiable order proof transactions over polished UI.
 - The app must not claim payment success from an arbitrary TxHash.
 
 日本語訳:
 
 - 支払いTxHashの完全自動検証はまだ未実装です。
-- 中間提出版ではUIの作り込みより、検証可能な発注証明Txを優先します。
+- 現在のバージョンではUIの作り込みより、検証可能な発注証明Txを優先します。
 - 任意のTxHashだけで支払い成功とは表示しません。
