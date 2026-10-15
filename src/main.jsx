@@ -6,8 +6,10 @@ import QRCode from "qrcode";
 import { PORTALPROOF_ABI } from "./contract.js";
 import {
   PORTALDOT_V3,
+  buildCreatorRequestUrl,
   buildProofs,
   emptyDraft,
+  readCreatorRequestUrl,
   validateTxEvidence
 } from "./domain.js";
 import "./styles.css";
@@ -35,28 +37,41 @@ const messages = {
     recordingPayment: "Recording verified payment evidence: {hash}",
     paymentRecorded: "Payment evidence recorded. Reviewers should still verify the referenced transfer.",
     copied: "Copied.",
+    requestLinkCopied: "Creator request link copied.",
     error: "Error",
-    creatorRequest: "1. Creator request",
+    creatorSetup: "1. Create a request link",
+    creatorSetupHelp: "Add your service details, then copy a link for your website, portfolio, or social profile.",
+    requestLabel: "PortalProof request",
+    requestFrom: "Request {service} from {creator}",
+    requestFromHelp: "This page was opened from the creator's PortalProof request link.",
+    createYourOwn: "Create your own request link",
     creatorName: "Creator name",
     serviceName: "Service name",
+    serviceDescription: "Service description",
     creatorWallet: "Creator wallet",
+    referenceAmount: "Reference price in tPOTv3",
+    requestLink: "Creator request link",
+    copyRequestLink: "Copy request link",
+    openRequestLink: "Open request page",
+    requestLinkRequirements: "Enter a creator name, service name, and valid creator wallet to activate the link.",
+    clientRequest: "2. Client request",
     clientName: "Client name",
     clientWallet: "Client wallet",
     requestBrief: "Request brief",
-    agreementHash: "2. Agreement hash",
+    agreementHash: "3. Agreement hash",
     amount: "Amount in tPOTv3",
     deadline: "Deadline",
     termsHash: "Terms hash",
     copyTermsHash: "Copy terms hash",
     mintOrder: "Mint order proof on Portaldot V3",
     deployFirst: "Deploy the contract and set VITE_PORTALPROOF_CONTRACT_ADDRESS first.",
-    delivery: "3. Delivery",
+    delivery: "4. Delivery",
     orderId: "Order ID",
     createdAfterMint: "Created after minting",
     deliveryUrl: "Delivery URL",
     deliveryHash: "Delivery hash",
     recordDelivery: "Record delivery",
-    paymentEvidence: "4. Payment evidence",
+    paymentEvidence: "5. Payment evidence",
     paymentTxHash: "Payment transaction hash",
     hasHash: "Valid transaction hash format",
     hasExpectedFrom: "Expected sender is present",
@@ -97,28 +112,41 @@ const messages = {
     recordingPayment: "検証済み支払い証跡を記録中: {hash}",
     paymentRecorded: "支払い証跡を記録しました。参照先の送金内容は審査員も確認する必要があります。",
     copied: "コピーしました。",
+    requestLinkCopied: "クリエイターの依頼受付リンクをコピーしました。",
     error: "エラー",
-    creatorRequest: "1. クリエイターへの依頼",
+    creatorSetup: "1. 依頼受付リンクを作成",
+    creatorSetupHelp: "サービス情報を入力し、Webサイト、ポートフォリオ、SNSへ掲載するリンクを作成します。",
+    requestLabel: "PortalProofへの依頼",
+    requestFrom: "{creator}へ「{service}」を依頼",
+    requestFromHelp: "クリエイターが発行したPortalProofの依頼受付リンクから開いています。",
+    createYourOwn: "自分の依頼受付リンクを作る",
     creatorName: "クリエイター名",
     serviceName: "サービス名",
+    serviceDescription: "サービス説明",
     creatorWallet: "クリエイターのウォレット",
+    referenceAmount: "参考価格（tPOTv3）",
+    requestLink: "クリエイターの依頼受付リンク",
+    copyRequestLink: "依頼受付リンクをコピー",
+    openRequestLink: "依頼ページを開く",
+    requestLinkRequirements: "クリエイター名、サービス名、有効なクリエイターウォレットを入力するとリンクを利用できます。",
+    clientRequest: "2. 依頼内容",
     clientName: "依頼者名",
     clientWallet: "依頼者のウォレット",
     requestBrief: "依頼内容",
-    agreementHash: "2. 合意条件のハッシュ",
+    agreementHash: "3. 合意条件のハッシュ",
     amount: "金額（tPOTv3）",
     deadline: "納期",
     termsHash: "合意条件ハッシュ",
     copyTermsHash: "合意条件ハッシュをコピー",
     mintOrder: "Portaldot V3上で発注証明を発行",
     deployFirst: "先にコントラクトをデプロイし、VITE_PORTALPROOF_CONTRACT_ADDRESSを設定してください。",
-    delivery: "3. 納品",
+    delivery: "4. 納品",
     orderId: "注文ID",
     createdAfterMint: "発行後に作成されます",
     deliveryUrl: "納品URL",
     deliveryHash: "納品ハッシュ",
     recordDelivery: "納品を記録",
-    paymentEvidence: "4. 支払い証跡",
+    paymentEvidence: "5. 支払い証跡",
     paymentTxHash: "支払いトランザクションハッシュ",
     hasHash: "トランザクションハッシュの形式",
     hasExpectedFrom: "想定する送金元",
@@ -158,8 +186,14 @@ function translate(language, key, values = {}) {
 }
 
 function App() {
+  const creatorRequest = readCreatorRequestUrl(window.location.href);
+  const isRequestPage = Boolean(creatorRequest);
   const [language, setLanguage] = useState(() => localStorage.getItem("portalproof-language") || "en");
-  const [draft, setDraft] = useState(emptyDraft());
+  const [draft, setDraft] = useState(() => ({
+    ...emptyDraft(),
+    ...(creatorRequest || {}),
+    ...(creatorRequest ? { clientName: "", clientWallet: "", requestBrief: "" } : {})
+  }));
   const [proofs, setProofs] = useState(null);
   const [wallet, setWallet] = useState("");
   const [orderId, setOrderId] = useState("");
@@ -167,6 +201,14 @@ function App() {
   const [qr, setQr] = useState("");
   const [status, setStatus] = useState({ key: "ready" });
   const t = (key, values) => translate(language, key, values);
+  const requestLinkReady = Boolean(
+    draft.creatorName && draft.serviceName && ethers.isAddress(draft.creatorWallet)
+  );
+  const requestUrl = useMemo(
+    () => buildCreatorRequestUrl(`${location.origin}${location.pathname}`, draft),
+    [draft.creatorName, draft.serviceName, draft.serviceDescription, draft.creatorWallet, draft.amount]
+  );
+  const creatorHomeUrl = `${location.origin}${location.pathname}`;
 
   const paymentEvidence = useMemo(() => validateTxEvidence({
     paymentTxHash: draft.paymentTxHash,
@@ -286,6 +328,11 @@ function App() {
     setStatus({ key: "copied" });
   }
 
+  function copyRequestUrl() {
+    navigator.clipboard?.writeText(requestUrl);
+    setStatus({ key: "requestLinkCopied" });
+  }
+
   const statusText = `${t(status.key, status.values)}${status.detail ? `: ${status.detail}` : ""}`;
 
   return (
@@ -328,20 +375,57 @@ function App() {
       </section>
 
       <section className="grid">
+        {isRequestPage ? (
+          <section className="panel requestSummary">
+            <p className="eyebrow">{t("requestLabel")}</p>
+            <h2>{t("requestFrom", { creator: draft.creatorName, service: draft.serviceName })}</h2>
+            <p>{t("requestFromHelp")}</p>
+            <dl>
+              <dt>{t("creator")}</dt><dd>{draft.creatorName}</dd>
+              <dt>{t("serviceName")}</dt><dd>{draft.serviceName}</dd>
+              <dt>{t("serviceDescription")}</dt><dd>{draft.serviceDescription}</dd>
+              <dt>{t("referenceAmount")}</dt><dd>{draft.amount} tPOTv3</dd>
+              <dt>{t("creatorWallet")}</dt><dd><code>{draft.creatorWallet}</code></dd>
+            </dl>
+            <a className="textLink" href={creatorHomeUrl}>{t("createYourOwn")}</a>
+          </section>
+        ) : (
+          <section className="panel">
+            <h2>{t("creatorSetup")}</h2>
+            <p className="muted">{t("creatorSetupHelp")}</p>
+            <label>{t("creatorName")}<input value={draft.creatorName} onChange={update("creatorName")} /></label>
+            <label>{t("serviceName")}<input value={draft.serviceName} onChange={update("serviceName")} /></label>
+            <label>{t("serviceDescription")}<textarea value={draft.serviceDescription} onChange={update("serviceDescription")} /></label>
+            <label>{t("creatorWallet")}<input value={draft.creatorWallet} onChange={update("creatorWallet")} placeholder="0x..." /></label>
+            <label>{t("referenceAmount")}<input value={draft.amount} onChange={update("amount")} /></label>
+            <div className="requestLinkBox">
+              <span>{t("requestLink")}</span>
+              <input readOnly value={requestLinkReady ? requestUrl : ""} placeholder={t("requestLinkRequirements")} />
+              <div className="requestLinkActions">
+                <button className="primary" onClick={copyRequestUrl} disabled={!requestLinkReady}>
+                  <Copy size={16} />
+                  {t("copyRequestLink")}
+                </button>
+                <a className={`buttonLink secondary${requestLinkReady ? "" : " disabled"}`} href={requestLinkReady ? requestUrl : undefined} target="_blank" rel="noreferrer">
+                  <ExternalLink size={16} />
+                  {t("openRequestLink")}
+                </a>
+              </div>
+            </div>
+          </section>
+        )}
+
         <section className="panel">
-          <h2>{t("creatorRequest")}</h2>
-          <label>{t("creatorName")}<input value={draft.creatorName} onChange={update("creatorName")} /></label>
-          <label>{t("serviceName")}<input value={draft.serviceName} onChange={update("serviceName")} /></label>
-          <label>{t("creatorWallet")}<input value={draft.creatorWallet} onChange={update("creatorWallet")} placeholder="0x..." /></label>
+          <h2>{t("clientRequest")}</h2>
           <label>{t("clientName")}<input value={draft.clientName} onChange={update("clientName")} /></label>
           <label>{t("clientWallet")}<input value={draft.clientWallet} onChange={update("clientWallet")} placeholder="0x..." /></label>
           <label>{t("requestBrief")}<textarea value={draft.requestBrief} onChange={update("requestBrief")} /></label>
+          <label>{t("amount")}<input value={draft.amount} onChange={update("amount")} /></label>
+          <label>{t("deadline")}<input value={draft.deadline} onChange={update("deadline")} /></label>
         </section>
 
         <section className="panel">
           <h2>{t("agreementHash")}</h2>
-          <label>{t("amount")}<input value={draft.amount} onChange={update("amount")} /></label>
-          <label>{t("deadline")}<input value={draft.deadline} onChange={update("deadline")} /></label>
           <div className="hashBox">
             <span>{t("termsHash")}</span>
             <code>{proofs?.termsHash}</code>

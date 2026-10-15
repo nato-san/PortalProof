@@ -69,6 +69,29 @@ button:disabled {
   width: 100%;
 }
 
+.buttonLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  border-radius: 6px;
+  padding: 0 14px;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.buttonLink.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.textLink {
+  color: var(--accent);
+  font-weight: 750;
+}
+
 .shell {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
@@ -205,6 +228,35 @@ textarea {
   margin: 12px 0;
 }
 
+.requestLinkBox {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #afd2c7;
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--soft);
+}
+
+.requestLinkBox > span {
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.requestLinkBox input {
+  font-size: 12px;
+}
+
+.requestLinkActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.requestSummary dl {
+  grid-template-columns: 140px minmax(0, 1fr);
+}
+
 code {
   overflow-wrap: anywhere;
   font-size: 12px;
@@ -285,5 +337,9 @@ dd {
 
   .languageBar {
     justify-content: space-between;
+  }
+
+  .requestLinkActions {
+    grid-template-columns: 1fr;
   }
 }

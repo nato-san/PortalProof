@@ -17,6 +17,8 @@ Portaldot V3 supports EVM and Solidity contracts as well as ERC-style applicatio
 ### Current MVP Scope
 
 - Creator request and client brief input
+- Shareable creator request URL with service details and reference price
+- Dedicated client form opened from the creator's link
 - Terms hash generation
 - Minimal order-proof NFT contract on the Portaldot V3 EVM
 - Delivery URL hash recording
@@ -135,6 +137,8 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 ### 現在のMVP範囲
 
 - クリエイター受付情報と依頼内容の入力
+- サービス内容と参考価格を含む共有可能なクリエイター専用依頼受付URL
+- クリエイターのリンクから開く依頼者専用フォーム
 - 合意条件ハッシュの生成
 - Portaldot V3 EVM上の最小発注証明NFTコントラクト
 - 納品URLハッシュの記録
