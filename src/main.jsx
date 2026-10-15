@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
-  ArrowLeft, ArrowRight, CheckCircle2, ClipboardList, Copy, ExternalLink,
-  FileCheck2, Inbox, Link2, Send, Settings2, Wallet
+  ArrowLeft, ArrowRight, BriefcaseBusiness, CheckCircle2, ClipboardList, Copy,
+  ExternalLink, FileCheck2, Home, Inbox, Link2, Send, Settings2, Wallet
 } from "lucide-react";
 import { ethers } from "ethers";
 import QRCode from "qrcode";
@@ -42,11 +42,23 @@ function makeRequestId() {
 const messages = {
   en: {
     eyebrow: "Portaldot Hacker House 2026 / Ecosystem DApps",
+    creatorTop: "Creator home",
+    creatorTopHelp: "Choose what you want to do as the creator.",
+    creatorOnly: "Creator-only area",
+    creatorOnlyHelp: "Clients do not receive a link back to this page from the public request page.",
+    topCreateTitle: "Create a request offering",
+    topCreateHelp: "Set the service, price, creator wallet, and public request link.",
+    topManageTitle: "Manage your jobs",
+    topManageHelp: "Review incoming requests and open each job workspace.",
+    topRequestTitle: "View request page",
+    topRequestHelp: "Preview the standalone page that clients open from your public link.",
+    openPage: "Open page",
+    backToTop: "Back to creator home",
     creatorDashboard: "Creator dashboard",
     creatorDashboardHelp: "Set up your request page and manage every client request in one place.",
     setupNav: "Request settings",
     setupNavHelp: "Create the public page",
-    inboxNav: "Incoming requests",
+    inboxNav: "Manage jobs",
     inboxNavHelp: "Review client briefs",
     connectWallet: "Connect wallet",
     status: "Status",
@@ -157,11 +169,23 @@ const messages = {
   },
   ja: {
     eyebrow: "Portaldot Hacker House 2026／エコシステムDApps部門",
+    creatorTop: "クリエイターTOP",
+    creatorTopHelp: "クリエイターとして行う操作を選んでください。",
+    creatorOnly: "クリエイター専用ページ",
+    creatorOnlyHelp: "依頼者用の公開ページには、このTOPへ戻るリンクを表示しません。",
+    topCreateTitle: "仕事の受付を作成",
+    topCreateHelp: "サービス、価格、ウォレット、公開用の依頼受付リンクを設定します。",
+    topManageTitle: "作成した仕事を管理",
+    topManageHelp: "届いた依頼を確認し、依頼ごとの案件管理画面を開きます。",
+    topRequestTitle: "依頼ページ",
+    topRequestHelp: "依頼者が公開リンクから開く、独立した送信ページを確認します。",
+    openPage: "ページを開く",
+    backToTop: "クリエイターTOPへ戻る",
     creatorDashboard: "クリエイター管理画面",
     creatorDashboardHelp: "依頼受付ページの設定と、届いたすべての依頼を管理します。",
     setupNav: "受付設定",
     setupNavHelp: "公開ページを作成",
-    inboxNav: "届いた依頼",
+    inboxNav: "仕事を管理",
     inboxNavHelp: "依頼内容を確認",
     connectWallet: "ウォレットを接続",
     status: "状態",
@@ -293,8 +317,14 @@ function App() {
   const publicProfile = readCreatorRequestUrl(location.href);
   const jobId = readJobId(location.href);
   const page = publicProfile ? "request" : jobId ? "job" : "dashboard";
-  const dashboardTab = currentUrl.searchParams.get("tab") === "inbox" ? "inbox" : "setup";
-  const inboxUrl = `${baseUrl}?tab=inbox`;
+  const view = currentUrl.searchParams.get("view");
+  const dashboardTab = view === "setup"
+    ? "setup"
+    : view === "jobs" || currentUrl.searchParams.get("tab") === "inbox"
+      ? "inbox"
+      : "top";
+  const setupUrl = `${baseUrl}?view=setup`;
+  const inboxUrl = `${baseUrl}?view=jobs`;
 
   const [language, setLanguage] = useState(() => localStorage.getItem("portalproof-language") || "en");
   const [profile, setProfile] = useState(() => ({ ...emptyDraft(), ...loadJson(PROFILE_KEY, {}) }));
@@ -566,12 +596,21 @@ function App() {
 
   return <main className="shell">
     {topBar}
-    <header className="hero compactHero"><div><p className="eyebrow">{t("eyebrow")}</p><h1>{t("creatorDashboard")}</h1><p>{t("creatorDashboardHelp")}</p></div></header>
+    {dashboardTab !== "top" && <a className="backLink" href={baseUrl}><ArrowLeft size={16} />{t("backToTop")}</a>}
+    <header className="hero compactHero"><div><p className="eyebrow">{t("eyebrow")}</p><h1>{dashboardTab === "top" ? t("creatorTop") : t("creatorDashboard")}</h1><p>{dashboardTab === "top" ? t("creatorTopHelp") : t("creatorDashboardHelp")}</p></div></header>
+    <section className="notice" role="status"><strong>{t("status")}</strong><span>{statusText}</span></section>
+    {dashboardTab === "top" ? <section className="creatorHome">
+      <div className="creatorOnlyNote"><Home size={18} /><div><strong>{t("creatorOnly")}</strong><span>{t("creatorOnlyHelp")}</span></div></div>
+      <div className="homeCards">
+        <a className="homeCard" href={setupUrl}><span className="homeCardIcon"><Settings2 size={26} /></span><div><strong>{t("topCreateTitle")}</strong><p>{t("topCreateHelp")}</p></div><span className="homeCardAction">{t("openPage")}<ArrowRight size={17} /></span></a>
+        <a className="homeCard" href={inboxUrl}><span className="homeCardIcon"><BriefcaseBusiness size={26} /></span><div><strong>{t("topManageTitle")}</strong><p>{t("topManageHelp")}</p></div><span className="homeCardCount">{requests.length}</span><span className="homeCardAction">{t("openPage")}<ArrowRight size={17} /></span></a>
+        <a className="homeCard publicEntry" href={requestUrl}><span className="homeCardIcon"><ExternalLink size={26} /></span><div><strong>{t("topRequestTitle")}</strong><p>{t("topRequestHelp")}</p></div><span className="homeCardAction">{t("openPage")}<ArrowRight size={17} /></span></a>
+      </div>
+    </section> : <>
     <nav className="creatorNav">
-      <a href={baseUrl} className={dashboardTab === "setup" ? "active" : ""}><span>1</span><Settings2 size={18} /><strong>{t("setupNav")}</strong><small>{t("setupNavHelp")}</small></a>
+      <a href={setupUrl} className={dashboardTab === "setup" ? "active" : ""}><span>1</span><Settings2 size={18} /><strong>{t("setupNav")}</strong><small>{t("setupNavHelp")}</small></a>
       <a href={inboxUrl} className={dashboardTab === "inbox" ? "active" : ""}><span>2</span><Inbox size={18} /><strong>{t("inboxNav")}</strong><small>{t("inboxNavHelp")}</small><em>{requests.length}</em></a>
     </nav>
-    <section className="notice" role="status"><strong>{t("status")}</strong><span>{statusText}</span></section>
     {dashboardTab === "setup" ? <section className="pageGrid setupLayout">
       <section className="panel formPanel"><h2>{t("creatorSetup")}</h2><p className="muted">{t("creatorSetupHelp")}</p><label>{t("creatorName")}<input value={profile.creatorName} onChange={updateProfile("creatorName")} /></label><label>{t("serviceName")}<input value={profile.serviceName} onChange={updateProfile("serviceName")} /></label><label>{t("serviceDescription")}<textarea value={profile.serviceDescription} onChange={updateProfile("serviceDescription")} /></label><div className="fieldRow"><label>{t("creatorWallet")}<input value={profile.creatorWallet} onChange={updateProfile("creatorWallet")} placeholder="0x..." /></label><label>{t("referenceAmount")}<input value={profile.amount} onChange={updateProfile("amount")} /></label></div></section>
       <aside className="panel actionPanel"><h2>{t("requestLink")}</h2><p className="muted">{t("requestLinkHelp")}</p><div className="requestLinkBox"><input readOnly value={requestLinkReady ? requestUrl : ""} placeholder={t("requestLinkRequirements")} /><button className="primary wide" onClick={() => copy(requestUrl, "requestLinkCopied")} disabled={!requestLinkReady}><Copy size={16} />{t("copyRequestLink")}</button><a className="buttonLink secondary" href={requestUrl}><ExternalLink size={16} />{t("previewRequestPage")}</a></div></aside>
@@ -579,7 +618,7 @@ function App() {
       <div className="sectionHeading"><div><h2>{t("incomingTitle")}</h2><p className="muted">{t("incomingHelp")}</p></div><a className="buttonLink secondary" href={requestUrl}><ExternalLink size={16} />{t("openPublicPage")}</a></div>
       <div className="localNote"><ClipboardList size={18} /><span>{t("localStorageNote")}</span></div>
       {requests.length === 0 ? <div className="panel emptyState"><Inbox size={42} /><h3>{t("emptyInbox")}</h3><p>{t("emptyInboxHelp")}</p><a className="buttonLink primary" href={requestUrl}>{t("openPublicPage")}<ArrowRight size={17} /></a></div> : <div className="requestCards">{requests.map((request) => <article className="panel requestCard" key={request.id}><div className="requestCardTop"><div><span className={`statusBadge ${request.status}`}>{statusLabel(request.status)}</span><h3>{request.clientName}</h3></div><time>{formatDate(request.createdAt)}</time></div><p className="requestService">{request.serviceName}</p><p className="requestBrief">{request.requestBrief}</p><dl><dt>{t("amount")}</dt><dd>{request.amount} tPOTv3</dd><dt>{t("deadline")}</dt><dd>{request.deadline}</dd><dt>{t("requestId")}</dt><dd><code>{request.id}</code></dd></dl><a className="buttonLink primary wide" href={buildJobUrl(baseUrl, request.id)}>{t("openJob")}<ArrowRight size={17} /></a></article>)}</div>}
-    </section>}
+    </section>}</>}
   </main>;
 }
 

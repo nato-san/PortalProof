@@ -221,6 +221,117 @@ button:disabled {
   margin-top: 18px;
 }
 
+.creatorHome {
+  display: grid;
+  gap: 16px;
+}
+
+.creatorOnlyNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  border: 1px solid #afd2c7;
+  border-radius: 8px;
+  padding: 14px 16px;
+  color: var(--accent);
+  background: var(--soft);
+}
+
+.creatorOnlyNote svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.creatorOnlyNote div {
+  display: grid;
+  gap: 3px;
+}
+
+.creatorOnlyNote span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.homeCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.homeCard {
+  position: relative;
+  display: flex;
+  min-height: 250px;
+  flex-direction: column;
+  gap: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+  color: var(--ink);
+  background: var(--surface);
+  text-decoration: none;
+  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.homeCard:hover {
+  border-color: var(--accent);
+  box-shadow: 0 10px 30px rgba(24, 34, 31, 0.08);
+  transform: translateY(-2px);
+}
+
+.homeCard.publicEntry {
+  border-color: #afd2c7;
+  background: var(--soft);
+}
+
+.homeCardIcon {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  color: #fff;
+  background: var(--accent);
+}
+
+.homeCard strong {
+  display: block;
+  padding-right: 28px;
+  font-size: 21px;
+}
+
+.homeCard p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.homeCardAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.homeCardCount {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  color: #fff;
+  background: var(--accent-2);
+  font-size: 12px;
+  font-weight: 850;
+}
+
 .creatorNav a {
   position: relative;
   display: grid;
@@ -847,6 +958,14 @@ dd {
 
   .requestCards {
     grid-template-columns: 1fr;
+  }
+
+  .homeCards {
+    grid-template-columns: 1fr;
+  }
+
+  .homeCard {
+    min-height: 0;
   }
 }
 

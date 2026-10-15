@@ -20,6 +20,7 @@ Portaldot V3 supports EVM and Solidity contracts as well as ERC-style applicatio
 - Shareable creator request URL with service details and reference price
 - Dedicated client form opened from the creator's link
 - A creator dashboard with request-page settings and a multi-request inbox
+- A creator-only home screen linking to request setup, job management, and the public-page preview
 - A fully separate public request-submission page for clients
 - A dedicated management workspace for each individual request
 - A tabbed agreement, delivery, payment, and certificate workflow that avoids one long form
@@ -69,14 +70,15 @@ flowchart LR
 
 ### User Flow
 
-1. In the creator dashboard, the creator enters service details and a wallet address, then publishes a dedicated request link.
-2. The client opens a fully separate public page, reviews the service, and submits the request details and wallet address.
-3. Each submission appears as a separate item in the creator's request inbox.
-4. The creator opens the request's dedicated management workspace to review the agreement.
-5. PortalProof hashes the agreed terms and the connected wallet mints an order proof on Portaldot V3.
-6. The creator records a delivery URL hash in the delivery tab.
-7. A verified payment transaction hash is recorded in the payment tab only after the sender, recipient, amount, and success status are checked.
-8. The certificate tab shows the contract, order ID, terms hash, payment transaction hash, and QR code.
+1. From the creator-only home screen, the creator opens request setup, job management, or the public-page preview.
+2. In request setup, the creator enters service details and a wallet address, then publishes a dedicated request link.
+3. The client opens a fully separate public page with no link back to the creator home, reviews the service, and submits the request details and wallet address.
+4. Each submission appears as a separate item in the creator's request inbox.
+5. The creator opens the request's dedicated management workspace to review the agreement.
+6. PortalProof hashes the agreed terms and the connected wallet mints an order proof on Portaldot V3.
+7. The creator records a delivery URL hash in the delivery tab.
+8. A verified payment transaction hash is recorded in the payment tab only after the sender, recipient, amount, and success status are checked.
+9. The certificate tab shows the contract, order ID, terms hash, payment transaction hash, and QR code.
 
 ### Local Setup
 
@@ -145,6 +147,7 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 - サービス内容と参考価格を含む共有可能なクリエイター専用依頼受付URL
 - クリエイターのリンクから開く依頼者専用フォーム
 - 受付設定と複数の依頼一覧を備えたクリエイター管理画面
+- 受付作成・仕事管理・依頼ページ確認へ移動するクリエイター専用TOP
 - 管理画面から完全に分離した依頼者専用の公開送信ページ
 - 依頼ごとに独立した案件管理画面
 - 長いフォームを避けるため、合意・納品・支払い・証明書を切り替える案件管理画面
@@ -194,14 +197,15 @@ flowchart LR
 
 ### 利用の流れ
 
-1. クリエイター管理画面で、サービス内容とウォレットアドレスを入力し、専用の依頼受付リンクを発行します。
-2. 依頼者は完全に独立した公開ページを開き、サービスを確認して依頼内容とウォレットアドレスを送信します。
-3. 送信された依頼を、クリエイター側の依頼一覧へ別々の案件として追加します。
-4. クリエイターが依頼ごとの専用案件画面を開き、合意内容を確認します。
-5. PortalProofが合意条件をハッシュ化し、接続したウォレットでPortaldot V3上に発注証明を発行します。
-6. 納品タブで、クリエイターが納品URLのハッシュを記録します。
-7. 支払いタブで、送金元、送金先、金額、成功状態を確認した支払いトランザクションハッシュだけを記録します。
-8. 証明書タブに、コントラクト、注文ID、合意条件ハッシュ、支払いトランザクションハッシュ、QRコードを表示します。
+1. クリエイター専用TOPから、受付作成・仕事管理・依頼ページ確認のいずれかを選びます。
+2. 受付設定でサービス内容とウォレットアドレスを入力し、専用の依頼受付リンクを発行します。
+3. 依頼者はクリエイターTOPへのリンクがない独立した公開ページを開き、サービスを確認して依頼内容とウォレットアドレスを送信します。
+4. 送信された依頼を、クリエイター側の依頼一覧へ別々の案件として追加します。
+5. クリエイターが依頼ごとの専用案件画面を開き、合意内容を確認します。
+6. PortalProofが合意条件をハッシュ化し、接続したウォレットでPortaldot V3上に発注証明を発行します。
+7. 納品タブで、クリエイターが納品URLのハッシュを記録します。
+8. 支払いタブで、送金元、送金先、金額、成功状態を確認した支払いトランザクションハッシュだけを記録します。
+9. 証明書タブに、コントラクト、注文ID、合意条件ハッシュ、支払いトランザクションハッシュ、QRコードを表示します。
 
 ### ローカルでの起動
 
