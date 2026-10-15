@@ -75,9 +75,46 @@ button:disabled {
   padding: 28px 0 48px;
 }
 
+.languageBar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.languageToggle {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.languageToggle button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+}
+
+.languageToggle button + button {
+  border-left: 1px solid var(--line);
+}
+
+.languageToggle button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
 .hero {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 20px;
   border-bottom: 1px solid var(--line);
   padding-bottom: 22px;
@@ -244,5 +281,9 @@ dd {
   .certificate {
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .languageBar {
+    justify-content: space-between;
   }
 }
