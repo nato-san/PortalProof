@@ -51,14 +51,6 @@ const creatorRequestFields = [
   "amount"
 ];
 
-const workflowFields = [
-  ...creatorRequestFields,
-  "clientName",
-  "clientWallet",
-  "requestBrief",
-  "deadline"
-];
-
 export function buildCreatorRequestUrl(baseUrl, draft) {
   const url = new URL(baseUrl);
   url.search = "";
@@ -85,30 +77,42 @@ export function readCreatorRequestUrl(value) {
   return request;
 }
 
-export function buildWorkflowUrl(baseUrl, draft) {
+export function buildJobUrl(baseUrl, requestId) {
   const url = new URL(baseUrl);
   url.search = "";
   url.hash = "";
-  url.searchParams.set("mode", "manage");
+  url.searchParams.set("mode", "job");
   url.searchParams.set("v", "1");
-  for (const field of workflowFields) {
-    url.searchParams.set(field, String(draft[field] || ""));
-  }
+  url.searchParams.set("id", String(requestId || ""));
   return url.toString();
 }
 
-export function readWorkflowUrl(value) {
+export function readJobId(value) {
   const url = new URL(value);
-  if (url.searchParams.get("mode") !== "manage" || url.searchParams.get("v") !== "1") {
+  if (url.searchParams.get("mode") !== "job" || url.searchParams.get("v") !== "1") {
     return null;
   }
+  return url.searchParams.get("id") || null;
+}
 
-  const workflow = Object.fromEntries(
-    workflowFields.map((field) => [field, url.searchParams.get(field) || ""])
-  );
-
-  if (!workflow.creatorName || !workflow.serviceName) return null;
-  return workflow;
+export function createRequestRecord(draft, { id, createdAt }) {
+  return {
+    id,
+    createdAt,
+    status: "new",
+    creatorName: draft.creatorName,
+    serviceName: draft.serviceName,
+    serviceDescription: draft.serviceDescription,
+    creatorWallet: draft.creatorWallet,
+    clientName: draft.clientName,
+    clientWallet: draft.clientWallet,
+    requestBrief: draft.requestBrief,
+    amount: draft.amount,
+    deadline: draft.deadline,
+    deliveryUrl: "",
+    paymentTxHash: "",
+    orderId: ""
+  };
 }
 
 export async function buildProofs(draft) {

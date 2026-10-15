@@ -2,11 +2,12 @@ import assert from "node:assert/strict";
 import {
   PORTALDOT_V3,
   buildCreatorRequestUrl,
-  buildWorkflowUrl,
+  buildJobUrl,
   buildProofs,
+  createRequestRecord,
   emptyDraft,
   readCreatorRequestUrl,
-  readWorkflowUrl,
+  readJobId,
   validateTxEvidence
 } from "../src/domain.js";
 
@@ -33,24 +34,19 @@ assert.equal(new URL(requestUrl).hash, "");
 assert.equal(new URL(requestUrl).searchParams.has("clientWallet"), false);
 assert.equal(readCreatorRequestUrl("https://portalproof.example/app"), null);
 
-const workflowUrl = buildWorkflowUrl(requestUrl, draft);
-const workflowData = readWorkflowUrl(workflowUrl);
+const jobUrl = buildJobUrl(requestUrl, "request-123");
+assert.equal(readJobId(jobUrl), "request-123");
+assert.equal(new URL(jobUrl).searchParams.get("mode"), "job");
+assert.equal(readJobId(requestUrl), null);
 
-assert.equal(workflowData.creatorName, draft.creatorName);
-assert.equal(workflowData.clientName, draft.clientName);
-assert.equal(workflowData.clientWallet, draft.clientWallet);
-assert.equal(workflowData.requestBrief, draft.requestBrief);
-assert.equal(new URL(workflowUrl).searchParams.get("mode"), "manage");
-assert.equal(readWorkflowUrl(requestUrl), null);
-
-const workflowPreview = readWorkflowUrl(buildWorkflowUrl(requestUrl, {
-  ...draft,
-  clientName: "",
-  clientWallet: "",
-  requestBrief: ""
-}));
-assert.equal(workflowPreview.serviceName, draft.serviceName);
-assert.equal(workflowPreview.clientName, "");
+const requestRecord = createRequestRecord(draft, {
+  id: "request-123",
+  createdAt: "2026-10-16T00:00:00.000Z"
+});
+assert.equal(requestRecord.id, "request-123");
+assert.equal(requestRecord.clientName, draft.clientName);
+assert.equal(requestRecord.status, "new");
+assert.equal(requestRecord.deliveryUrl, "");
 
 assert.match(proofs.termsHash, /^0x[a-f0-9]{64}$/);
 assert.match(proofs.deliveryHash, /^0x[a-f0-9]{64}$/);

@@ -214,6 +214,72 @@ button:disabled {
   margin-top: 18px;
 }
 
+.creatorNav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.creatorNav a {
+  position: relative;
+  display: grid;
+  grid-template-columns: 32px 22px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 2px 8px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 48px 12px 12px;
+  color: var(--muted);
+  background: var(--surface);
+  text-decoration: none;
+}
+
+.creatorNav a.active {
+  border-color: var(--accent);
+  color: var(--ink);
+  background: var(--soft);
+}
+
+.creatorNav a > span {
+  display: grid;
+  grid-row: 1 / 3;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--accent);
+  font-weight: 850;
+}
+
+.creatorNav a > svg {
+  grid-row: 1 / 3;
+}
+
+.creatorNav strong,
+.creatorNav small {
+  grid-column: 3;
+}
+
+.creatorNav em {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 13px;
+  color: #fff;
+  background: var(--accent-2);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 850;
+  transform: translateY(-50%);
+}
+
 .journeyStep {
   display: flex;
   align-items: center;
@@ -271,6 +337,195 @@ button:disabled {
   grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr);
   gap: 16px;
   align-items: start;
+}
+
+.publicShell {
+  width: min(1040px, calc(100% - 32px));
+}
+
+.publicHero {
+  max-width: 800px;
+}
+
+.submittedCard {
+  width: min(600px, 100%);
+  margin: 36px auto 0;
+  padding: 36px;
+  text-align: center;
+}
+
+.submittedCard > svg {
+  color: var(--accent);
+}
+
+.submittedCard h2 {
+  margin-top: 14px;
+}
+
+.requestIdBox {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #afd2c7;
+  border-radius: 8px;
+  margin: 22px 0 8px;
+  padding: 12px;
+  background: var(--soft);
+  text-align: left;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 18px;
+  color: var(--accent);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.notFound {
+  max-width: 640px;
+  margin: 60px auto;
+  text-align: center;
+}
+
+.inboxSection {
+  display: grid;
+  gap: 16px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sectionHeading h2,
+.sectionHeading p {
+  margin-top: 0;
+}
+
+.sectionHeading p {
+  max-width: 760px;
+  margin-bottom: 0;
+}
+
+.localNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid #e7c9a6;
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #7a4b16;
+  background: #fff8ef;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.localNote svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.emptyState {
+  display: grid;
+  justify-items: center;
+  min-height: 300px;
+  place-content: center;
+  color: var(--muted);
+  text-align: center;
+}
+
+.emptyState h3 {
+  margin: 14px 0 0;
+  color: var(--ink);
+}
+
+.emptyState p {
+  max-width: 520px;
+}
+
+.requestCards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.requestCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.requestCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.requestCard h3 {
+  margin: 10px 0 0;
+  font-size: 22px;
+}
+
+.requestCard time {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.requestService {
+  margin-bottom: 4px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.requestBrief {
+  flex: 1;
+  margin-top: 6px;
+  line-height: 1.55;
+}
+
+.requestCard dl {
+  grid-template-columns: 100px minmax(0, 1fr);
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.statusBadge {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 9px;
+  color: #795112;
+  background: #fff0cf;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.statusBadge.active {
+  color: #15508b;
+  background: #e6f1ff;
+}
+
+.statusBadge.delivered {
+  color: #684c91;
+  background: #f0e9fa;
+}
+
+.statusBadge.paid {
+  color: var(--accent);
+  background: var(--soft);
+}
+
+.requestSidebar > .statusBadge {
+  margin-bottom: 16px;
 }
 
 .requestLayout,
@@ -589,6 +844,10 @@ dd {
   .stageTabs button span {
     display: none;
   }
+
+  .requestCards {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 560px) {
@@ -607,6 +866,35 @@ dd {
 
   .topActions {
     justify-content: space-between;
+  }
+
+  .creatorNav {
+    grid-template-columns: 1fr;
+  }
+
+  .creatorNav a {
+    min-height: 62px;
+  }
+
+  .sectionHeading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sectionHeading .buttonLink {
+    width: 100%;
+  }
+
+  .submittedCard {
+    padding: 24px 18px;
+  }
+
+  .requestIdBox {
+    grid-template-columns: 1fr auto;
+  }
+
+  .requestIdBox > span {
+    grid-column: 1 / -1;
   }
 
   .journeyStep {

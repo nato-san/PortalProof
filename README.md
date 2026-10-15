@@ -19,7 +19,9 @@ Portaldot V3 supports EVM and Solidity contracts as well as ERC-style applicatio
 - Creator request and client brief input
 - Shareable creator request URL with service details and reference price
 - Dedicated client form opened from the creator's link
-- Three focused screens for setup, client requests, and post-request management
+- A creator dashboard with request-page settings and a multi-request inbox
+- A fully separate public request-submission page for clients
+- A dedicated management workspace for each individual request
 - A tabbed agreement, delivery, payment, and certificate workflow that avoids one long form
 - Terms hash generation
 - Minimal order-proof NFT contract on the Portaldot V3 EVM
@@ -67,13 +69,14 @@ flowchart LR
 
 ### User Flow
 
-1. On the setup screen, the creator enters service details and a wallet address, then publishes a dedicated request link.
-2. On the client-facing screen, the client reviews the service and enters the request details and wallet address.
-3. The request opens a separate management screen for both parties to review the agreement.
-4. PortalProof hashes the agreed terms and the connected wallet mints an order proof on Portaldot V3.
-5. The creator records a delivery URL hash in the delivery tab.
-6. A verified payment transaction hash is recorded in the payment tab only after the sender, recipient, amount, and success status are checked.
-7. The certificate tab shows the contract, order ID, terms hash, payment transaction hash, and QR code.
+1. In the creator dashboard, the creator enters service details and a wallet address, then publishes a dedicated request link.
+2. The client opens a fully separate public page, reviews the service, and submits the request details and wallet address.
+3. Each submission appears as a separate item in the creator's request inbox.
+4. The creator opens the request's dedicated management workspace to review the agreement.
+5. PortalProof hashes the agreed terms and the connected wallet mints an order proof on Portaldot V3.
+6. The creator records a delivery URL hash in the delivery tab.
+7. A verified payment transaction hash is recorded in the payment tab only after the sender, recipient, amount, and success status are checked.
+8. The certificate tab shows the contract, order ID, terms hash, payment transaction hash, and QR code.
 
 ### Local Setup
 
@@ -115,7 +118,7 @@ Open-source dependencies are listed in `package.json`.
 ### Known Limitations
 
 - Payment transaction hash verification is not fully automated yet.
-- The current version prioritizes verifiable order-proof transactions over a polished user interface.
+- Until the Portaldot contract is deployed, incoming requests are stored only in the current browser for prototype testing and do not sync across devices.
 - The application must not claim payment success from an arbitrary transaction hash.
 
 ---
@@ -141,7 +144,9 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 - クリエイター受付情報と依頼内容の入力
 - サービス内容と参考価格を含む共有可能なクリエイター専用依頼受付URL
 - クリエイターのリンクから開く依頼者専用フォーム
-- 受付前・受付中・受付後を分けた3つの専用画面
+- 受付設定と複数の依頼一覧を備えたクリエイター管理画面
+- 管理画面から完全に分離した依頼者専用の公開送信ページ
+- 依頼ごとに独立した案件管理画面
 - 長いフォームを避けるため、合意・納品・支払い・証明書を切り替える案件管理画面
 - 合意条件ハッシュの生成
 - Portaldot V3 EVM上の最小発注証明NFTコントラクト
@@ -189,13 +194,14 @@ flowchart LR
 
 ### 利用の流れ
 
-1. 受付前画面で、クリエイターがサービス内容とウォレットアドレスを入力し、専用の依頼受付リンクを発行します。
-2. 依頼者専用画面で、依頼者がサービスを確認して依頼内容とウォレットアドレスを入力します。
-3. 依頼内容を、双方が合意内容を確認するための独立した案件管理画面へ引き継ぎます。
-4. PortalProofが合意条件をハッシュ化し、接続したウォレットでPortaldot V3上に発注証明を発行します。
-5. 納品タブで、クリエイターが納品URLのハッシュを記録します。
-6. 支払いタブで、送金元、送金先、金額、成功状態を確認した支払いトランザクションハッシュだけを記録します。
-7. 証明書タブに、コントラクト、注文ID、合意条件ハッシュ、支払いトランザクションハッシュ、QRコードを表示します。
+1. クリエイター管理画面で、サービス内容とウォレットアドレスを入力し、専用の依頼受付リンクを発行します。
+2. 依頼者は完全に独立した公開ページを開き、サービスを確認して依頼内容とウォレットアドレスを送信します。
+3. 送信された依頼を、クリエイター側の依頼一覧へ別々の案件として追加します。
+4. クリエイターが依頼ごとの専用案件画面を開き、合意内容を確認します。
+5. PortalProofが合意条件をハッシュ化し、接続したウォレットでPortaldot V3上に発注証明を発行します。
+6. 納品タブで、クリエイターが納品URLのハッシュを記録します。
+7. 支払いタブで、送金元、送金先、金額、成功状態を確認した支払いトランザクションハッシュだけを記録します。
+8. 証明書タブに、コントラクト、注文ID、合意条件ハッシュ、支払いトランザクションハッシュ、QRコードを表示します。
 
 ### ローカルでの起動
 
@@ -237,5 +243,5 @@ AI支援は、実装補助、ドキュメント作成、デバッグに使用し
 ### 現在の制限事項
 
 - 支払いトランザクションハッシュの完全自動検証はまだ未実装です。
-- 現在のバージョンでは、UIの作り込みより検証可能な発注証明トランザクションを優先しています。
+- Portaldotコントラクトをデプロイするまでは、試作用の受信依頼を現在のブラウザ内だけに保存するため、別端末とは同期されません。
 - 任意のトランザクションハッシュだけで支払い成功とは表示しません。
