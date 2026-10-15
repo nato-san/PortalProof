@@ -107,7 +107,7 @@ export function readWorkflowUrl(value) {
     workflowFields.map((field) => [field, url.searchParams.get(field) || ""])
   );
 
-  if (!workflow.creatorName || !workflow.serviceName || !workflow.clientName) return null;
+  if (!workflow.creatorName || !workflow.serviceName) return null;
   return workflow;
 }
 

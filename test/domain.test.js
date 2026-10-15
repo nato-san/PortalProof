@@ -43,6 +43,15 @@ assert.equal(workflowData.requestBrief, draft.requestBrief);
 assert.equal(new URL(workflowUrl).searchParams.get("mode"), "manage");
 assert.equal(readWorkflowUrl(requestUrl), null);
 
+const workflowPreview = readWorkflowUrl(buildWorkflowUrl(requestUrl, {
+  ...draft,
+  clientName: "",
+  clientWallet: "",
+  requestBrief: ""
+}));
+assert.equal(workflowPreview.serviceName, draft.serviceName);
+assert.equal(workflowPreview.clientName, "");
+
 assert.match(proofs.termsHash, /^0x[a-f0-9]{64}$/);
 assert.match(proofs.deliveryHash, /^0x[a-f0-9]{64}$/);
 assert.notEqual(proofs.termsHash, proofs.deliveryHash);

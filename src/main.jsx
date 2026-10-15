@@ -37,6 +37,7 @@ const messages = {
     agreementTab: "Agreement", deliveryTab: "Delivery", paymentTab: "Payment", certificateTab: "Certificate",
     agreementHash: "Agreement proof", agreementHelp: "Confirm the request summary before creating its on-chain order proof.", termsHash: "Terms hash",
     copyTermsHash: "Copy terms hash", mintOrder: "Mint order proof on Portaldot V3", deployFirst: "Deploy the contract and set VITE_PORTALPROOF_CONTRACT_ADDRESS first.",
+    agreementRequirements: "Complete both wallet addresses and the request details before minting.",
     delivery: "Record delivery", deliveryHelp: "Add the delivery URL. PortalProof records its hash, not the file itself.", orderId: "Order ID",
     createdAfterMint: "Created after minting", deliveryUrl: "Delivery URL", deliveryHash: "Delivery hash", recordDelivery: "Record delivery",
     paymentEvidence: "Record payment evidence", paymentHelp: "Reference the real transfer made by the client after checking its details.",
@@ -70,6 +71,7 @@ const messages = {
     agreementTab: "合意", deliveryTab: "納品", paymentTab: "支払い", certificateTab: "証明書", agreementHash: "合意内容の証明",
     agreementHelp: "依頼概要を確認してから、オンチェーンの発注証明を作成します。", termsHash: "合意条件ハッシュ", copyTermsHash: "合意条件ハッシュをコピー",
     mintOrder: "Portaldot V3上で発注証明を発行", deployFirst: "先にコントラクトをデプロイし、VITE_PORTALPROOF_CONTRACT_ADDRESSを設定してください。",
+    agreementRequirements: "発行前に、双方のウォレットと依頼内容を入力してください。",
     delivery: "納品を記録", deliveryHelp: "納品先URLを入力します。ファイル自体ではなく、そのハッシュを記録します。", orderId: "注文ID",
     createdAfterMint: "発行後に作成されます", deliveryUrl: "納品URL", deliveryHash: "納品ハッシュ", recordDelivery: "納品を記録",
     paymentEvidence: "支払い証跡を記録", paymentHelp: "依頼者から実際に行われた送金の内容を確認して記録します。", paymentTxHash: "支払いトランザクションハッシュ",
@@ -104,6 +106,7 @@ function App() {
   const baseUrl = `${location.origin}${location.pathname}`;
   const requestLinkReady = Boolean(draft.creatorName && draft.serviceName && ethers.isAddress(draft.creatorWallet));
   const requestReady = Boolean(draft.clientName && draft.requestBrief && ethers.isAddress(draft.clientWallet));
+  const agreementReady = Boolean(requestReady && ethers.isAddress(draft.creatorWallet));
   const requestUrl = useMemo(() => buildCreatorRequestUrl(baseUrl, draft), [draft.creatorName, draft.serviceName, draft.serviceDescription, draft.creatorWallet, draft.amount]);
   const workflowUrl = useMemo(() => buildWorkflowUrl(baseUrl, draft), [draft.creatorName, draft.serviceName, draft.serviceDescription, draft.creatorWallet, draft.clientName, draft.clientWallet, draft.requestBrief, draft.amount, draft.deadline]);
   const paymentEvidence = useMemo(() => validateTxEvidence({ paymentTxHash: draft.paymentTxHash, expectedFrom: draft.clientWallet, expectedTo: draft.creatorWallet, expectedAmount: draft.amount }), [draft]);
@@ -162,8 +165,8 @@ function App() {
   const statusText = `${t(status.key, status.values)}${status.detail ? `: ${status.detail}` : ""}`;
   const steps = [
     { id: "setup", label: t("stepSetup"), help: t("stepSetupHelp"), href: baseUrl },
-    { id: "request", label: t("stepRequest"), help: t("stepRequestHelp"), href: requestLinkReady ? requestUrl : "" },
-    { id: "manage", label: t("stepManage"), help: t("stepManageHelp"), href: requestReady ? workflowUrl : "" }
+    { id: "request", label: t("stepRequest"), help: t("stepRequestHelp"), href: requestUrl },
+    { id: "manage", label: t("stepManage"), help: t("stepManageHelp"), href: workflowUrl }
   ];
 
   return <main className="shell">
@@ -189,7 +192,7 @@ function App() {
     {page === "manage" && <section className="manageLayout">
       <aside className="panel requestSidebar"><p className="eyebrow">{t("summary")}</p><h2>{draft.serviceName}</h2><dl><dt>{t("creator")}</dt><dd>{draft.creatorName}</dd><dt>{t("client")}</dt><dd>{draft.clientName}</dd><dt>{t("amount")}</dt><dd>{draft.amount} tPOTv3</dd><dt>{t("deadline")}</dt><dd>{draft.deadline}</dd></dl><p className="briefText">{draft.requestBrief}</p><div className="activityCompact"><strong>{t("activityLog")}</strong>{events.length === 0 ? <small>{t("noActivity")}</small> : events.map((event) => <a key={event.txHash} href={`https://node-console.feso-apps.xyz/#/explorer/query/${event.txHash}`} target="_blank" rel="noreferrer"><ExternalLink size={14}/>{event.label}</a>)}</div></aside>
       <div className="workflowArea"><nav className="stageTabs">{["agreement", "delivery", "payment", "certificate"].map((stage, index) => <button key={stage} className={manageStage === stage ? "active" : ""} onClick={() => setManageStage(stage)}><span>{index + 1}</span>{t(`${stage}Tab`)}</button>)}</nav>
-        {manageStage === "agreement" && <section className="panel stagePanel"><p className="eyebrow">1 / 4</p><h2>{t("agreementHash")}</h2><p className="muted">{t("agreementHelp")}</p><div className="hashBox"><span>{t("termsHash")}</span><code>{proofs?.termsHash}</code><button className="icon" aria-label={t("copyTermsHash")} onClick={() => copy(proofs?.termsHash || "")}><Copy size={16}/></button></div><button className="primary wide" onClick={createOnChainOrder} disabled={!contractAddress}><FileCheck2 size={18}/>{t("mintOrder")}</button>{!contractAddress && <p className="formHint">{t("deployFirst")}</p>}</section>}
+        {manageStage === "agreement" && <section className="panel stagePanel"><p className="eyebrow">1 / 4</p><h2>{t("agreementHash")}</h2><p className="muted">{t("agreementHelp")}</p><div className="hashBox"><span>{t("termsHash")}</span><code>{proofs?.termsHash}</code><button className="icon" aria-label={t("copyTermsHash")} onClick={() => copy(proofs?.termsHash || "")}><Copy size={16}/></button></div><button className="primary wide" onClick={createOnChainOrder} disabled={!contractAddress || !agreementReady}><FileCheck2 size={18}/>{t("mintOrder")}</button>{!contractAddress ? <p className="formHint">{t("deployFirst")}</p> : !agreementReady && <p className="formHint">{t("agreementRequirements")}</p>}</section>}
         {manageStage === "delivery" && <section className="panel stagePanel"><p className="eyebrow">2 / 4</p><h2>{t("delivery")}</h2><p className="muted">{t("deliveryHelp")}</p><label>{t("orderId")}<input value={orderId} onChange={(event) => setOrderId(event.target.value)} placeholder={t("createdAfterMint")}/></label><label>{t("deliveryUrl")}<input value={draft.deliveryUrl} onChange={update("deliveryUrl")}/></label><div className="hashBox"><span>{t("deliveryHash")}</span><code>{proofs?.deliveryHash}</code></div><button className="secondary wide" onClick={markDelivered} disabled={!orderId || !contractAddress}><Link2 size={18}/>{t("recordDelivery")}</button></section>}
         {manageStage === "payment" && <section className="panel stagePanel"><p className="eyebrow">3 / 4</p><h2>{t("paymentEvidence")}</h2><p className="muted">{t("paymentHelp")}</p><label>{t("orderId")}<input value={orderId} onChange={(event) => setOrderId(event.target.value)} placeholder={t("createdAfterMint")}/></label><label>{t("paymentTxHash")}<input value={draft.paymentTxHash} onChange={update("paymentTxHash")} placeholder="0x..."/></label><ul className="checks">{Object.entries(paymentEvidence.checks).map(([key, value]) => <li key={key} className={value ? "ok" : ""}><CheckCircle2 size={15}/>{t(checkMessageKeys[key])}</li>)}</ul><button className="secondary wide" onClick={recordPayment} disabled={!orderId || !contractAddress}>{t("recordPayment")}</button><p className="formHint">{t("paymentWarning")}</p></section>}
         {manageStage === "certificate" && <section className="panel stagePanel certificatePanel"><p className="eyebrow">4 / 4</p><h2>{t("certificatePreview")}</h2><p className="muted">{t("certificateHelp")}</p><div className="certificateBody"><dl><dt>{t("creator")}</dt><dd>{draft.creatorName}</dd><dt>{t("client")}</dt><dd>{draft.clientName}</dd><dt>{t("contract")}</dt><dd>{contractAddress || t("notDeployed")}</dd><dt>{t("order")}</dt><dd>{orderId || t("notMinted")}</dd><dt>{t("terms")}</dt><dd><code>{proofs?.termsHash}</code></dd><dt>{t("payment")}</dt><dd><code>{draft.paymentTxHash || t("notRecorded")}</code></dd></dl>{qr && <img src={qr} alt={t("qrAlt")}/>}</div></section>}
