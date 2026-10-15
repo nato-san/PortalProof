@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import {
   PORTALDOT_V3,
   buildCreatorRequestUrl,
+  buildWorkflowUrl,
   buildProofs,
   emptyDraft,
   readCreatorRequestUrl,
+  readWorkflowUrl,
   validateTxEvidence
 } from "../src/domain.js";
 
@@ -30,6 +32,16 @@ assert.equal(requestData.amount, draft.amount);
 assert.equal(new URL(requestUrl).hash, "");
 assert.equal(new URL(requestUrl).searchParams.has("clientWallet"), false);
 assert.equal(readCreatorRequestUrl("https://portalproof.example/app"), null);
+
+const workflowUrl = buildWorkflowUrl(requestUrl, draft);
+const workflowData = readWorkflowUrl(workflowUrl);
+
+assert.equal(workflowData.creatorName, draft.creatorName);
+assert.equal(workflowData.clientName, draft.clientName);
+assert.equal(workflowData.clientWallet, draft.clientWallet);
+assert.equal(workflowData.requestBrief, draft.requestBrief);
+assert.equal(new URL(workflowUrl).searchParams.get("mode"), "manage");
+assert.equal(readWorkflowUrl(requestUrl), null);
 
 assert.match(proofs.termsHash, /^0x[a-f0-9]{64}$/);
 assert.match(proofs.deliveryHash, /^0x[a-f0-9]{64}$/);

@@ -95,7 +95,29 @@ button:disabled {
 .shell {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 28px 0 48px;
+  padding: 20px 0 48px;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 48px;
+  margin-bottom: 20px;
+}
+
+.brand {
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.topActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .languageBar {
@@ -149,6 +171,18 @@ button:disabled {
   letter-spacing: 0;
 }
 
+.compactHero {
+  padding: 8px 0 20px;
+}
+
+.compactHero h1 {
+  font-size: clamp(30px, 5vw, 42px);
+}
+
+.compactHero p:last-child {
+  margin-bottom: 0;
+}
+
 .hero p {
   max-width: 720px;
   color: var(--muted);
@@ -171,6 +205,197 @@ button:disabled {
   border-radius: 8px;
   margin: 18px 0;
   padding: 14px 16px;
+}
+
+.journey {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.journeyStep {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--muted);
+  background: var(--surface);
+  text-decoration: none;
+}
+
+.journeyStep.current {
+  border-color: var(--accent);
+  color: var(--ink);
+  background: var(--soft);
+}
+
+.journeyStep.complete {
+  color: var(--accent);
+}
+
+.journeyStep.locked {
+  opacity: 0.55;
+}
+
+.journeyStep > span:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.journeyStep small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stepNumber {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--accent);
+  font-weight: 850;
+}
+
+.pageGrid,
+.manageLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.requestLayout,
+.manageLayout {
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
+}
+
+.actionPanel,
+.requestSidebar {
+  position: sticky;
+  top: 16px;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(120px, 1fr);
+  gap: 12px;
+}
+
+.fieldRow label {
+  min-width: 0;
+}
+
+.formHint {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.serviceCard p:not(.eyebrow),
+.briefText {
+  line-height: 1.6;
+}
+
+.serviceCard dl,
+.requestSidebar dl {
+  grid-template-columns: 120px minmax(0, 1fr);
+  margin: 22px 0;
+}
+
+.briefText {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 0;
+}
+
+.workflowArea {
+  min-width: 0;
+}
+
+.stageTabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background: var(--surface);
+}
+
+.stageTabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.stageTabs button + button {
+  border-left: 1px solid var(--line);
+}
+
+.stageTabs button.active {
+  color: #fff;
+  background: var(--accent);
+}
+
+.stageTabs button span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 11px;
+}
+
+.stagePanel {
+  min-height: 390px;
+}
+
+.activityCompact {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.activityCompact small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.activityCompact a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.certificateBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 20px;
+  align-items: start;
+}
+
+.certificateBody img {
+  width: 160px;
+  height: 160px;
+  border: 1px solid var(--line);
 }
 
 .grid {
@@ -330,7 +555,10 @@ dd {
 @media (max-width: 820px) {
   .hero,
   .grid,
-  .certificate {
+  .certificate,
+  .pageGrid,
+  .manageLayout,
+  .certificateBody {
     grid-template-columns: 1fr;
     flex-direction: column;
   }
@@ -341,5 +569,74 @@ dd {
 
   .requestLinkActions {
     grid-template-columns: 1fr;
+  }
+
+  .actionPanel,
+  .requestSidebar {
+    position: static;
+  }
+
+  .journeyStep small {
+    display: none;
+  }
+
+  .stageTabs button {
+    gap: 4px;
+    padding: 0 6px;
+    font-size: 11px;
+  }
+
+  .stageTabs button span {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .shell {
+    width: min(100% - 20px, 1180px);
+  }
+
+  .topBar,
+  .topActions {
+    align-items: stretch;
+  }
+
+  .topBar {
+    flex-direction: column;
+  }
+
+  .topActions {
+    justify-content: space-between;
+  }
+
+  .journeyStep {
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 6px;
+  }
+
+  .journeyStep > span:last-child {
+    display: grid;
+  }
+
+  .journeyStep strong {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .stepNumber {
+    flex-basis: 26px;
+    width: 26px;
+    height: 26px;
+  }
+
+  .fieldRow {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .notice {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

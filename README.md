@@ -19,6 +19,8 @@ Portaldot V3 supports EVM and Solidity contracts as well as ERC-style applicatio
 - Creator request and client brief input
 - Shareable creator request URL with service details and reference price
 - Dedicated client form opened from the creator's link
+- Three focused screens for setup, client requests, and post-request management
+- A tabbed agreement, delivery, payment, and certificate workflow that avoids one long form
 - Terms hash generation
 - Minimal order-proof NFT contract on the Portaldot V3 EVM
 - Delivery URL hash recording
@@ -65,13 +67,13 @@ flowchart LR
 
 ### User Flow
 
-1. The creator enters service details and a wallet address.
-2. The client enters request details and a wallet address.
-3. PortalProof hashes the agreed terms.
-4. The connected wallet mints an order proof on Portaldot V3.
-5. The creator records a delivery URL hash.
-6. A verified payment transaction hash is recorded only after the sender, recipient, amount, and success status are checked.
-7. The certificate shows the contract, order ID, terms hash, payment transaction hash, and QR code.
+1. On the setup screen, the creator enters service details and a wallet address, then publishes a dedicated request link.
+2. On the client-facing screen, the client reviews the service and enters the request details and wallet address.
+3. The request opens a separate management screen for both parties to review the agreement.
+4. PortalProof hashes the agreed terms and the connected wallet mints an order proof on Portaldot V3.
+5. The creator records a delivery URL hash in the delivery tab.
+6. A verified payment transaction hash is recorded in the payment tab only after the sender, recipient, amount, and success status are checked.
+7. The certificate tab shows the contract, order ID, terms hash, payment transaction hash, and QR code.
 
 ### Local Setup
 
@@ -139,6 +141,8 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 - クリエイター受付情報と依頼内容の入力
 - サービス内容と参考価格を含む共有可能なクリエイター専用依頼受付URL
 - クリエイターのリンクから開く依頼者専用フォーム
+- 受付前・受付中・受付後を分けた3つの専用画面
+- 長いフォームを避けるため、合意・納品・支払い・証明書を切り替える案件管理画面
 - 合意条件ハッシュの生成
 - Portaldot V3 EVM上の最小発注証明NFTコントラクト
 - 納品URLハッシュの記録
@@ -185,13 +189,13 @@ flowchart LR
 
 ### 利用の流れ
 
-1. クリエイターがサービス内容とウォレットアドレスを入力します。
-2. 依頼者が依頼内容とウォレットアドレスを入力します。
-3. PortalProofが合意条件をハッシュ化します。
-4. 接続したウォレットでPortaldot V3上に発注証明を発行します。
-5. クリエイターが納品URLのハッシュを記録します。
-6. 送金元、送金先、金額、成功状態を確認した支払いトランザクションハッシュだけを記録します。
-7. 証明書にコントラクト、注文ID、合意条件ハッシュ、支払いトランザクションハッシュ、QRコードを表示します。
+1. 受付前画面で、クリエイターがサービス内容とウォレットアドレスを入力し、専用の依頼受付リンクを発行します。
+2. 依頼者専用画面で、依頼者がサービスを確認して依頼内容とウォレットアドレスを入力します。
+3. 依頼内容を、双方が合意内容を確認するための独立した案件管理画面へ引き継ぎます。
+4. PortalProofが合意条件をハッシュ化し、接続したウォレットでPortaldot V3上に発注証明を発行します。
+5. 納品タブで、クリエイターが納品URLのハッシュを記録します。
+6. 支払いタブで、送金元、送金先、金額、成功状態を確認した支払いトランザクションハッシュだけを記録します。
+7. 証明書タブに、コントラクト、注文ID、合意条件ハッシュ、支払いトランザクションハッシュ、QRコードを表示します。
 
 ### ローカルでの起動
 

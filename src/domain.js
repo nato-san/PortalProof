@@ -51,6 +51,14 @@ const creatorRequestFields = [
   "amount"
 ];
 
+const workflowFields = [
+  ...creatorRequestFields,
+  "clientName",
+  "clientWallet",
+  "requestBrief",
+  "deadline"
+];
+
 export function buildCreatorRequestUrl(baseUrl, draft) {
   const url = new URL(baseUrl);
   url.search = "";
@@ -75,6 +83,32 @@ export function readCreatorRequestUrl(value) {
 
   if (!request.creatorName || !request.serviceName) return null;
   return request;
+}
+
+export function buildWorkflowUrl(baseUrl, draft) {
+  const url = new URL(baseUrl);
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set("mode", "manage");
+  url.searchParams.set("v", "1");
+  for (const field of workflowFields) {
+    url.searchParams.set(field, String(draft[field] || ""));
+  }
+  return url.toString();
+}
+
+export function readWorkflowUrl(value) {
+  const url = new URL(value);
+  if (url.searchParams.get("mode") !== "manage" || url.searchParams.get("v") !== "1") {
+    return null;
+  }
+
+  const workflow = Object.fromEntries(
+    workflowFields.map((field) => [field, url.searchParams.get(field) || ""])
+  );
+
+  if (!workflow.creatorName || !workflow.serviceName || !workflow.clientName) return null;
+  return workflow;
 }
 
 export async function buildProofs(draft) {
