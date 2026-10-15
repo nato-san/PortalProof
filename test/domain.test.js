@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
-import { buildProofs, emptyDraft, validateTxEvidence } from "../src/domain.js";
+import { PORTALDOT_V3, buildProofs, emptyDraft, validateTxEvidence } from "../src/domain.js";
+
+assert.equal(PORTALDOT_V3.chainId, "0x190f1ca9");
+assert.equal(PORTALDOT_V3.nativeCurrency.decimals, 14);
 
 const draft = {
   ...emptyDraft(),

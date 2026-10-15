@@ -1,6 +1,5 @@
 export const PORTALDOT_V3 = {
-  chainIdHex: "0x190f1ca9",
-  chainIdDecimal: 420420777,
+  chainId: "0x190f1ca9",
   chainName: "PortaldotV3 Testnet",
   rpcUrls: ["https://testnetv3-eth-rpc.feso-apps.xyz"],
   nativeCurrency: {

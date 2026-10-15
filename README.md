@@ -88,7 +88,13 @@ The compiled artifact is included at `artifacts/PortalProofOrder.json` for the M
 2. Get `tPOTv3` for the deployer account.
 3. Copy `.env.example` to `.env`.
 4. Set `DEPLOYER_PRIVATE_KEY`.
-5. Run:
+5. Run the read-only network and wallet preflight:
+
+```bash
+npm run check:portaldot
+```
+
+6. After confirming the chain ID, deployer address, and balance, deploy the contract:
 
 ```bash
 npm run deploy:portaldot
@@ -200,7 +206,13 @@ MVP用デプロイスクリプトで使うコンパイル済みファイルを`a
 2. デプロイ用アカウントに`tPOTv3`を用意します。
 3. `.env.example`を`.env`へコピーします。
 4. `DEPLOYER_PRIVATE_KEY`を設定します。
-5. 次のコマンドを実行します。
+5. 読み取り専用のネットワーク・ウォレット事前確認を実行します。
+
+```bash
+npm run check:portaldot
+```
+
+6. チェーンID、デプロイ用アドレス、残高を確認してからコントラクトをデプロイします。
 
 ```bash
 npm run deploy:portaldot
