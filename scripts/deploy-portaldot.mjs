@@ -17,7 +17,7 @@ try {
 }
 
 const EXPECTED_CHAIN_ID = 420420777n;
-const rpcUrl = process.env.VITE_PORTALDOT_RPC_URL || "https://testnetv3-eth-rpc.feso-apps.xyz";
+const rpcUrl = process.env.VITE_PORTALDOT_RPC_URL || "https://test-evm-rpc-v3.portaldot.dev";
 const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
 const checkOnly = process.argv.includes("--check-only");
 

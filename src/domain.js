@@ -1,7 +1,7 @@
 export const PORTALDOT_V3 = {
   chainId: "0x190f1ca9",
   chainName: "PortaldotV3 Testnet",
-  rpcUrls: ["https://testnetv3-eth-rpc.feso-apps.xyz"],
+  rpcUrls: ["https://test-evm-rpc-v3.portaldot.dev"],
   nativeCurrency: {
     name: "tPOTv3",
     symbol: "tPOTv3",

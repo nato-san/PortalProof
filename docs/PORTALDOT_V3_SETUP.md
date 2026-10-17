@@ -9,20 +9,20 @@ Add a custom network:
 | Field | Value |
 | --- | --- |
 | Network name | PortaldotV3 Testnet |
-| RPC URL | https://testnetv3-eth-rpc.feso-apps.xyz |
+| RPC URL | https://test-evm-rpc-v3.portaldot.dev |
 | Chain ID | 420420777 |
 | Currency symbol | tPOTv3 |
-| Block explorer URL | Leave empty |
+| Block explorer URL | https://node-console.portaldot.dev/ |
 
 日本語訳:
 
 | 項目 | 値 |
 | --- | --- |
 | ネットワーク名 | PortaldotV3 Testnet |
-| RPC URL | https://testnetv3-eth-rpc.feso-apps.xyz |
+| RPC URL | https://test-evm-rpc-v3.portaldot.dev |
 | Chain ID | 420420777 |
 | 通貨シンボル | tPOTv3 |
-| ブロックエクスプローラーURL | 空欄 |
+| ブロックエクスプローラーURL | https://node-console.portaldot.dev/ |
 
 ## Funding the Deployer / デプロイ用アカウントへの送金
 
@@ -37,8 +37,8 @@ Steps:
 1. Open MetaMask and copy the EVM deployer address.
 2. 日本語訳: MetaMaskを開き、EVMデプロイ用アドレスをコピーします。
 
-3. Open the Portaldot Node Explorer.
-4. 日本語訳: Portaldot Node Explorerを開きます。
+3. Open the Portaldot Node Explorer at `https://node-console.portaldot.dev/`.
+4. 日本語訳: `https://node-console.portaldot.dev/`でPortaldotノードエクスプローラーを開きます。
 
 5. Go to `Developer -> Runtime calls -> reviveApi -> accountId`.
 6. 日本語訳: `Developer -> Runtime calls -> reviveApi -> accountId`へ進みます。

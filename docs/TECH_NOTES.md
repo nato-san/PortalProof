@@ -6,7 +6,12 @@ The official Portaldot V3 guide lists:
 
 日本語訳: 公式Portaldot V3ガイドには以下が記載されています。
 
-- EVM RPC: `https://testnetv3-eth-rpc.feso-apps.xyz`
+- Native RPC: `wss://test-node-v3.portaldot.dev`
+- 日本語訳: ネイティブRPC: `wss://test-node-v3.portaldot.dev`
+- EVM RPC: `https://test-evm-rpc-v3.portaldot.dev`
+- 日本語訳: EVM RPC: `https://test-evm-rpc-v3.portaldot.dev`
+- Node Explorer: `https://node-console.portaldot.dev/`
+- 日本語訳: ノードエクスプローラー: `https://node-console.portaldot.dev/`
 - Chain ID: `420420777`
 - Token: `tPOTv3`
 - Solidity contracts can be deployed using regular EVM tooling.

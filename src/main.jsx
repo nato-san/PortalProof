@@ -404,7 +404,7 @@ function App() {
 
   useEffect(() => {
     const value = jobDraft?.paymentTxHash
-      ? `https://node-console.feso-apps.xyz/#/explorer/query/${jobDraft.paymentTxHash}`
+      ? `https://node-console.portaldot.dev/#/explorer/query/${jobDraft.paymentTxHash}`
       : "PortalProof";
     QRCode.toDataURL(value, { margin: 1, width: 180 }).then(setQr);
   }, [jobDraft?.paymentTxHash]);
@@ -581,7 +581,7 @@ function App() {
           <p className="eyebrow">{t("summary")}</p><h2>{jobDraft.serviceName}</h2>
           <dl><dt>{t("creator")}</dt><dd>{jobDraft.creatorName}</dd><dt>{t("client")}</dt><dd>{jobDraft.clientName}</dd><dt>{t("amount")}</dt><dd>{jobDraft.amount} tPOTv3</dd><dt>{t("deadline")}</dt><dd>{jobDraft.deadline}</dd></dl>
           <p className="briefText">{jobDraft.requestBrief}</p>
-          <div className="activityCompact"><strong>{t("activityLog")}</strong>{events.length === 0 ? <small>{t("noActivity")}</small> : events.map((event) => <a key={event.txHash} href={`https://node-console.feso-apps.xyz/#/explorer/query/${event.txHash}`} target="_blank" rel="noreferrer"><ExternalLink size={14} />{event.label}</a>)}</div>
+          <div className="activityCompact"><strong>{t("activityLog")}</strong>{events.length === 0 ? <small>{t("noActivity")}</small> : events.map((event) => <a key={event.txHash} href={`https://node-console.portaldot.dev/#/explorer/query/${event.txHash}`} target="_blank" rel="noreferrer"><ExternalLink size={14} />{event.label}</a>)}</div>
         </aside>
         <div className="workflowArea">
           <nav className="stageTabs">{["agreement", "delivery", "payment", "certificate"].map((stage, index) => <button key={stage} className={manageStage === stage ? "active" : ""} onClick={() => setManageStage(stage)}><span>{index + 1}</span>{t(`${stage}Tab`)}</button>)}</nav>

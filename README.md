@@ -36,7 +36,9 @@ Portaldot V3 supports EVM and Solidity contracts as well as ERC-style applicatio
 According to the official Portaldot V3 guide:
 
 - Network: `PortaldotV3 Testnet`
-- RPC: `https://testnetv3-eth-rpc.feso-apps.xyz`
+- Native RPC: `wss://test-node-v3.portaldot.dev`
+- EVM RPC: `https://test-evm-rpc-v3.portaldot.dev`
+- Node Explorer: `https://node-console.portaldot.dev/`
 - Chain ID: `420420777`
 - Currency: `tPOTv3`
 - Native token decimals: `14`
@@ -163,7 +165,9 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 Portaldot V3公式ガイドに記載された設定は次のとおりです。
 
 - ネットワーク: `PortaldotV3 Testnet`
-- RPC: `https://testnetv3-eth-rpc.feso-apps.xyz`
+- ネイティブRPC: `wss://test-node-v3.portaldot.dev`
+- EVM RPC: `https://test-evm-rpc-v3.portaldot.dev`
+- ノードエクスプローラー: `https://node-console.portaldot.dev/`
 - チェーンID: `420420777`
 - 通貨: `tPOTv3`
 - ネイティブトークンの小数桁: `14`
