@@ -120,6 +120,42 @@ button:disabled {
   gap: 10px;
 }
 
+.modeControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.modeToggle {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.modeToggle button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 0;
+  padding: 0 10px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+}
+
+.modeToggle button + button {
+  border-left: 1px solid var(--line);
+}
+
+.modeToggle button.active {
+  color: #fff;
+  background: var(--accent-2);
+}
+
 .languageBar {
   display: flex;
   justify-content: flex-end;
@@ -985,6 +1021,20 @@ dd {
 
   .topActions {
     justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .modeControl {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .modeToggle {
+    flex: 1;
+  }
+
+  .modeToggle button {
+    flex: 1;
   }
 
   .creatorNav {

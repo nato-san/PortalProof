@@ -21,6 +21,7 @@ Portaldot V3 supports EVM and Solidity contracts as well as ERC-style applicatio
 - Dedicated client form opened from the creator's link
 - A creator dashboard with request-page settings and a multi-request inbox
 - A creator-only home screen linking to request setup, job management, and the public-page preview
+- A visible local-demo / Portaldot V3 mode switch that prevents accidental on-chain writes while working locally
 - A fully separate public request-submission page for clients
 - A dedicated management workspace for each individual request
 - A tabbed agreement, delivery, payment, and certificate workflow that avoids one long form
@@ -150,6 +151,7 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 - クリエイターのリンクから開く依頼者専用フォーム
 - 受付設定と複数の依頼一覧を備えたクリエイター管理画面
 - 受付作成・仕事管理・依頼ページ確認へ移動するクリエイター専用TOP
+- ローカル作業中の誤送信を防ぐ、ローカル実演／Portaldot V3モード切り替え
 - 管理画面から完全に分離した依頼者専用の公開送信ページ
 - 依頼ごとに独立した案件管理画面
 - 長いフォームを避けるため、合意・納品・支払い・証明書を切り替える案件管理画面

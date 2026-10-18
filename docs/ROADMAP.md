@@ -1,5 +1,23 @@
 # Roadmap / 開発ロードマップ
 
+## Active Work / 現在の作業
+
+- [ ] Confirm the hackathon test-token distribution to the submitted native POT address.
+- 日本語訳: 提出済みのネイティブPOTアドレスへのハッカソン用テストトークン配布を確認する。
+- Status: waiting on the Portaldot team; the balance was still zero after refreshing the chain metadata on October 18, 2026.
+- 日本語訳: 状態はPortaldot運営待ち。2026年10月18日にチェーン情報を更新した後も残高はゼロ。
+- Resume condition: the native account receives POT and a small amount can be transferred to the mapped EVM account.
+- 日本語訳: 再開条件は、ネイティブ口座でPOTを受け取り、EVM口座に対応する変換先へ少量を送れること。
+
+- [x] Add a visible local-demo / Portaldot V3 execution-mode switch.
+- 日本語訳: ローカル実演／Portaldot V3の実行モード切り替えを追加する。
+
+- [ ] Deploy the contract after the mapped EVM account is funded.
+- 日本語訳: EVM口座に対応する変換先へ入金後、コントラクトをデプロイする。
+
+- [ ] Run one end-to-end order, delivery, payment-evidence, and certificate flow on the testnet.
+- 日本語訳: テストネットで発注・納品・支払い証跡・証明書までを一通り実行する。
+
 ## Check-in Target / 中間提出目標
 
 - Deploy `PortalProofOrder` to Portaldot V3 testnet.

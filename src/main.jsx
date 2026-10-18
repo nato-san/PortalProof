@@ -23,6 +23,7 @@ import "./styles.css";
 const contractAddress = import.meta.env.VITE_PORTALPROOF_CONTRACT_ADDRESS || "";
 const REQUESTS_KEY = "portalproof-requests-v1";
 const PROFILE_KEY = "portalproof-creator-profile-v1";
+const MODE_KEY = "portalproof-execution-mode-v1";
 const short = (value) => value ? `${value.slice(0, 6)}...${value.slice(-4)}` : "";
 
 function loadJson(key, fallback) {
@@ -61,6 +62,13 @@ const messages = {
     inboxNav: "Manage jobs",
     inboxNavHelp: "Review client briefs",
     connectWallet: "Connect wallet",
+    modeLabel: "Execution mode",
+    localMode: "Local demo",
+    testnetMode: "Portaldot V3",
+    localModeStatus: "Local demo mode. Requests stay in this browser and no blockchain transaction is sent.",
+    testnetModeWaiting: "Portaldot V3 mode selected. On-chain actions unlock after the contract is deployed.",
+    testnetModeReady: "Portaldot V3 mode selected. On-chain actions are enabled.",
+    switchToTestnet: "Switch to Portaldot V3 mode to use on-chain actions.",
     status: "Status",
     ready: "Ready for the Portaldot V3 testnet.",
     walletRequired: "MetaMask or another EVM wallet is required.",
@@ -188,6 +196,13 @@ const messages = {
     inboxNav: "仕事を管理",
     inboxNavHelp: "依頼内容を確認",
     connectWallet: "ウォレットを接続",
+    modeLabel: "実行モード",
+    localMode: "ローカル実演",
+    testnetMode: "Portaldot V3",
+    localModeStatus: "ローカル実演モードです。依頼はこのブラウザ内に保存され、ブロックチェーン取引は送信しません。",
+    testnetModeWaiting: "Portaldot V3モードです。コントラクトのデプロイ後にオンチェーン操作を利用できます。",
+    testnetModeReady: "Portaldot V3モードです。オンチェーン操作を利用できます。",
+    switchToTestnet: "オンチェーン操作を行うには、Portaldot V3モードへ切り替えてください。",
     status: "状態",
     ready: "Portaldot V3テストネットを利用する準備ができています。",
     walletRequired: "MetaMaskまたはEVM対応ウォレットが必要です。",
@@ -327,6 +342,7 @@ function App() {
   const inboxUrl = `${baseUrl}?view=jobs`;
 
   const [language, setLanguage] = useState(() => localStorage.getItem("portalproof-language") || "en");
+  const [executionMode, setExecutionMode] = useState(() => localStorage.getItem(MODE_KEY) === "testnet" ? "testnet" : "local");
   const [profile, setProfile] = useState(() => ({ ...emptyDraft(), ...loadJson(PROFILE_KEY, {}) }));
   const [requests, setRequests] = useState(() => loadJson(REQUESTS_KEY, []));
   const storedJob = requests.find((item) => item.id === jobId) || null;
@@ -367,11 +383,16 @@ function App() {
     expectedTo: jobDraft?.creatorWallet,
     expectedAmount: jobDraft?.amount
   }), [jobDraft]);
+  const onChainReady = executionMode === "testnet" && Boolean(contractAddress);
 
   useEffect(() => {
     document.documentElement.lang = language;
     localStorage.setItem("portalproof-language", language);
   }, [language]);
+
+  useEffect(() => {
+    localStorage.setItem(MODE_KEY, executionMode);
+  }, [executionMode]);
 
   useEffect(() => {
     if (page === "dashboard") localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
@@ -515,7 +536,18 @@ function App() {
     setStatus({ key: statusKey });
   }
 
-  const statusText = `${t(status.key, status.values)}${status.detail ? `: ${status.detail}` : ""}`;
+  function selectExecutionMode(mode) {
+    setExecutionMode(mode);
+    setStatus({ key: "ready" });
+  }
+
+  const readyStatusKey = executionMode === "local"
+    ? "localModeStatus"
+    : contractAddress
+      ? "testnetModeReady"
+      : "testnetModeWaiting";
+  const statusKey = status.key === "ready" ? readyStatusKey : status.key;
+  const statusText = `${t(statusKey, status.values)}${status.detail ? `: ${status.detail}` : ""}`;
   const formatDate = (value) => value
     ? new Intl.DateTimeFormat(language === "ja" ? "ja-JP" : "en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
     : "";
@@ -525,6 +557,13 @@ function App() {
     <nav className="topBar">
       {page === "request" ? <span className="brand">PortalProof</span> : <a className="brand" href={baseUrl}>PortalProof</a>}
       <div className="topActions">
+        {page !== "request" && <div className="modeControl" aria-label={t("modeLabel")}>
+          <span>{t("modeLabel")}</span>
+          <div className="modeToggle">
+            <button className={executionMode === "local" ? "active" : ""} onClick={() => selectExecutionMode("local")}>{t("localMode")}</button>
+            <button className={executionMode === "testnet" ? "active" : ""} onClick={() => selectExecutionMode("testnet")}>{t("testnetMode")}</button>
+          </div>
+        </div>}
         <div className="languageToggle">
           <button className={language === "en" ? "active" : ""} onClick={() => setLanguage("en")}>English</button>
           <button className={language === "ja" ? "active" : ""} onClick={() => setLanguage("ja")}>日本語</button>
@@ -585,9 +624,9 @@ function App() {
         </aside>
         <div className="workflowArea">
           <nav className="stageTabs">{["agreement", "delivery", "payment", "certificate"].map((stage, index) => <button key={stage} className={manageStage === stage ? "active" : ""} onClick={() => setManageStage(stage)}><span>{index + 1}</span>{t(`${stage}Tab`)}</button>)}</nav>
-          {manageStage === "agreement" && <section className="panel stagePanel"><p className="eyebrow">1 / 4</p><h2>{t("agreementHash")}</h2><p className="muted">{t("agreementHelp")}</p><div className="hashBox"><span>{t("termsHash")}</span><code>{proofs?.termsHash}</code><button className="icon" aria-label={t("copyTermsHash")} onClick={() => copy(proofs?.termsHash || "")}><Copy size={16} /></button></div><button className="primary wide" onClick={createOnChainOrder} disabled={!contractAddress || !agreementReady}><FileCheck2 size={18} />{t("mintOrder")}</button>{!contractAddress ? <p className="formHint">{t("deployFirst")}</p> : !agreementReady && <p className="formHint">{t("agreementRequirements")}</p>}</section>}
-          {manageStage === "delivery" && <section className="panel stagePanel"><p className="eyebrow">2 / 4</p><h2>{t("delivery")}</h2><p className="muted">{t("deliveryHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} onChange={updateJob("orderId")} placeholder={t("createdAfterMint")} /></label><label>{t("deliveryUrl")}<input value={jobDraft.deliveryUrl} onChange={updateJob("deliveryUrl")} /></label><div className="hashBox"><span>{t("deliveryHash")}</span><code>{proofs?.deliveryHash}</code></div><button className="secondary wide" onClick={markDelivered} disabled={!jobDraft.orderId || !contractAddress}><Link2 size={18} />{t("recordDelivery")}</button></section>}
-          {manageStage === "payment" && <section className="panel stagePanel"><p className="eyebrow">3 / 4</p><h2>{t("paymentEvidence")}</h2><p className="muted">{t("paymentHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} onChange={updateJob("orderId")} placeholder={t("createdAfterMint")} /></label><label>{t("paymentTxHash")}<input value={jobDraft.paymentTxHash} onChange={updateJob("paymentTxHash")} placeholder="0x..." /></label><ul className="checks">{Object.entries(paymentEvidence.checks).map(([key, value]) => <li key={key} className={value ? "ok" : ""}><CheckCircle2 size={15} />{t(checkMessageKeys[key])}</li>)}</ul><button className="secondary wide" onClick={recordPayment} disabled={!jobDraft.orderId || !contractAddress}>{t("recordPayment")}</button><p className="formHint">{t("paymentWarning")}</p></section>}
+          {manageStage === "agreement" && <section className="panel stagePanel"><p className="eyebrow">1 / 4</p><h2>{t("agreementHash")}</h2><p className="muted">{t("agreementHelp")}</p><div className="hashBox"><span>{t("termsHash")}</span><code>{proofs?.termsHash}</code><button className="icon" aria-label={t("copyTermsHash")} onClick={() => copy(proofs?.termsHash || "")}><Copy size={16} /></button></div><button className="primary wide" onClick={createOnChainOrder} disabled={!onChainReady || !agreementReady}><FileCheck2 size={18} />{t("mintOrder")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !contractAddress ? <p className="formHint">{t("deployFirst")}</p> : !agreementReady && <p className="formHint">{t("agreementRequirements")}</p>}</section>}
+          {manageStage === "delivery" && <section className="panel stagePanel"><p className="eyebrow">2 / 4</p><h2>{t("delivery")}</h2><p className="muted">{t("deliveryHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} onChange={updateJob("orderId")} placeholder={t("createdAfterMint")} /></label><label>{t("deliveryUrl")}<input value={jobDraft.deliveryUrl} onChange={updateJob("deliveryUrl")} /></label><div className="hashBox"><span>{t("deliveryHash")}</span><code>{proofs?.deliveryHash}</code></div><button className="secondary wide" onClick={markDelivered} disabled={!jobDraft.orderId || !onChainReady}><Link2 size={18} />{t("recordDelivery")}</button>{executionMode === "local" && <p className="formHint">{t("switchToTestnet")}</p>}</section>}
+          {manageStage === "payment" && <section className="panel stagePanel"><p className="eyebrow">3 / 4</p><h2>{t("paymentEvidence")}</h2><p className="muted">{t("paymentHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} onChange={updateJob("orderId")} placeholder={t("createdAfterMint")} /></label><label>{t("paymentTxHash")}<input value={jobDraft.paymentTxHash} onChange={updateJob("paymentTxHash")} placeholder="0x..." /></label><ul className="checks">{Object.entries(paymentEvidence.checks).map(([key, value]) => <li key={key} className={value ? "ok" : ""}><CheckCircle2 size={15} />{t(checkMessageKeys[key])}</li>)}</ul><button className="secondary wide" onClick={recordPayment} disabled={!jobDraft.orderId || !onChainReady}>{t("recordPayment")}</button><p className="formHint">{executionMode === "local" ? t("switchToTestnet") : t("paymentWarning")}</p></section>}
           {manageStage === "certificate" && <section className="panel stagePanel certificatePanel"><p className="eyebrow">4 / 4</p><h2>{t("certificatePreview")}</h2><p className="muted">{t("certificateHelp")}</p><div className="certificateBody"><dl><dt>{t("creator")}</dt><dd>{jobDraft.creatorName}</dd><dt>{t("client")}</dt><dd>{jobDraft.clientName}</dd><dt>{t("contract")}</dt><dd>{contractAddress || t("notDeployed")}</dd><dt>{t("order")}</dt><dd>{jobDraft.orderId || t("notMinted")}</dd><dt>{t("terms")}</dt><dd><code>{proofs?.termsHash}</code></dd><dt>{t("payment")}</dt><dd><code>{jobDraft.paymentTxHash || t("notRecorded")}</code></dd></dl>{qr && <img src={qr} alt={t("qrAlt")} />}</div></section>}
         </div>
       </section>
