@@ -12,6 +12,11 @@
 - [x] Add a visible local-demo / Portaldot V3 execution-mode switch.
 - 日本語訳: ローカル実演／Portaldot V3の実行モード切り替えを追加する。
 
+- [x] Publish the local-demo build with GitHub Pages.
+- 日本語訳: ローカル実演版をGitHub Pagesで公開する。
+- Live demo: https://nato-san.github.io/PortalProof/
+- 日本語訳: 公開デモ: https://nato-san.github.io/PortalProof/
+
 - [ ] Deploy the contract after the mapped EVM account is funded.
 - 日本語訳: EVM口座に対応する変換先へ入金後、コントラクトをデプロイする。
 
@@ -29,7 +34,7 @@
 - Record one delivery hash transaction if gas and wallet setup are working.
 - 日本語訳: ガスとウォレット設定が動けば、納品Hash記録Txも1つ作る。
 
-- Publish the repository and README.
+- [x] Publish the repository and README.
 - 日本語訳: リポジトリとREADMEを公開する。
 
 - Record a short demo video under 3 minutes.
@@ -43,7 +48,7 @@
 - Improve payment verification notes and reviewer instructions.
 - 日本語訳: 支払い検証メモと審査員向け手順を改善する。
 
-- Publish a live DApp link.
+- [x] Publish a live DApp link.
 - 日本語訳: 公開DAppリンクを用意する。
 
 - Add a small pitch deck.

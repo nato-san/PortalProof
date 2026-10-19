@@ -10,6 +10,12 @@ PortalProof is a creator workflow DApp that lets creators publish a request flow
 
 Ecosystem DApps
 
+### Live Demo
+
+[Open PortalProof](https://nato-san.github.io/PortalProof/)
+
+The public demo starts in local-demo mode so reviewers can explore the creator and client flows without a wallet or test tokens. Portaldot V3 mode remains available from the header for the on-chain flow.
+
 ### Why Portaldot
 
 Portaldot V3 supports EVM and Solidity contracts as well as ERC-style application development. PortalProof uses that capability to create verifiable creator work-order records on the Portaldot V3 testnet.
@@ -139,6 +145,12 @@ PortalProofは、クリエイターが依頼受付フローを公開し、合意
 ### 参加部門
 
 エコシステムDApps部門
+
+### 公開デモ
+
+[PortalProofを開く](https://nato-san.github.io/PortalProof/)
+
+公開デモはローカル実演モードで始まるため、ウォレットやテストトークンがなくても、クリエイター側と依頼者側の流れを確認できます。オンチェーン処理用のPortaldot V3モードには、画面上部から切り替えられます。
 
 ### Portaldotを採用する理由
 
