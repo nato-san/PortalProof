@@ -62,6 +62,10 @@ const messages = {
     inboxNav: "Manage jobs",
     inboxNavHelp: "Review client briefs",
     connectWallet: "Connect wallet",
+    connectingWallet: "Connecting wallet...",
+    walletRejected: "Wallet connection was cancelled. Open your wallet and try again.",
+    walletRequestPending: "A wallet request is already waiting. Open your wallet extension or app and finish or cancel it, then try again.",
+    walletConnectionFailed: "Wallet connection failed",
     modeLabel: "Execution mode",
     localMode: "Local demo",
     testnetMode: "Portaldot V3",
@@ -196,6 +200,10 @@ const messages = {
     inboxNav: "仕事を管理",
     inboxNavHelp: "依頼内容を確認",
     connectWallet: "ウォレットを接続",
+    connectingWallet: "ウォレットに接続中...",
+    walletRejected: "ウォレット接続がキャンセルされました。ウォレットを開いて、もう一度お試しください。",
+    walletRequestPending: "ウォレット側に未処理の確認があります。拡張機能またはアプリを開いて、承認かキャンセルをしてから再度お試しください。",
+    walletConnectionFailed: "ウォレット接続に失敗しました",
     modeLabel: "実行モード",
     localMode: "ローカル実演",
     testnetMode: "Portaldot V3",
@@ -439,15 +447,39 @@ function App() {
       setStatus({ key: "walletRequired" });
       return;
     }
-    await window.ethereum.request({ method: "wallet_addEthereumChain", params: [PORTALDOT_V3] });
-    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-    setWallet(accounts[0]);
-    if (page === "request") {
-      setRequestDraft((current) => ({ ...current, clientWallet: current.clientWallet || accounts[0] }));
-    } else if (page === "dashboard") {
-      setProfile((current) => ({ ...current, creatorWallet: current.creatorWallet || accounts[0] }));
+    setStatus({ key: "connectingWallet" });
+    try {
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      const address = accounts?.[0];
+      if (!address) throw new Error("No wallet account was returned.");
+
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: PORTALDOT_V3.chainId }]
+        });
+      } catch (switchError) {
+        const switchCode = switchError?.code ?? switchError?.data?.originalError?.code;
+        if (switchCode !== 4902) throw switchError;
+        await window.ethereum.request({ method: "wallet_addEthereumChain", params: [PORTALDOT_V3] });
+      }
+
+      setWallet(address);
+      if (page === "request") {
+        setRequestDraft((current) => ({ ...current, clientWallet: current.clientWallet || address }));
+      } else if (page === "dashboard") {
+        setProfile((current) => ({ ...current, creatorWallet: current.creatorWallet || address }));
+      }
+      setStatus({ key: "connected", values: { address } });
+    } catch (error) {
+      if (error?.code === 4001) {
+        setStatus({ key: "walletRejected" });
+      } else if (error?.code === -32002) {
+        setStatus({ key: "walletRequestPending" });
+      } else {
+        setStatus({ key: "walletConnectionFailed", detail: error?.message || String(error) });
+      }
     }
-    setStatus({ key: "connected", values: { address: accounts[0] } });
   }
 
   async function getSignerContract() {
@@ -568,7 +600,7 @@ function App() {
           <button className={language === "en" ? "active" : ""} onClick={() => setLanguage("en")}>English</button>
           <button className={language === "ja" ? "active" : ""} onClick={() => setLanguage("ja")}>日本語</button>
         </div>
-        <button className="primary" onClick={connectWallet}><Wallet size={17} />{wallet ? short(wallet) : t("connectWallet")}</button>
+        <button className="primary" onClick={connectWallet} disabled={status.key === "connectingWallet"}><Wallet size={17} />{wallet ? short(wallet) : status.key === "connectingWallet" ? t("connectingWallet") : t("connectWallet")}</button>
       </div>
     </nav>
   );
