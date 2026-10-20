@@ -20,7 +20,9 @@ import {
 } from "./domain.js";
 import "./styles.css";
 
-const contractAddress = import.meta.env.VITE_PORTALPROOF_CONTRACT_ADDRESS || "";
+const DEPLOYED_CONTRACT_ADDRESS = "0xBaE8933886e1520e5FCa3eDed119c08b29022D79";
+const DEPLOYMENT_TRANSACTION_HASH = "0x29b2c7b2b91bf6cc6804040fb0590c020a3b0a4bdae1f81864f1f9f227035365";
+const contractAddress = import.meta.env.VITE_PORTALPROOF_CONTRACT_ADDRESS || DEPLOYED_CONTRACT_ADDRESS;
 const DEPLOYMENT_COST_LIMIT = ethers.parseUnits("160", 18);
 const REQUESTS_KEY = "portalproof-requests-v1";
 const PROFILE_KEY = "portalproof-creator-profile-v1";
@@ -94,7 +96,7 @@ const messages = {
     requestLinkRequirements: "A valid creator wallet is required before the link can be copied.",
     copyRequestLink: "Copy public link",
     previewRequestPage: "Preview request page",
-    localStorageNote: "Prototype storage: requests submitted on this device are saved in this browser. Portaldot storage will replace this after testnet deployment.",
+    localStorageNote: "Prototype inbox: requests submitted on this device stay in this browser. Accepted work proofs are recorded separately on Portaldot V3.",
     incomingTitle: "Incoming requests",
     incomingHelp: "Each submission becomes a separate job. Open any request to manage its agreement, delivery, payment, and certificate.",
     emptyInbox: "No requests have arrived in this browser yet.",
@@ -180,7 +182,7 @@ const messages = {
     activityLog: "On-chain activity",
     noActivity: "No testnet transaction in this browser session yet.",
     deployTitle: "Deploy PortalProof proof contract",
-    deployHelp: "This creator-only tool deploys the tested lightweight proof contract with MetaMask. No private key is entered into this site.",
+    deployHelp: "This operator-only tool deploys the tested lightweight proof contract with MetaMask. No private key is entered into this site.",
     deployRisk: "This sends a real Portaldot V3 testnet transaction. Review the network, account, and maximum fee in MetaMask before approving.",
     deployBalance: "Wallet balance",
     deployMaximumCost: "Estimated maximum cost",
@@ -191,6 +193,7 @@ const messages = {
     deployReady: "Final check passed. Review the figures, then deploy.",
     deployWaitingWallet: "Waiting for MetaMask approval...",
     deploySubmitted: "Deployment submitted: {hash}",
+    deploymentComplete: "PortalProof already uses this deployed contract. No additional deployment is needed.",
     deployedAddress: "Deployed contract address",
     deployTransaction: "Deployment transaction",
     deployFailed: "Deployment failed",
@@ -248,7 +251,7 @@ const messages = {
     requestLinkRequirements: "リンクをコピーするには、有効なクリエイターウォレットが必要です。",
     copyRequestLink: "公開リンクをコピー",
     previewRequestPage: "依頼ページを確認",
-    localStorageNote: "試作版の保存方式：この端末から送信した依頼は、このブラウザ内に保存されます。テストネットへのデプロイ後にPortaldot上の保存へ置き換えます。",
+    localStorageNote: "試作版の依頼一覧：この端末から送信した依頼は、このブラウザ内に保存されます。受付後の仕事証明は別途Portaldot V3へ記録します。",
     incomingTitle: "届いた依頼",
     incomingHelp: "送信された依頼を別々の案件として表示します。依頼を選ぶと、合意・納品・支払い・証明書を個別に管理できます。",
     emptyInbox: "このブラウザには、まだ依頼が届いていません。",
@@ -334,7 +337,7 @@ const messages = {
     activityLog: "オンチェーン活動",
     noActivity: "このブラウザセッションにはテストネットの取引がまだありません。",
     deployTitle: "PortalProof証明コントラクトをデプロイ",
-    deployHelp: "テスト済みの軽量証明コントラクトをMetaMaskでデプロイする、クリエイター専用画面です。このサイトへ秘密鍵を入力する必要はありません。",
+    deployHelp: "テスト済みの軽量証明コントラクトをMetaMaskでデプロイする、PortalProof運営者専用画面です。このサイトへ秘密鍵を入力する必要はありません。",
     deployRisk: "Portaldot V3テストネットへ実際の取引を送信します。MetaMaskでネットワーク、アカウント、最大手数料を確認してから承認してください。",
     deployBalance: "ウォレット残高",
     deployMaximumCost: "推定最大費用",
@@ -345,6 +348,7 @@ const messages = {
     deployReady: "最終チェックに成功しました。数値を確認してからデプロイしてください。",
     deployWaitingWallet: "MetaMaskの承認を待っています...",
     deploySubmitted: "デプロイを送信しました: {hash}",
+    deploymentComplete: "PortalProofはこのデプロイ済みコントラクトを使用しています。追加のデプロイは不要です。",
     deployedAddress: "デプロイ済みコントラクトアドレス",
     deployTransaction: "デプロイトランザクション",
     deployFailed: "デプロイに失敗しました",
@@ -402,7 +406,9 @@ function App() {
   const [qr, setQr] = useState("");
   const [status, setStatus] = useState({ key: "ready" });
   const [deploymentCheck, setDeploymentCheck] = useState(null);
-  const [deploymentResult, setDeploymentResult] = useState(null);
+  const [deploymentResult, setDeploymentResult] = useState(() => contractAddress === DEPLOYED_CONTRACT_ADDRESS
+    ? { address: DEPLOYED_CONTRACT_ADDRESS, txHash: DEPLOYMENT_TRANSACTION_HASH }
+    : null);
   const [deploymentStatus, setDeploymentStatus] = useState({ key: "ready" });
   const [deploymentBusy, setDeploymentBusy] = useState(false);
   const [manageStage, setManageStage] = useState(() => {
@@ -751,10 +757,12 @@ function App() {
           <dt>{t("deploySafetyLimit")}</dt><dd>160 tPOTv3</dd>
           {deploymentCheck && <><dt>{t("deployBalance")}</dt><dd>{deploymentCheck.balance} tPOTv3</dd><dt>{t("deployMaximumCost")}</dt><dd>{deploymentCheck.maximumCost} tPOTv3</dd><dt>Gas limit / ガス上限</dt><dd>{deploymentCheck.gasLimit}</dd></>}
         </dl>
-        <div className="deployActions">
-          <button className="secondary" onClick={checkDeployment} disabled={deploymentBusy}>{t("deployCheck")}</button>
-          <button className="primary" onClick={deployProofContract} disabled={deploymentBusy || !deploymentCheck || Boolean(deploymentResult)}>{t("deployNow")}</button>
-        </div>
+        {deploymentResult
+          ? <p className="formHint"><CheckCircle2 size={17} />{t("deploymentComplete")}</p>
+          : <div className="deployActions">
+              <button className="secondary" onClick={checkDeployment} disabled={deploymentBusy}>{t("deployCheck")}</button>
+              <button className="primary" onClick={deployProofContract} disabled={deploymentBusy || !deploymentCheck}>{t("deployNow")}</button>
+            </div>}
         {deploymentResult && <div className="deploymentResult"><h2>{t("deployedAddress")}</h2><code>{deploymentResult.address}</code><button className="icon" onClick={() => copy(deploymentResult.address)}><Copy size={16} /></button><h2>{t("deployTransaction")}</h2><code>{deploymentResult.txHash}</code><button className="icon" onClick={() => copy(deploymentResult.txHash)}><Copy size={16} /></button></div>}
       </section>
       <a className="textLink" href={baseUrl}><ArrowLeft size={16} />{t("backToTop")}</a>

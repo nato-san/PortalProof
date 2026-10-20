@@ -53,14 +53,14 @@ The native network settings below come from the official Portaldot V3 guide. The
 
 ### Testnet Deployment
 
-Not deployed yet.
-
-After deployment, fill in the following values:
+The lightweight proof contract was deployed successfully to the Portaldot V3 testnet on October 21, 2026.
 
 | Item | Value |
 | --- | --- |
-| Contract address | TBD |
-| Deployment transaction hash | TBD |
+| Contract address | `0xBaE8933886e1520e5FCa3eDed119c08b29022D79` |
+| Deployment transaction hash | `0x29b2c7b2b91bf6cc6804040fb0590c020a3b0a4bdae1f81864f1f9f227035365` |
+| Deployer | `0xCF0a9DE1AEE018647c16094caf7238E263659C6C` |
+| Deployment cost | `69.04291640089190529 tPOTv3` |
 | OrderCreated transaction hash | TBD |
 | DeliverySubmitted transaction hash | TBD |
 | PaymentRecorded transaction hash | TBD |
@@ -107,24 +107,22 @@ npm run compile:contract
 
 ### Deploy to Portaldot V3
 
-1. Add `PortaldotV3 Testnet` to MetaMask.
-2. Get `tPOTv3` for the deployer account.
-3. Copy `.env.example` to `.env`.
-4. Set the public EVM address in `DEPLOYER_ADDRESS`.
-5. Run the read-only network, wallet, and deployment-cost preflight:
+The production testnet contract has already been deployed once for the whole PortalProof application. Creators and clients reuse this shared contract and must not deploy their own copies.
+
+For a future replacement deployment:
+
+1. Add `PortaldotV3 Testnet` to MetaMask and fund the operator account with `tPOTv3`.
+2. Open `?view=deploy` on the hosted application.
+3. Connect the operator wallet and run the final read-only check.
+4. Confirm the network, account, and maximum fee, then approve the deployment in MetaMask.
+
+The deployment page never asks for a private key. A command-line read-only preflight is also available by setting `DEPLOYER_ADDRESS` and running:
 
 ```bash
 npm run check:portaldot
 ```
 
-6. Confirm that the chain ID, address, balance, and estimated deployment cost are safe.
-7. Only when deploying, set `DEPLOYER_PRIVATE_KEY`, then deploy the contract:
-
-```bash
-npm run deploy:portaldot
-```
-
-Do not commit `.env` files or private keys.
+Never commit `.env` files or private keys.
 
 ### AI and Open-source Software Disclosure
 
@@ -135,7 +133,7 @@ Open-source dependencies are listed in `package.json`.
 ### Known Limitations
 
 - Payment transaction hash verification is not fully automated yet.
-- Until the Portaldot contract is deployed, incoming requests are stored only in the current browser for prototype testing and do not sync across devices.
+- The prototype request inbox is stored in the current browser and does not yet sync incoming requests across devices; accepted proofs are recorded separately on-chain.
 - The application must not claim payment success from an arbitrary transaction hash.
 
 ---
@@ -195,14 +193,14 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 
 ### テストネットへのデプロイ
 
-まだデプロイしていません。
-
-デプロイ後に次の値を記入します。
+軽量証明コントラクトは、2026年10月21日にPortaldot V3テストネットへ正常にデプロイされました。
 
 | 項目 | 値 |
 | --- | --- |
-| コントラクトアドレス | 未定 |
-| デプロイのトランザクションハッシュ | 未定 |
+| コントラクトアドレス | `0xBaE8933886e1520e5FCa3eDed119c08b29022D79` |
+| デプロイのトランザクションハッシュ | `0x29b2c7b2b91bf6cc6804040fb0590c020a3b0a4bdae1f81864f1f9f227035365` |
+| デプロイ実行者 | `0xCF0a9DE1AEE018647c16094caf7238E263659C6C` |
+| 実際のデプロイ費用 | `69.04291640089190529 tPOTv3` |
 | 発注作成のトランザクションハッシュ | 未定 |
 | 納品登録のトランザクションハッシュ | 未定 |
 | 支払い記録のトランザクションハッシュ | 未定 |
@@ -249,21 +247,19 @@ npm run compile:contract
 
 ### Portaldot V3へのデプロイ
 
-1. MetaMaskに`PortaldotV3 Testnet`を追加します。
-2. デプロイ用アカウントに`tPOTv3`を用意します。
-3. `.env.example`を`.env`へコピーします。
-4. 公開EVMアドレスを`DEPLOYER_ADDRESS`に設定します。
-5. 読み取り専用のネットワーク・ウォレット・デプロイ費用の事前確認を実行します。
+本番用テストネットコントラクトは、PortalProof全体で共有するものとしてすでに1回デプロイ済みです。クリエイターや依頼者が個別にデプロイする必要はありません。
+
+将来、新しいコントラクトへ置き換える場合は次の手順を使います。
+
+1. MetaMaskに`PortaldotV3 Testnet`を追加し、運営用アカウントに`tPOTv3`を用意します。
+2. 公開アプリの`?view=deploy`を開きます。
+3. 運営用ウォレットを接続し、読み取り専用の最終チェックを実行します。
+4. ネットワーク、アカウント、最大手数料を確認して、MetaMaskでデプロイを承認します。
+
+デプロイ画面で秘密鍵を入力することはありません。`DEPLOYER_ADDRESS`を設定すれば、次のコマンドでも読み取り専用の事前確認を実行できます。
 
 ```bash
 npm run check:portaldot
-```
-
-6. チェーンID、アドレス、残高、推定デプロイ費用が安全であることを確認します。
-7. デプロイ時にだけ`DEPLOYER_PRIVATE_KEY`を設定して、コントラクトをデプロイします。
-
-```bash
-npm run deploy:portaldot
 ```
 
 `.env`ファイルや秘密鍵は絶対にコミットしないでください。
@@ -277,5 +273,5 @@ AI支援は、実装補助、ドキュメント作成、デバッグに使用し
 ### 現在の制限事項
 
 - 支払いトランザクションハッシュの完全自動検証はまだ未実装です。
-- Portaldotコントラクトをデプロイするまでは、試作用の受信依頼を現在のブラウザ内だけに保存するため、別端末とは同期されません。
+- 試作版の依頼一覧は現在のブラウザ内に保存されるため、受信依頼はまだ別端末と同期されません。受付後の証明記録は別途オンチェーンへ送信します。
 - 任意のトランザクションハッシュだけで支払い成功とは表示しません。
