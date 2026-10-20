@@ -615,25 +615,22 @@ function App() {
     const request = { data: bytecode };
     const estimatedGas = await provider.estimateGas({ ...request, from: signerAddress });
     const gasLimit = estimatedGas * 105n / 100n;
-    const feeData = await provider.getFeeData();
-    const maximumGasPrice = feeData.maxFeePerGas ?? feeData.gasPrice;
-    if (maximumGasPrice === null) throw new Error("Gas price is unavailable. / ガス価格を取得できません。");
-    const maximumCost = gasLimit * maximumGasPrice;
+    // MetaMask may synthesize an excessively high EIP-1559 maxFeePerGas for
+    // this custom chain. Read the chain's current gas price directly and add
+    // a small buffer instead, while retaining the hard total-cost limit.
+    const currentGasPrice = BigInt(await provider.send("eth_gasPrice", []));
+    const gasPrice = currentGasPrice * 110n / 100n;
+    const maximumCost = gasLimit * gasPrice;
 
     if (maximumCost > DEPLOYMENT_COST_LIMIT) {
-      throw new Error("The maximum cost exceeds 160 tPOTv3. No transaction was sent. / 最大費用が160 tPOTv3を超えたため送信していません。");
+      const formattedCost = ethers.formatUnits(maximumCost, 18);
+      throw new Error(`The maximum cost is ${formattedCost} tPOTv3 and exceeds the 160 tPOTv3 limit. No transaction was sent. / 最大費用は${formattedCost} tPOTv3で、安全上限160 tPOTv3を超えたため送信していません。`);
     }
     if (maximumCost > balance) {
       throw new Error("The wallet balance is too low. No transaction was sent. / ウォレット残高が不足しているため送信していません。");
     }
 
-    const overrides = feeData.maxFeePerGas !== null
-      ? {
-          gasLimit,
-          maxFeePerGas: feeData.maxFeePerGas,
-          maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ?? 0n
-        }
-      : { gasLimit, gasPrice: feeData.gasPrice };
+    const overrides = { gasLimit, gasPrice };
 
     setWallet(signerAddress);
     return { signer, bytecode, overrides, signerAddress, balance, gasLimit, maximumCost };
