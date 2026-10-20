@@ -2,12 +2,8 @@
 
 ## Active Work / 現在の作業
 
-- [ ] Confirm the hackathon test-token distribution to the submitted native POT address.
-- 日本語訳: 提出済みのネイティブPOTアドレスへのハッカソン用テストトークン配布を確認する。
-- Status: waiting on the Portaldot team; the balance was still zero after refreshing the chain metadata on October 18, 2026.
-- 日本語訳: 状態はPortaldot運営待ち。2026年10月18日にチェーン情報を更新した後も残高はゼロ。
-- Resume condition: the native account receives POT and a small amount can be transferred to the mapped EVM account.
-- 日本語訳: 再開条件は、ネイティブ口座でPOTを受け取り、EVM口座に対応する変換先へ少量を送れること。
+- [x] Confirm the hackathon test-token distribution and fund the mapped EVM account.
+- 日本語訳: ハッカソン用テストトークンの配布を確認し、対応するEVM口座へ入金する。
 
 - [x] Add a visible local-demo / Portaldot V3 execution-mode switch.
 - 日本語訳: ローカル実演／Portaldot V3の実行モード切り替えを追加する。
@@ -17,36 +13,71 @@
 - Live demo: https://nato-san.github.io/PortalProof/
 - 日本語訳: 公開デモ: https://nato-san.github.io/PortalProof/
 
-- [ ] Deploy the contract after the mapped EVM account is funded.
-- 日本語訳: EVM口座に対応する変換先へ入金後、コントラクトをデプロイする。
+- [x] Deploy the shared `PortalProofOrder` contract to Portaldot V3 testnet.
+- 日本語訳: 共有の`PortalProofOrder`コントラクトをPortaldot V3テストネットへデプロイする。
 
-- [ ] Run one end-to-end order, delivery, payment-evidence, and certificate flow on the testnet.
+- [x] Run one end-to-end order, delivery, verified native-payment evidence, and certificate flow on the testnet.
 - 日本語訳: テストネットで発注・納品・支払い証跡・証明書までを一通り実行する。
+
+- [x] Prevent duplicate proof transactions and reject arbitrary payment transaction hashes.
+- 日本語訳: 証明トランザクションの重複を防ぎ、任意の支払いTxHashを受け付けないようにする。
+
+- [ ] Update the check-in material with the completed testnet evidence.
+- 日本語訳: 完了したテストネット証跡を中間報告資料へ反映する。
+
+- [ ] Record a short demo video under 3 minutes.
+- 日本語訳: 3分以内の短いデモ動画を録画する。
+
+## Completed Testnet Evidence / 完了したテストネット証跡
+
+- Contract: `0xBaE8933886e1520e5FCa3eDed119c08b29022D79`
+- 日本語訳: コントラクト: `0xBaE8933886e1520e5FCa3eDed119c08b29022D79`
+
+- Deployment: `0x29b2c7b2b91bf6cc6804040fb0590c020a3b0a4bdae1f81864f1f9f227035365`
+- 日本語訳: デプロイ: `0x29b2c7b2b91bf6cc6804040fb0590c020a3b0a4bdae1f81864f1f9f227035365`
+
+- OrderCreated: `0x2bcc608ac64194dbd08f8c0239bf12ce1ae4c7870f7ef9f59265a775bbb16815`
+- 日本語訳: 発注記録: `0x2bcc608ac64194dbd08f8c0239bf12ce1ae4c7870f7ef9f59265a775bbb16815`
+
+- DeliverySubmitted: `0x9f8e365d727c2c4cd5cbabd323f505313ea8d6fabcf25c1986d2acf801b76db9`
+- 日本語訳: 納品記録: `0x9f8e365d727c2c4cd5cbabd323f505313ea8d6fabcf25c1986d2acf801b76db9`
+
+- PaymentRecorded: `0x632700e4ca21e59e47b0f9fa60beefd460b1c176695ab33438548cdcc7d8a3a0`
+- 日本語訳: 支払い記録: `0x632700e4ca21e59e47b0f9fa60beefd460b1c176695ab33438548cdcc7d8a3a0`
 
 ## Check-in Target / 中間提出目標
 
-- Deploy `PortalProofOrder` to Portaldot V3 testnet.
+- [x] Deploy `PortalProofOrder` to Portaldot V3 testnet.
 - 日本語訳: `PortalProofOrder`をPortaldot V3テストネットへデプロイする。
 
-- Create one real `OrderCreated` transaction.
+- [x] Create one real `OrderCreated` transaction.
 - 日本語訳: 実際の`OrderCreated`トランザクションを1つ作る。
 
-- Record one delivery hash transaction if gas and wallet setup are working.
-- 日本語訳: ガスとウォレット設定が動けば、納品Hash記録Txも1つ作る。
+- [x] Record one real `DeliverySubmitted` transaction.
+- 日本語訳: 実際の`DeliverySubmitted`トランザクションを1つ記録する。
+
+- [x] Verify a native payment and record one real `PaymentRecorded` transaction.
+- 日本語訳: ネイティブ支払いを検証し、実際の`PaymentRecorded`トランザクションを1つ記録する。
+
+- [x] Generate a certificate that references the completed on-chain flow.
+- 日本語訳: 完了したオンチェーンフローを参照する証明書を生成する。
 
 - [x] Publish the repository and README.
 - 日本語訳: リポジトリとREADMEを公開する。
 
-- Record a short demo video under 3 minutes.
+- [ ] Record a short demo video under 3 minutes.
 - 日本語訳: 3分以内の短いデモ動画を録画する。
 
 ## Final Target / 最終提出目標
 
-- Use real Portaldot V3 transaction evidence in the certificate.
+- [x] Use real Portaldot V3 transaction evidence in the certificate.
 - 日本語訳: 証明書に実際のPortaldot V3トランザクション証跡を使う。
 
-- Improve payment verification notes and reviewer instructions.
-- 日本語訳: 支払い検証メモと審査員向け手順を改善する。
+- [x] Verify the payment sender, recipient, amount, and receipt status before recording it.
+- 日本語訳: 支払いを記録する前に、送金元、送金先、金額、成功状態を検証する。
+
+- [ ] Improve reviewer instructions and prepare the final submission narrative.
+- 日本語訳: 審査員向け手順を改善し、最終提出文を準備する。
 
 - [x] Publish a live DApp link.
 - 日本語訳: 公開DAppリンクを用意する。
@@ -55,6 +86,18 @@
 - 日本語訳: 簡単なピッチ資料を追加する。
 
 ## Deferred / 後回し
+
+- Escrow deposit and release after client approval
+- 日本語訳: デポジット型エスクローと依頼者承認後の支払い
+
+- Protected delivery using encrypted or signed, time-limited links
+- 日本語訳: 暗号化または署名付き・期限付きURLによる納品物保護
+
+- Creator dashboard for income totals and payment history
+- 日本語訳: 売上合計と入金履歴を確認できるクリエイターダッシュボード
+
+- Completed-job archive and status filters
+- 日本語訳: 完了案件のアーカイブと状態別フィルター
 
 - Closed chat
 - 日本語訳: クローズドチャット
