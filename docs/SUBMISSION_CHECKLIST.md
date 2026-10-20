@@ -6,12 +6,14 @@
 - [x] Complete README / README
 - [x] Continuously updated development records / 継続的な開発記録
 - [x] Product architecture diagram / プロダクト構成図
-- [ ] Portaldot testnet deployment information / Portaldotテストネットデプロイ情報
-- [ ] Contract address / コントラクトアドレス
-- [ ] Transaction hash / TxHash
-- [ ] Explorer link if available / 可能ならExplorerリンク
+- [x] Portaldot testnet deployment information / Portaldotテストネットデプロイ情報
+- [x] Contract address / コントラクトアドレス
+- [x] Transaction hashes for deployment, order, delivery, and payment / デプロイ・発注・納品・支払いのTxHash
+- [x] Node Explorer link / ノードエクスプローラー
 - [x] Initial demo material / 初期デモ資料
 - [x] Live demo link or video under 3 minutes / Webリンクまたは3分以内の動画
+- [x] One complete on-chain flow and certificate / 一連のオンチェーンフローと証明書
+- [ ] Final review and submission of the check-in report / 中間報告の最終確認と提出
 
 ## Final Submission / 最終提出
 
@@ -23,11 +25,11 @@
 - [x] Deployment instructions / デプロイ手順
 - [x] Project documentation / プロジェクトドキュメント
 - [x] Reproducible or runnable final code / 再現・実行可能な最終コード
-- [ ] Testnet deployment information / テストネット情報
+- [x] Testnet deployment information / テストネット情報
 - [x] Runnable demo / 動くデモ
 - [ ] Demo video under 3 minutes / 3分以内のデモ動画
 - [ ] Pitch deck / ピッチ資料
-- [ ] Contract address and transaction hash if applicable / 該当する場合はコントラクトアドレスとTxHash
+- [x] Contract address and transaction hashes / コントラクトアドレスとTxHash
 
 ## Do Not Forget / 忘れないこと
 
