@@ -45,6 +45,51 @@ function makeRequestId() {
   return `PP-${Date.now().toString(36).toUpperCase()}-${suffix.toUpperCase()}`;
 }
 
+function emptyPaymentEvidence(draft) {
+  let expectedAmountWei = "0";
+  try {
+    expectedAmountWei = ethers.parseUnits(String(draft?.amount || "0"), 18).toString();
+  } catch {
+    // Invalid amounts remain unverified.
+  }
+  return validateTxEvidence({
+    paymentTxHash: draft?.paymentTxHash,
+    expectedFrom: draft?.clientWallet,
+    expectedTo: draft?.creatorWallet,
+    expectedAmountWei,
+    transaction: null,
+    receipt: null
+  });
+}
+
+async function readPaymentEvidence(draft) {
+  const initial = emptyPaymentEvidence(draft);
+  if (!initial.checks.hasHash) return initial;
+  const provider = new ethers.JsonRpcProvider(
+    PORTALDOT_V3.rpcUrls[0],
+    Number(BigInt(PORTALDOT_V3.chainId)),
+    { staticNetwork: true }
+  );
+  const [transaction, receipt] = await Promise.all([
+    provider.getTransaction(initial.normalized),
+    provider.getTransactionReceipt(initial.normalized)
+  ]);
+  let expectedAmountWei = "0";
+  try {
+    expectedAmountWei = ethers.parseUnits(String(draft?.amount || "0"), 18).toString();
+  } catch {
+    // Invalid amounts remain unverified.
+  }
+  return validateTxEvidence({
+    paymentTxHash: initial.normalized,
+    expectedFrom: draft?.clientWallet,
+    expectedTo: draft?.creatorWallet,
+    expectedAmountWei,
+    transaction,
+    receipt
+  });
+}
+
 const messages = {
   en: {
     eyebrow: "Portaldot Hacker House 2026 / Ecosystem DApps",
@@ -165,9 +210,12 @@ const messages = {
     paymentHelp: "Reference the real transfer made by the client after checking its details.",
     paymentTxHash: "Payment transaction hash",
     hasHash: "Valid transaction hash format",
-    hasExpectedFrom: "Expected sender is present",
-    hasExpectedTo: "Expected recipient is present",
-    hasExpectedAmount: "Expected amount is present",
+    transactionFound: "Transaction found on Portaldot V3",
+    hasExpectedFrom: "Sender matches the client wallet",
+    hasExpectedTo: "Recipient matches the creator wallet",
+    hasExpectedAmount: "Transferred amount matches the agreed amount",
+    hasSuccess: "Transaction succeeded",
+    paymentChecking: "Checking the transaction on Portaldot V3...",
     recordPayment: "Record verified payment evidence",
     paymentWarning: "A transaction hash alone is not proof. Verify the sender, recipient, amount, and success status on Portaldot V3.",
     paymentIncomplete: "Payment evidence is incomplete. Do not record an arbitrary transaction hash.",
@@ -325,9 +373,12 @@ const messages = {
     paymentHelp: "依頼者から実際に行われた送金の内容を確認して記録します。",
     paymentTxHash: "支払いトランザクションハッシュ",
     hasHash: "トランザクションハッシュの形式",
-    hasExpectedFrom: "想定する送金元",
-    hasExpectedTo: "想定する送金先",
-    hasExpectedAmount: "想定する金額",
+    transactionFound: "Portaldot V3上に取引が存在",
+    hasExpectedFrom: "送金元が依頼者ウォレットと一致",
+    hasExpectedTo: "送金先がクリエイターウォレットと一致",
+    hasExpectedAmount: "送金額が合意金額と一致",
+    hasSuccess: "取引が成功済み",
+    paymentChecking: "Portaldot V3上の取引内容を確認中...",
     recordPayment: "検証済みの支払い証跡を記録",
     paymentWarning: "ハッシュだけでは支払い証明になりません。Portaldot V3上の送金元、送金先、金額、成功状態を確認してください。",
     paymentIncomplete: "支払い証跡が不足しています。任意のトランザクションハッシュは記録できません。",
@@ -370,9 +421,11 @@ const messages = {
 
 const checkMessageKeys = {
   hasHash: "hasHash",
+  transactionFound: "transactionFound",
   hasExpectedFrom: "hasExpectedFrom",
   hasExpectedTo: "hasExpectedTo",
-  hasExpectedAmount: "hasExpectedAmount"
+  hasExpectedAmount: "hasExpectedAmount",
+  hasSuccess: "hasSuccess"
 };
 
 function translate(language, key, values = {}) {
@@ -421,6 +474,8 @@ function App() {
   ].filter(Boolean));
   const [qr, setQr] = useState("");
   const [status, setStatus] = useState({ key: "ready" });
+  const [paymentEvidence, setPaymentEvidence] = useState(() => emptyPaymentEvidence(storedJob));
+  const [paymentCheckBusy, setPaymentCheckBusy] = useState(false);
   const [deploymentCheck, setDeploymentCheck] = useState(null);
   const [deploymentResult, setDeploymentResult] = useState(() => contractAddress === DEPLOYED_CONTRACT_ADDRESS
     ? { address: DEPLOYED_CONTRACT_ADDRESS, txHash: DEPLOYMENT_TRANSACTION_HASH }
@@ -444,12 +499,6 @@ function App() {
     jobDraft?.clientName && jobDraft?.requestBrief &&
     ethers.isAddress(jobDraft?.clientWallet || "") && ethers.isAddress(jobDraft?.creatorWallet || "")
   );
-  const paymentEvidence = useMemo(() => validateTxEvidence({
-    paymentTxHash: jobDraft?.paymentTxHash,
-    expectedFrom: jobDraft?.clientWallet,
-    expectedTo: jobDraft?.creatorWallet,
-    expectedAmount: jobDraft?.amount
-  }), [jobDraft]);
   const onChainReady = executionMode === "testnet" && Boolean(contractAddress);
   const orderComplete = Boolean(jobDraft?.orderId);
   const deliveryComplete = Boolean(jobDraft?.deliveryTxHash) || ["delivered", "paid"].includes(jobDraft?.status);
@@ -540,6 +589,22 @@ function App() {
       : "PortalProof";
     QRCode.toDataURL(value, { margin: 1, width: 180 }).then(setQr);
   }, [jobDraft?.paymentTxHash]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const initial = emptyPaymentEvidence(jobDraft);
+    setPaymentEvidence(initial);
+    if (!initial.checks.hasHash) {
+      setPaymentCheckBusy(false);
+      return undefined;
+    }
+    setPaymentCheckBusy(true);
+    readPaymentEvidence(jobDraft)
+      .then((result) => { if (!cancelled) setPaymentEvidence(result); })
+      .catch(() => { if (!cancelled) setPaymentEvidence(initial); })
+      .finally(() => { if (!cancelled) setPaymentCheckBusy(false); });
+    return () => { cancelled = true; };
+  }, [jobDraft?.paymentTxHash, jobDraft?.clientWallet, jobDraft?.creatorWallet, jobDraft?.amount]);
 
   const updateProfile = (field) => (event) => setProfile((current) => ({ ...current, [field]: event.target.value }));
   const updateRequest = (field) => (event) => setRequestDraft((current) => ({ ...current, [field]: event.target.value }));
@@ -668,17 +733,21 @@ function App() {
   }
 
   async function recordPayment() {
-    if (!jobDraft || !paymentEvidence.ok) {
-      setStatus({ key: "paymentIncomplete" });
-      return;
-    }
+    if (!jobDraft) return;
     if (jobDraft.paymentRecordTxHash || jobDraft.status === "paid") {
       setStatus({ key: "paymentAlreadyRecorded" });
       return;
     }
+    setPaymentCheckBusy(true);
     try {
+      const verifiedEvidence = await readPaymentEvidence(jobDraft);
+      setPaymentEvidence(verifiedEvidence);
+      if (!verifiedEvidence.ok) {
+        setStatus({ key: "paymentIncomplete" });
+        return;
+      }
       const contract = await getSignerContract();
-      const tx = await contract.recordVerifiedPayment(jobDraft.orderId, paymentEvidence.normalized);
+      const tx = await contract.recordVerifiedPayment(jobDraft.orderId, verifiedEvidence.normalized);
       setStatus({ key: "recordingPayment", values: { hash: tx.hash } });
       const receipt = await tx.wait();
       setJobDraft((current) => ({ ...current, paymentRecordTxHash: receipt.hash, status: "paid" }));
@@ -687,6 +756,8 @@ function App() {
       setManageStage("certificate");
     } catch (error) {
       setStatus({ key: "error", detail: error.message });
+    } finally {
+      setPaymentCheckBusy(false);
     }
   }
 
@@ -922,7 +993,7 @@ function App() {
           <nav className="stageTabs">{["agreement", "delivery", "payment", "certificate"].map((stage, index) => <button key={stage} className={manageStage === stage ? "active" : ""} disabled={!stageAvailable[stage]} onClick={() => setManageStage(stage)}><span>{index + 1}</span>{t(`${stage}Tab`)}</button>)}</nav>
           {manageStage === "agreement" && <section className="panel stagePanel"><p className="eyebrow">1 / 4</p><h2>{t("agreementHash")}</h2><p className="muted">{t("agreementHelp")}</p><div className="hashBox"><span>{t("termsHash")}</span><code>{proofs?.termsHash}</code><button className="icon" aria-label={t("copyTermsHash")} onClick={() => copy(proofs?.termsHash || "")}><Copy size={16} /></button></div><button className="primary wide" onClick={createOnChainOrder} disabled={!onChainReady || !agreementReady || !proofs?.termsHash || orderComplete}><FileCheck2 size={18} />{orderComplete ? t("orderIssued") : t("mintOrder")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !contractAddress ? <p className="formHint">{t("deployFirst")}</p> : !agreementReady && <p className="formHint">{t("agreementRequirements")}</p>}</section>}
           {manageStage === "delivery" && <section className="panel stagePanel"><p className="eyebrow">2 / 4</p><h2>{t("delivery")}</h2><p className="muted">{t("deliveryHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} readOnly placeholder={t("createdAfterMint")} /></label><label>{t("deliveryUrl")}<input value={jobDraft.deliveryUrl} onChange={updateJob("deliveryUrl")} disabled={deliveryComplete} placeholder="https://..." /></label><div className="hashBox"><span>{t("deliveryHash")}</span><code>{deliveryReady ? proofs?.deliveryHash : "—"}</code></div><button className="secondary wide" onClick={markDelivered} disabled={!jobDraft.orderId || !onChainReady || !deliveryReady || deliveryComplete}><Link2 size={18} />{t("recordDelivery")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !deliveryReady && <p className="formHint">{t("deliveryUrlRequired")}</p>}</section>}
-          {manageStage === "payment" && <section className="panel stagePanel"><p className="eyebrow">3 / 4</p><h2>{t("paymentEvidence")}</h2><p className="muted">{t("paymentHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} readOnly placeholder={t("createdAfterMint")} /></label><label>{t("paymentTxHash")}<input value={jobDraft.paymentTxHash} onChange={updateJob("paymentTxHash")} placeholder="0x..." /></label><ul className="checks">{Object.entries(paymentEvidence.checks).map(([key, value]) => <li key={key} className={value ? "ok" : ""}><CheckCircle2 size={15} />{t(checkMessageKeys[key])}</li>)}</ul><button className="secondary wide" onClick={recordPayment} disabled={!jobDraft.orderId || !onChainReady || paymentComplete}>{t("recordPayment")}</button><p className="formHint">{executionMode === "local" ? t("switchToTestnet") : t("paymentWarning")}</p></section>}
+          {manageStage === "payment" && <section className="panel stagePanel"><p className="eyebrow">3 / 4</p><h2>{t("paymentEvidence")}</h2><p className="muted">{t("paymentHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} readOnly placeholder={t("createdAfterMint")} /></label><label>{t("paymentTxHash")}<input value={jobDraft.paymentTxHash} onChange={updateJob("paymentTxHash")} disabled={paymentComplete} placeholder="0x..." /></label><ul className="checks">{Object.entries(paymentEvidence.checks).map(([key, value]) => <li key={key} className={value ? "ok" : ""}><CheckCircle2 size={15} />{t(checkMessageKeys[key])}</li>)}</ul><button className="secondary wide" onClick={recordPayment} disabled={!jobDraft.orderId || !onChainReady || !paymentEvidence.ok || paymentCheckBusy || paymentComplete}>{paymentCheckBusy ? t("paymentChecking") : t("recordPayment")}</button><p className="formHint">{executionMode === "local" ? t("switchToTestnet") : t("paymentWarning")}</p></section>}
           {manageStage === "certificate" && <section className="panel stagePanel certificatePanel"><p className="eyebrow">4 / 4</p><h2>{t("certificatePreview")}</h2><p className="muted">{t("certificateHelp")}</p><div className="certificateBody"><dl><dt>{t("creator")}</dt><dd>{jobDraft.creatorName}</dd><dt>{t("client")}</dt><dd>{jobDraft.clientName}</dd><dt>{t("contract")}</dt><dd>{contractAddress || t("notDeployed")}</dd><dt>{t("order")}</dt><dd>{jobDraft.orderId || t("notMinted")}</dd><dt>{t("terms")}</dt><dd><code>{proofs?.termsHash}</code></dd><dt>{t("payment")}</dt><dd><code>{jobDraft.paymentTxHash || t("notRecorded")}</code></dd></dl>{qr && <img src={qr} alt={t("qrAlt")} />}</div></section>}
         </div>
       </section>

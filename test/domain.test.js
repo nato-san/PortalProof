@@ -63,21 +63,35 @@ assert.equal(validateTxEvidence({
   paymentTxHash: draft.paymentTxHash,
   expectedFrom: draft.clientWallet,
   expectedTo: draft.creatorWallet,
-  expectedAmount: draft.amount
+  expectedAmountWei: "10000000000000000000",
+  transaction: {
+    from: draft.clientWallet,
+    to: draft.creatorWallet,
+    value: 10000000000000000000n
+  },
+  receipt: { status: 1 }
 }).ok, true);
 
 assert.equal(validateTxEvidence({
   paymentTxHash: "0xfake",
   expectedFrom: draft.clientWallet,
   expectedTo: draft.creatorWallet,
-  expectedAmount: draft.amount
+  expectedAmountWei: "10000000000000000000",
+  transaction: null,
+  receipt: null
 }).ok, false);
 
 assert.equal(validateTxEvidence({
   paymentTxHash: draft.paymentTxHash,
-  expectedFrom: "",
+  expectedFrom: draft.clientWallet,
   expectedTo: draft.creatorWallet,
-  expectedAmount: draft.amount
+  expectedAmountWei: "10000000000000000000",
+  transaction: {
+    from: "0x3333333333333333333333333333333333333333",
+    to: draft.creatorWallet,
+    value: 10000000000000000000n
+  },
+  receipt: { status: 1 }
 }).ok, false);
 
 console.log("PortalProof domain tests passed");

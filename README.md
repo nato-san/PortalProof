@@ -63,7 +63,7 @@ The lightweight proof contract was deployed successfully to the Portaldot V3 tes
 | Deployment cost | `69.04291640089190529 tPOTv3` |
 | OrderCreated transaction hash | `0x2bcc608ac64194dbd08f8c0239bf12ce1ae4c7870f7ef9f59265a775bbb16815` |
 | Duplicate test transaction | `0x6fd2728858d5278e43c0cec6618427a8505e048c87362f9dd43a2e7f023f6be7` (same proof ID; UI guard added afterward) |
-| DeliverySubmitted transaction hash | TBD |
+| DeliverySubmitted transaction hash | `0x9f8e365d727c2c4cd5cbabd323f505313ea8d6fabcf25c1986d2acf801b76db9` |
 | PaymentRecorded transaction hash | TBD |
 
 ### Architecture
@@ -133,7 +133,7 @@ Open-source dependencies are listed in `package.json`.
 
 ### Known Limitations
 
-- Payment transaction hash verification is not fully automated yet.
+- Payment verification currently supports native tPOTv3 transfers; token-contract payments are not supported yet.
 - The prototype request inbox is stored in the current browser and does not yet sync incoming requests across devices; accepted proofs are recorded separately on-chain.
 - The application must not claim payment success from an arbitrary transaction hash.
 
@@ -204,7 +204,7 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 | 実際のデプロイ費用 | `69.04291640089190529 tPOTv3` |
 | 発注作成のトランザクションハッシュ | `0x2bcc608ac64194dbd08f8c0239bf12ce1ae4c7870f7ef9f59265a775bbb16815` |
 | 重複したテスト取引 | `0x6fd2728858d5278e43c0cec6618427a8505e048c87362f9dd43a2e7f023f6be7`（同じ証明ID。後から画面側に重複防止を追加） |
-| 納品登録のトランザクションハッシュ | 未定 |
+| 納品登録のトランザクションハッシュ | `0x9f8e365d727c2c4cd5cbabd323f505313ea8d6fabcf25c1986d2acf801b76db9` |
 | 支払い記録のトランザクションハッシュ | 未定 |
 
 ### 構成
@@ -274,6 +274,6 @@ AI支援は、実装補助、ドキュメント作成、デバッグに使用し
 
 ### 現在の制限事項
 
-- 支払いトランザクションハッシュの完全自動検証はまだ未実装です。
+- 支払い検証はネイティブtPOTv3送金に対応しています。トークンコントラクト経由の支払いにはまだ対応していません。
 - 試作版の依頼一覧は現在のブラウザ内に保存されるため、受信依頼はまだ別端末と同期されません。受付後の証明記録は別途オンチェーンへ送信します。
 - 任意のトランザクションハッシュだけで支払い成功とは表示しません。

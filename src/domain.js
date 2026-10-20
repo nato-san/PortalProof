@@ -134,13 +134,30 @@ export function validateDeliveryUrl(value) {
   }
 }
 
-export function validateTxEvidence({ paymentTxHash, expectedFrom, expectedTo, expectedAmount }) {
+export function validateTxEvidence({
+  paymentTxHash,
+  expectedFrom,
+  expectedTo,
+  expectedAmountWei,
+  transaction,
+  receipt
+}) {
   const normalized = String(paymentTxHash || "").trim();
+  const sameAddress = (actual, expected) => Boolean(actual && expected) &&
+    String(actual).toLowerCase() === String(expected).toLowerCase();
+  let amountMatches = false;
+  try {
+    amountMatches = Boolean(transaction) && BigInt(transaction.value) === BigInt(expectedAmountWei);
+  } catch {
+    amountMatches = false;
+  }
   const checks = {
     hasHash: /^0x[a-fA-F0-9]{64}$/.test(normalized),
-    hasExpectedFrom: Boolean(expectedFrom),
-    hasExpectedTo: Boolean(expectedTo),
-    hasExpectedAmount: Number(expectedAmount) > 0
+    transactionFound: Boolean(transaction),
+    hasExpectedFrom: sameAddress(transaction?.from, expectedFrom),
+    hasExpectedTo: sameAddress(transaction?.to, expectedTo),
+    hasExpectedAmount: amountMatches,
+    hasSuccess: receipt?.status === 1
   };
   return {
     ok: Object.values(checks).every(Boolean),
