@@ -243,6 +243,60 @@ button:disabled {
   padding: 14px 16px;
 }
 
+.deployPanel {
+  display: grid;
+  gap: 20px;
+}
+
+.deployWarning {
+  border-left: 4px solid var(--accent-2);
+  margin: 0;
+  padding: 12px 14px;
+  background: #fff4ef;
+  color: #7c3218;
+  font-weight: 700;
+}
+
+.deployFacts {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 2fr;
+  gap: 10px 20px;
+  margin: 0;
+}
+
+.deployFacts dt {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.deployFacts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 800;
+}
+
+.deployActions {
+  display: flex;
+  gap: 10px;
+}
+
+.deploymentResult {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+
+.deploymentResult h2 {
+  margin: 12px 0 6px;
+  font-size: 14px;
+}
+
+.deploymentResult code {
+  display: inline-block;
+  max-width: calc(100% - 52px);
+  margin-right: 8px;
+  overflow-wrap: anywhere;
+}
+
 .journey {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

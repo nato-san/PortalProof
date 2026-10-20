@@ -21,6 +21,7 @@ import {
 import "./styles.css";
 
 const contractAddress = import.meta.env.VITE_PORTALPROOF_CONTRACT_ADDRESS || "";
+const DEPLOYMENT_COST_LIMIT = ethers.parseUnits("160", 18);
 const REQUESTS_KEY = "portalproof-requests-v1";
 const PROFILE_KEY = "portalproof-creator-profile-v1";
 const MODE_KEY = "portalproof-execution-mode-v1";
@@ -177,7 +178,23 @@ const messages = {
     notRecorded: "not recorded yet",
     qrAlt: "Payment transaction QR code",
     activityLog: "On-chain activity",
-    noActivity: "No testnet transaction in this browser session yet."
+    noActivity: "No testnet transaction in this browser session yet.",
+    deployTitle: "Deploy PortalProof proof contract",
+    deployHelp: "This creator-only tool deploys the tested lightweight proof contract with MetaMask. No private key is entered into this site.",
+    deployRisk: "This sends a real Portaldot V3 testnet transaction. Review the network, account, and maximum fee in MetaMask before approving.",
+    deployBalance: "Wallet balance",
+    deployMaximumCost: "Estimated maximum cost",
+    deploySafetyLimit: "Hard safety limit",
+    deployCheck: "Run final check",
+    deployNow: "Deploy with MetaMask",
+    deployChecking: "Checking the latest balance and fees...",
+    deployReady: "Final check passed. Review the figures, then deploy.",
+    deployWaitingWallet: "Waiting for MetaMask approval...",
+    deploySubmitted: "Deployment submitted: {hash}",
+    deployedAddress: "Deployed contract address",
+    deployTransaction: "Deployment transaction",
+    deployFailed: "Deployment failed",
+    deployNotChecked: "Run the final check before deploying."
   },
   ja: {
     eyebrow: "Portaldot Hacker House 2026／エコシステムDApps部門",
@@ -315,7 +332,23 @@ const messages = {
     notRecorded: "未記録",
     qrAlt: "支払いトランザクションのQRコード",
     activityLog: "オンチェーン活動",
-    noActivity: "このブラウザセッションにはテストネットの取引がまだありません。"
+    noActivity: "このブラウザセッションにはテストネットの取引がまだありません。",
+    deployTitle: "PortalProof証明コントラクトをデプロイ",
+    deployHelp: "テスト済みの軽量証明コントラクトをMetaMaskでデプロイする、クリエイター専用画面です。このサイトへ秘密鍵を入力する必要はありません。",
+    deployRisk: "Portaldot V3テストネットへ実際の取引を送信します。MetaMaskでネットワーク、アカウント、最大手数料を確認してから承認してください。",
+    deployBalance: "ウォレット残高",
+    deployMaximumCost: "推定最大費用",
+    deploySafetyLimit: "安全上限",
+    deployCheck: "最終チェック",
+    deployNow: "MetaMaskでデプロイ",
+    deployChecking: "最新の残高と手数料を確認中...",
+    deployReady: "最終チェックに成功しました。数値を確認してからデプロイしてください。",
+    deployWaitingWallet: "MetaMaskの承認を待っています...",
+    deploySubmitted: "デプロイを送信しました: {hash}",
+    deployedAddress: "デプロイ済みコントラクトアドレス",
+    deployTransaction: "デプロイトランザクション",
+    deployFailed: "デプロイに失敗しました",
+    deployNotChecked: "デプロイ前に最終チェックを実行してください。"
   }
 };
 
@@ -368,6 +401,10 @@ function App() {
   const [events, setEvents] = useState([]);
   const [qr, setQr] = useState("");
   const [status, setStatus] = useState({ key: "ready" });
+  const [deploymentCheck, setDeploymentCheck] = useState(null);
+  const [deploymentResult, setDeploymentResult] = useState(null);
+  const [deploymentStatus, setDeploymentStatus] = useState({ key: "ready" });
+  const [deploymentBusy, setDeploymentBusy] = useState(false);
   const [manageStage, setManageStage] = useState(() => {
     if (storedJob?.status === "paid") return "certificate";
     if (storedJob?.status === "delivered") return "payment";
@@ -547,6 +584,108 @@ function App() {
     }
   }
 
+  async function buildDeploymentPlan() {
+    if (!window.ethereum) throw new Error(t("walletRequired"));
+    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+    const address = accounts?.[0];
+    if (!address) throw new Error(t("walletRequired"));
+
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: PORTALDOT_V3.chainId }]
+      });
+    } catch (switchError) {
+      const switchCode = switchError?.code ?? switchError?.data?.originalError?.code;
+      if (switchCode !== 4902) throw switchError;
+      await window.ethereum.request({ method: "wallet_addEthereumChain", params: [PORTALDOT_V3] });
+    }
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const network = await provider.getNetwork();
+    if (network.chainId !== BigInt(PORTALDOT_V3.chainId)) {
+      throw new Error(`Unexpected chain ID: ${network.chainId}`);
+    }
+
+    const signer = await provider.getSigner();
+    const signerAddress = await signer.getAddress();
+    const balance = await provider.getBalance(signerAddress);
+    const { getDeploymentBytecode } = await import("./deployment.js");
+    const bytecode = getDeploymentBytecode();
+    const request = { data: bytecode };
+    const estimatedGas = await provider.estimateGas({ ...request, from: signerAddress });
+    const gasLimit = estimatedGas * 105n / 100n;
+    const feeData = await provider.getFeeData();
+    const maximumGasPrice = feeData.maxFeePerGas ?? feeData.gasPrice;
+    if (maximumGasPrice === null) throw new Error("Gas price is unavailable. / ガス価格を取得できません。");
+    const maximumCost = gasLimit * maximumGasPrice;
+
+    if (maximumCost > DEPLOYMENT_COST_LIMIT) {
+      throw new Error("The maximum cost exceeds 160 tPOTv3. No transaction was sent. / 最大費用が160 tPOTv3を超えたため送信していません。");
+    }
+    if (maximumCost > balance) {
+      throw new Error("The wallet balance is too low. No transaction was sent. / ウォレット残高が不足しているため送信していません。");
+    }
+
+    const overrides = feeData.maxFeePerGas !== null
+      ? {
+          gasLimit,
+          maxFeePerGas: feeData.maxFeePerGas,
+          maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ?? 0n
+        }
+      : { gasLimit, gasPrice: feeData.gasPrice };
+
+    setWallet(signerAddress);
+    return { signer, bytecode, overrides, signerAddress, balance, gasLimit, maximumCost };
+  }
+
+  async function checkDeployment() {
+    setDeploymentBusy(true);
+    setDeploymentResult(null);
+    setDeploymentStatus({ key: "deployChecking" });
+    try {
+      const plan = await buildDeploymentPlan();
+      setDeploymentCheck({
+        address: plan.signerAddress,
+        balance: ethers.formatUnits(plan.balance, 18),
+        maximumCost: ethers.formatUnits(plan.maximumCost, 18),
+        gasLimit: plan.gasLimit.toString()
+      });
+      setDeploymentStatus({ key: "deployReady" });
+    } catch (error) {
+      setDeploymentCheck(null);
+      setDeploymentStatus({ key: "deployFailed", detail: error?.message || String(error) });
+    } finally {
+      setDeploymentBusy(false);
+    }
+  }
+
+  async function deployProofContract() {
+    if (!deploymentCheck) {
+      setDeploymentStatus({ key: "deployNotChecked" });
+      return;
+    }
+    setDeploymentBusy(true);
+    setDeploymentStatus({ key: "deployWaitingWallet" });
+    try {
+      const plan = await buildDeploymentPlan();
+      const transaction = await plan.signer.sendTransaction({
+        data: plan.bytecode,
+        ...plan.overrides
+      });
+      setDeploymentStatus({ key: "deploySubmitted", values: { hash: transaction.hash } });
+      const receipt = await transaction.wait();
+      const address = receipt.contractAddress;
+      if (!address) throw new Error("Contract address was not returned. / コントラクトアドレスを取得できませんでした。");
+      setDeploymentResult({ address, txHash: receipt.hash });
+      setDeploymentStatus({ key: "ready" });
+    } catch (error) {
+      setDeploymentStatus({ key: "deployFailed", detail: error?.message || String(error) });
+    } finally {
+      setDeploymentBusy(false);
+    }
+  }
+
   function submitRequest(event) {
     event.preventDefault();
     if (!requestReady) return;
@@ -578,6 +717,7 @@ function App() {
       : "testnetModeWaiting";
   const statusKey = status.key === "ready" ? readyStatusKey : status.key;
   const statusText = `${t(statusKey, status.values)}${status.detail ? `: ${status.detail}` : ""}`;
+  const deploymentStatusText = `${t(deploymentStatus.key, deploymentStatus.values)}${deploymentStatus.detail ? `: ${deploymentStatus.detail}` : ""}`;
   const formatDate = (value) => value
     ? new Intl.DateTimeFormat(language === "ja" ? "ja-JP" : "en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
     : "";
@@ -602,6 +742,27 @@ function App() {
       </div>
     </nav>
   );
+
+  if (view === "deploy") {
+    return <main className="shell deployShell">
+      {topBar}
+      <header className="hero compactHero"><div><p className="eyebrow">PortalProof / Portaldot V3</p><h1>{t("deployTitle")}</h1><p>{t("deployHelp")}</p></div></header>
+      <section className="notice" role="status"><strong>{t("status")}</strong><span>{deploymentStatusText}</span></section>
+      <section className="panel deployPanel">
+        <p className="deployWarning">{t("deployRisk")}</p>
+        <dl className="deployFacts">
+          <dt>{t("deploySafetyLimit")}</dt><dd>160 tPOTv3</dd>
+          {deploymentCheck && <><dt>{t("deployBalance")}</dt><dd>{deploymentCheck.balance} tPOTv3</dd><dt>{t("deployMaximumCost")}</dt><dd>{deploymentCheck.maximumCost} tPOTv3</dd><dt>Gas limit / ガス上限</dt><dd>{deploymentCheck.gasLimit}</dd></>}
+        </dl>
+        <div className="deployActions">
+          <button className="secondary" onClick={checkDeployment} disabled={deploymentBusy}>{t("deployCheck")}</button>
+          <button className="primary" onClick={deployProofContract} disabled={deploymentBusy || !deploymentCheck || Boolean(deploymentResult)}>{t("deployNow")}</button>
+        </div>
+        {deploymentResult && <div className="deploymentResult"><h2>{t("deployedAddress")}</h2><code>{deploymentResult.address}</code><button className="icon" onClick={() => copy(deploymentResult.address)}><Copy size={16} /></button><h2>{t("deployTransaction")}</h2><code>{deploymentResult.txHash}</code><button className="icon" onClick={() => copy(deploymentResult.txHash)}><Copy size={16} /></button></div>}
+      </section>
+      <a className="textLink" href={baseUrl}><ArrowLeft size={16} />{t("backToTop")}</a>
+    </main>;
+  }
 
   if (page === "request") {
     return <main className="shell publicShell">
