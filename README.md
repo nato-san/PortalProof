@@ -32,7 +32,7 @@ Portaldot V3 supports EVM and Solidity contracts as well as ERC-style applicatio
 - A dedicated management workspace for each individual request
 - A tabbed agreement, delivery, payment, and certificate workflow that avoids one long form
 - Terms hash generation
-- Minimal order-proof NFT contract on the Portaldot V3 EVM
+- Lightweight append-only order-proof event log on the Portaldot V3 EVM
 - Delivery URL hash recording
 - Payment transaction hash evidence recording
 - QR certificate preview
@@ -40,7 +40,7 @@ Portaldot V3 supports EVM and Solidity contracts as well as ERC-style applicatio
 
 ### Portaldot V3 Testnet
 
-According to the official Portaldot V3 guide:
+The native network settings below come from the official Portaldot V3 guide. The EVM decimal setting was verified against the latest EVM RPC balance and MetaMask display:
 
 - Network: `PortaldotV3 Testnet`
 - Native RPC: `wss://test-node-v3.portaldot.dev`
@@ -49,6 +49,7 @@ According to the official Portaldot V3 guide:
 - Chain ID: `420420777`
 - Currency: `tPOTv3`
 - Native token decimals: `14`
+- EVM and MetaMask currency decimals: `18`
 
 ### Testnet Deployment
 
@@ -98,21 +99,26 @@ npm run dev
 
 ### Compile Contract
 
-The compiled artifact is included at `artifacts/PortalProofOrder.json` for the MVP deployment script. If the Solidity contract changes, recompile it with Remix or your preferred Solidity compiler and update the artifact.
+The compiled artifact is included at `artifacts/PortalProofOrder.json` for the MVP deployment script. The compiler is pinned to the Portaldot guide's Solidity `0.8.24` version and uses the optimizer with 200 runs. Recompile it after changing the contract:
+
+```bash
+npm run compile:contract
+```
 
 ### Deploy to Portaldot V3
 
 1. Add `PortaldotV3 Testnet` to MetaMask.
 2. Get `tPOTv3` for the deployer account.
 3. Copy `.env.example` to `.env`.
-4. Set `DEPLOYER_PRIVATE_KEY`.
-5. Run the read-only network and wallet preflight:
+4. Set the public EVM address in `DEPLOYER_ADDRESS`.
+5. Run the read-only network, wallet, and deployment-cost preflight:
 
 ```bash
 npm run check:portaldot
 ```
 
-6. After confirming the chain ID, deployer address, and balance, deploy the contract:
+6. Confirm that the chain ID, address, balance, and estimated deployment cost are safe.
+7. Only when deploying, set `DEPLOYER_PRIVATE_KEY`, then deploy the contract:
 
 ```bash
 npm run deploy:portaldot
@@ -168,7 +174,7 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 - 依頼ごとに独立した案件管理画面
 - 長いフォームを避けるため、合意・納品・支払い・証明書を切り替える案件管理画面
 - 合意条件ハッシュの生成
-- Portaldot V3 EVM上の最小発注証明NFTコントラクト
+- Portaldot V3 EVM上の軽量な追記専用発注証明イベントコントラクト
 - 納品URLハッシュの記録
 - 支払いトランザクションハッシュ証跡の記録
 - QRコード付き証明書のプレビュー
@@ -176,7 +182,7 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 
 ### Portaldot V3テストネット
 
-Portaldot V3公式ガイドに記載された設定は次のとおりです。
+以下のネイティブネットワーク設定は、Portaldot V3公式ガイドに基づいています。EVM側の小数桁は、最新EVM RPCの残高とMetaMask表示が一致することを確認しています。
 
 - ネットワーク: `PortaldotV3 Testnet`
 - ネイティブRPC: `wss://test-node-v3.portaldot.dev`
@@ -185,6 +191,7 @@ Portaldot V3公式ガイドに記載された設定は次のとおりです。
 - チェーンID: `420420777`
 - 通貨: `tPOTv3`
 - ネイティブトークンの小数桁: `14`
+- EVM・MetaMask側の通貨の小数桁: `18`
 
 ### テストネットへのデプロイ
 
@@ -234,21 +241,26 @@ npm run dev
 
 ### コントラクトのコンパイル
 
-MVP用デプロイスクリプトで使うコンパイル済みファイルを`artifacts/PortalProofOrder.json`に同梱しています。Solidityコントラクトを変更した場合は、Remixまたは任意のSolidityコンパイラで再コンパイルし、同ファイルを更新してください。
+MVP用デプロイスクリプトで使うコンパイル済みファイルを`artifacts/PortalProofOrder.json`に同梱しています。コンパイラはPortaldot公式ガイドと同じSolidity `0.8.24`に固定し、最適化を200回設定で有効にしています。コントラクトを変更した場合は再コンパイルしてください。
+
+```bash
+npm run compile:contract
+```
 
 ### Portaldot V3へのデプロイ
 
 1. MetaMaskに`PortaldotV3 Testnet`を追加します。
 2. デプロイ用アカウントに`tPOTv3`を用意します。
 3. `.env.example`を`.env`へコピーします。
-4. `DEPLOYER_PRIVATE_KEY`を設定します。
-5. 読み取り専用のネットワーク・ウォレット事前確認を実行します。
+4. 公開EVMアドレスを`DEPLOYER_ADDRESS`に設定します。
+5. 読み取り専用のネットワーク・ウォレット・デプロイ費用の事前確認を実行します。
 
 ```bash
 npm run check:portaldot
 ```
 
-6. チェーンID、デプロイ用アドレス、残高を確認してからコントラクトをデプロイします。
+6. チェーンID、アドレス、残高、推定デプロイ費用が安全であることを確認します。
+7. デプロイ時にだけ`DEPLOYER_PRIVATE_KEY`を設定して、コントラクトをデプロイします。
 
 ```bash
 npm run deploy:portaldot

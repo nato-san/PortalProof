@@ -495,7 +495,6 @@ function App() {
       const tx = await contract.createOrder(
         jobDraft.clientWallet,
         jobDraft.creatorWallet,
-        ethers.parseUnits(String(jobDraft.amount), 14),
         proofs.termsHash
       );
       setStatus({ key: "creatingOrder", values: { hash: tx.hash } });
@@ -503,7 +502,7 @@ function App() {
       const event = receipt.logs
         .map((log) => { try { return contract.interface.parseLog(log); } catch { return null; } })
         .find((item) => item?.name === "OrderCreated");
-      const orderId = event?.args?.orderId?.toString() || "";
+      const orderId = event?.args?.proofId?.toString() || "";
       setJobDraft((current) => ({ ...current, orderId, status: "active" }));
       setEvents((items) => [{ label: "OrderCreated", txHash: receipt.hash }, ...items]);
       setStatus({ key: "orderCreated", values: { orderId: orderId || t("checkExplorer") } });
@@ -517,8 +516,7 @@ function App() {
     if (!jobDraft) return;
     try {
       const contract = await getSignerContract();
-      const certificateURI = `${location.origin}/certificate/${jobDraft.orderId || "pending"}`;
-      const tx = await contract.markDelivered(jobDraft.orderId, proofs.deliveryHash, certificateURI);
+      const tx = await contract.markDelivered(jobDraft.orderId, proofs.deliveryHash);
       setStatus({ key: "recordingDelivery", values: { hash: tx.hash } });
       const receipt = await tx.wait();
       setJobDraft((current) => ({ ...current, status: "delivered" }));

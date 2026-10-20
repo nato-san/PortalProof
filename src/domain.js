@@ -5,7 +5,7 @@ export const PORTALDOT_V3 = {
   nativeCurrency: {
     name: "tPOTv3",
     symbol: "tPOTv3",
-    decimals: 14
+    decimals: 18
   }
 };
 

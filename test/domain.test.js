@@ -12,7 +12,7 @@ import {
 } from "../src/domain.js";
 
 assert.equal(PORTALDOT_V3.chainId, "0x190f1ca9");
-assert.equal(PORTALDOT_V3.nativeCurrency.decimals, 14);
+assert.equal(PORTALDOT_V3.nativeCurrency.decimals, 18);
 assert.deepEqual(PORTALDOT_V3.rpcUrls, ["https://test-evm-rpc-v3.portaldot.dev"]);
 
 const draft = {
