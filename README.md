@@ -134,8 +134,31 @@ Open-source dependencies are listed in `package.json`.
 ### Known Limitations
 
 - Payment verification currently supports native tPOTv3 transfers; token-contract payments are not supported yet.
+- The current MVP records payment evidence after delivery but does not escrow funds, so payment is not guaranteed.
 - The prototype request inbox is stored in the current browser and does not yet sync incoming requests across devices; accepted proofs are recorded separately on-chain.
 - The application must not claim payment success from an arbitrary transaction hash.
+- A public delivery URL can be copied. The on-chain hash proves the recorded URL, but does not restrict access to the delivered file.
+
+### Roadmap
+
+#### Milestone 1 — Interim-report MVP (current)
+
+- Complete and demonstrate the deployed order, delivery, and verified native-payment proof flow.
+- Keep the non-custodial model: PortalProof records evidence but does not hold user funds.
+
+#### Milestone 2 — Escrow deposit
+
+- When the creator accepts a request, require the client to deposit the agreed native tPOTv3 amount into a dedicated escrow contract.
+- Lock the deposit to the proof ID and the client and creator wallets.
+- After delivery, let the client approve release to the creator.
+- Support cancellation and refund before acceptance, plus a deadline-based refund when delivery does not occur.
+- Do not reveal a protected delivery asset until the deposit is confirmed.
+
+#### Milestone 3 — Disputes and production hardening
+
+- Add revision and dispute states, timeout rules, and an explicit resolver or mutually agreed refund path.
+- Add reentrancy protection, checks-effects-interactions, access control, invariant tests, and an external security review before handling real-value funds.
+- Consider content encryption or signed, time-limited delivery links; a public URL alone cannot prevent copying.
 
 ---
 
@@ -275,5 +298,28 @@ AI支援は、実装補助、ドキュメント作成、デバッグに使用し
 ### 現在の制限事項
 
 - 支払い検証はネイティブtPOTv3送金に対応しています。トークンコントラクト経由の支払いにはまだ対応していません。
+- 現在のMVPは納品後の支払い証跡を記録しますが、資金をエスクローしないため、支払いそのものは保証されません。
 - 試作版の依頼一覧は現在のブラウザ内に保存されるため、受信依頼はまだ別端末と同期されません。受付後の証明記録は別途オンチェーンへ送信します。
 - 任意のトランザクションハッシュだけで支払い成功とは表示しません。
+- 公開された納品URLはコピーできます。オンチェーンのハッシュは記録したURLを証明しますが、納品ファイルへのアクセスは制限しません。
+
+### ロードマップ
+
+#### マイルストーン1 — 中間報告向けMVP（現在）
+
+- デプロイ済みの発注・納品・検証済みネイティブ支払い証明フローを完成させて実演します。
+- 資金を預からない構成を維持し、PortalProofは証跡のみを記録します。
+
+#### マイルストーン2 — デポジット型エスクロー
+
+- クリエイターが依頼を承諾した時点で、依頼者が合意額のネイティブtPOTv3を専用エスクローコントラクトへ預けます。
+- デポジットを証明ID、依頼者、クリエイターのウォレットに紐づけてロックします。
+- 納品後、依頼者の承認によりクリエイターへ支払います。
+- 承諾前のキャンセルと返金、未納品時の期限付き返金に対応します。
+- デポジット確認前は、保護された納品物を公開しません。
+
+#### マイルストーン3 — 紛争対応と本番向け強化
+
+- 手直し・異議申立て・期限・仲裁者または双方合意による返金フローを追加します。
+- 再入防止、Checks-Effects-Interactions、アクセス制御、不変条件テスト、外部セキュリティレビューを実施してから実価値資金を扱います。
+- 公開URLだけでは複製を防げないため、暗号化または署名付き・期限付き納品URLを検討します。
