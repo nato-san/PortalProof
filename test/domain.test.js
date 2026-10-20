@@ -8,6 +8,7 @@ import {
   emptyDraft,
   readCreatorRequestUrl,
   readJobId,
+  validateDeliveryUrl,
   validateTxEvidence
 } from "../src/domain.js";
 
@@ -52,6 +53,11 @@ assert.equal(requestRecord.deliveryUrl, "");
 assert.match(proofs.termsHash, /^0x[a-f0-9]{64}$/);
 assert.match(proofs.deliveryHash, /^0x[a-f0-9]{64}$/);
 assert.notEqual(proofs.termsHash, proofs.deliveryHash);
+
+assert.equal(validateDeliveryUrl("https://example.com/delivery.png"), true);
+assert.equal(validateDeliveryUrl("ipfs://bafybeigdyrzt/delivery.png"), true);
+assert.equal(validateDeliveryUrl(""), false);
+assert.equal(validateDeliveryUrl("delivery.png"), false);
 
 assert.equal(validateTxEvidence({
   paymentTxHash: draft.paymentTxHash,

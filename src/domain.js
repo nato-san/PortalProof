@@ -125,6 +125,15 @@ export async function buildProofs(draft) {
   return { termsPayload, termsHash, deliveryHash };
 }
 
+export function validateDeliveryUrl(value) {
+  try {
+    const url = new URL(String(value || "").trim());
+    return ["https:", "http:", "ipfs:"].includes(url.protocol);
+  } catch {
+    return false;
+  }
+}
+
 export function validateTxEvidence({ paymentTxHash, expectedFrom, expectedTo, expectedAmount }) {
   const normalized = String(paymentTxHash || "").trim();
   const checks = {

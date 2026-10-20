@@ -16,6 +16,7 @@ import {
   emptyDraft,
   readCreatorRequestUrl,
   readJobId,
+  validateDeliveryUrl,
   validateTxEvidence
 } from "./domain.js";
 import "./styles.css";
@@ -151,6 +152,7 @@ const messages = {
     checkExplorer: "check the explorer",
     delivery: "Record delivery",
     deliveryHelp: "Add the delivery URL. PortalProof records its hash, not the file itself.",
+    deliveryUrlRequired: "Enter a valid delivery URL before recording the proof.",
     orderId: "Order ID",
     createdAfterMint: "Created after minting",
     deliveryUrl: "Delivery URL",
@@ -310,6 +312,7 @@ const messages = {
     checkExplorer: "エクスプローラーで確認",
     delivery: "納品を記録",
     deliveryHelp: "納品先URLを入力します。ファイル自体ではなく、そのハッシュを記録します。",
+    deliveryUrlRequired: "記録前に有効な納品URLを入力してください。",
     orderId: "注文ID",
     createdAfterMint: "発行後に作成されます",
     deliveryUrl: "納品URL",
@@ -450,6 +453,7 @@ function App() {
   const onChainReady = executionMode === "testnet" && Boolean(contractAddress);
   const orderComplete = Boolean(jobDraft?.orderId);
   const deliveryComplete = Boolean(jobDraft?.deliveryTxHash) || ["delivered", "paid"].includes(jobDraft?.status);
+  const deliveryReady = validateDeliveryUrl(jobDraft?.deliveryUrl);
   const paymentComplete = Boolean(jobDraft?.paymentRecordTxHash) || jobDraft?.status === "paid";
   const stageAvailable = {
     agreement: true,
@@ -641,6 +645,10 @@ function App() {
 
   async function markDelivered() {
     if (!jobDraft) return;
+    if (!validateDeliveryUrl(jobDraft.deliveryUrl)) {
+      setStatus({ key: "deliveryUrlRequired" });
+      return;
+    }
     if (jobDraft.deliveryTxHash || ["delivered", "paid"].includes(jobDraft.status)) {
       setStatus({ key: "deliveryAlreadyRecorded" });
       return;
@@ -913,7 +921,7 @@ function App() {
         <div className="workflowArea">
           <nav className="stageTabs">{["agreement", "delivery", "payment", "certificate"].map((stage, index) => <button key={stage} className={manageStage === stage ? "active" : ""} disabled={!stageAvailable[stage]} onClick={() => setManageStage(stage)}><span>{index + 1}</span>{t(`${stage}Tab`)}</button>)}</nav>
           {manageStage === "agreement" && <section className="panel stagePanel"><p className="eyebrow">1 / 4</p><h2>{t("agreementHash")}</h2><p className="muted">{t("agreementHelp")}</p><div className="hashBox"><span>{t("termsHash")}</span><code>{proofs?.termsHash}</code><button className="icon" aria-label={t("copyTermsHash")} onClick={() => copy(proofs?.termsHash || "")}><Copy size={16} /></button></div><button className="primary wide" onClick={createOnChainOrder} disabled={!onChainReady || !agreementReady || !proofs?.termsHash || orderComplete}><FileCheck2 size={18} />{orderComplete ? t("orderIssued") : t("mintOrder")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !contractAddress ? <p className="formHint">{t("deployFirst")}</p> : !agreementReady && <p className="formHint">{t("agreementRequirements")}</p>}</section>}
-          {manageStage === "delivery" && <section className="panel stagePanel"><p className="eyebrow">2 / 4</p><h2>{t("delivery")}</h2><p className="muted">{t("deliveryHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} readOnly placeholder={t("createdAfterMint")} /></label><label>{t("deliveryUrl")}<input value={jobDraft.deliveryUrl} onChange={updateJob("deliveryUrl")} /></label><div className="hashBox"><span>{t("deliveryHash")}</span><code>{proofs?.deliveryHash}</code></div><button className="secondary wide" onClick={markDelivered} disabled={!jobDraft.orderId || !onChainReady || deliveryComplete}><Link2 size={18} />{t("recordDelivery")}</button>{executionMode === "local" && <p className="formHint">{t("switchToTestnet")}</p>}</section>}
+          {manageStage === "delivery" && <section className="panel stagePanel"><p className="eyebrow">2 / 4</p><h2>{t("delivery")}</h2><p className="muted">{t("deliveryHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} readOnly placeholder={t("createdAfterMint")} /></label><label>{t("deliveryUrl")}<input value={jobDraft.deliveryUrl} onChange={updateJob("deliveryUrl")} disabled={deliveryComplete} placeholder="https://..." /></label><div className="hashBox"><span>{t("deliveryHash")}</span><code>{deliveryReady ? proofs?.deliveryHash : "—"}</code></div><button className="secondary wide" onClick={markDelivered} disabled={!jobDraft.orderId || !onChainReady || !deliveryReady || deliveryComplete}><Link2 size={18} />{t("recordDelivery")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !deliveryReady && <p className="formHint">{t("deliveryUrlRequired")}</p>}</section>}
           {manageStage === "payment" && <section className="panel stagePanel"><p className="eyebrow">3 / 4</p><h2>{t("paymentEvidence")}</h2><p className="muted">{t("paymentHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} readOnly placeholder={t("createdAfterMint")} /></label><label>{t("paymentTxHash")}<input value={jobDraft.paymentTxHash} onChange={updateJob("paymentTxHash")} placeholder="0x..." /></label><ul className="checks">{Object.entries(paymentEvidence.checks).map(([key, value]) => <li key={key} className={value ? "ok" : ""}><CheckCircle2 size={15} />{t(checkMessageKeys[key])}</li>)}</ul><button className="secondary wide" onClick={recordPayment} disabled={!jobDraft.orderId || !onChainReady || paymentComplete}>{t("recordPayment")}</button><p className="formHint">{executionMode === "local" ? t("switchToTestnet") : t("paymentWarning")}</p></section>}
           {manageStage === "certificate" && <section className="panel stagePanel certificatePanel"><p className="eyebrow">4 / 4</p><h2>{t("certificatePreview")}</h2><p className="muted">{t("certificateHelp")}</p><div className="certificateBody"><dl><dt>{t("creator")}</dt><dd>{jobDraft.creatorName}</dd><dt>{t("client")}</dt><dd>{jobDraft.clientName}</dd><dt>{t("contract")}</dt><dd>{contractAddress || t("notDeployed")}</dd><dt>{t("order")}</dt><dd>{jobDraft.orderId || t("notMinted")}</dd><dt>{t("terms")}</dt><dd><code>{proofs?.termsHash}</code></dd><dt>{t("payment")}</dt><dd><code>{jobDraft.paymentTxHash || t("notRecorded")}</code></dd></dl>{qr && <img src={qr} alt={t("qrAlt")} />}</div></section>}
         </div>
