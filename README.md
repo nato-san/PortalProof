@@ -61,7 +61,8 @@ The lightweight proof contract was deployed successfully to the Portaldot V3 tes
 | Deployment transaction hash | `0x29b2c7b2b91bf6cc6804040fb0590c020a3b0a4bdae1f81864f1f9f227035365` |
 | Deployer | `0xCF0a9DE1AEE018647c16094caf7238E263659C6C` |
 | Deployment cost | `69.04291640089190529 tPOTv3` |
-| OrderCreated transaction hash | TBD |
+| OrderCreated transaction hash | `0x2bcc608ac64194dbd08f8c0239bf12ce1ae4c7870f7ef9f59265a775bbb16815` |
+| Duplicate test transaction | `0x6fd2728858d5278e43c0cec6618427a8505e048c87362f9dd43a2e7f023f6be7` (same proof ID; UI guard added afterward) |
 | DeliverySubmitted transaction hash | TBD |
 | PaymentRecorded transaction hash | TBD |
 
@@ -201,7 +202,8 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 | デプロイのトランザクションハッシュ | `0x29b2c7b2b91bf6cc6804040fb0590c020a3b0a4bdae1f81864f1f9f227035365` |
 | デプロイ実行者 | `0xCF0a9DE1AEE018647c16094caf7238E263659C6C` |
 | 実際のデプロイ費用 | `69.04291640089190529 tPOTv3` |
-| 発注作成のトランザクションハッシュ | 未定 |
+| 発注作成のトランザクションハッシュ | `0x2bcc608ac64194dbd08f8c0239bf12ce1ae4c7870f7ef9f59265a775bbb16815` |
+| 重複したテスト取引 | `0x6fd2728858d5278e43c0cec6618427a8505e048c87362f9dd43a2e7f023f6be7`（同じ証明ID。後から画面側に重複防止を追加） |
 | 納品登録のトランザクションハッシュ | 未定 |
 | 支払い記録のトランザクションハッシュ | 未定 |
 

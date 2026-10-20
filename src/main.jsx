@@ -22,6 +22,7 @@ import "./styles.css";
 
 const DEPLOYED_CONTRACT_ADDRESS = "0xBaE8933886e1520e5FCa3eDed119c08b29022D79";
 const DEPLOYMENT_TRANSACTION_HASH = "0x29b2c7b2b91bf6cc6804040fb0590c020a3b0a4bdae1f81864f1f9f227035365";
+const CONTRACT_DEPLOYMENT_BLOCK = 119719;
 const contractAddress = import.meta.env.VITE_PORTALPROOF_CONTRACT_ADDRESS || DEPLOYED_CONTRACT_ADDRESS;
 const DEPLOYMENT_COST_LIMIT = ethers.parseUnits("160", 18);
 const REQUESTS_KEY = "portalproof-requests-v1";
@@ -145,6 +146,8 @@ const messages = {
     contractNotConfigured: "Set VITE_PORTALPROOF_CONTRACT_ADDRESS after deployment.",
     creatingOrder: "Creating order proof: {hash}",
     orderCreated: "Order proof created. Order ID: {orderId}",
+    orderAlreadyCreated: "This order proof is already on-chain. No duplicate transaction was sent.",
+    orderIssued: "Order proof issued",
     checkExplorer: "check the explorer",
     delivery: "Record delivery",
     deliveryHelp: "Add the delivery URL. PortalProof records its hash, not the file itself.",
@@ -155,6 +158,7 @@ const messages = {
     recordDelivery: "Record delivery",
     recordingDelivery: "Recording delivery: {hash}",
     deliveryRecorded: "Delivery proof recorded on the Portaldot V3 testnet.",
+    deliveryAlreadyRecorded: "Delivery proof is already recorded. No duplicate transaction was sent.",
     paymentEvidence: "Record payment evidence",
     paymentHelp: "Reference the real transfer made by the client after checking its details.",
     paymentTxHash: "Payment transaction hash",
@@ -167,6 +171,7 @@ const messages = {
     paymentIncomplete: "Payment evidence is incomplete. Do not record an arbitrary transaction hash.",
     recordingPayment: "Recording verified payment evidence: {hash}",
     paymentRecorded: "Payment evidence recorded. Reviewers should still verify the referenced transfer.",
+    paymentAlreadyRecorded: "Payment evidence is already recorded. No duplicate transaction was sent.",
     certificatePreview: "Proof certificate",
     certificateHelp: "A compact evidence view for this creator request.",
     creator: "Creator",
@@ -300,6 +305,8 @@ const messages = {
     contractNotConfigured: "デプロイ後にVITE_PORTALPROOF_CONTRACT_ADDRESSを設定してください。",
     creatingOrder: "発注証明を作成中: {hash}",
     orderCreated: "発注証明を作成しました。注文ID: {orderId}",
+    orderAlreadyCreated: "この発注証明はオンチェーンに記録済みです。重複取引は送信していません。",
+    orderIssued: "発注証明を発行済み",
     checkExplorer: "エクスプローラーで確認",
     delivery: "納品を記録",
     deliveryHelp: "納品先URLを入力します。ファイル自体ではなく、そのハッシュを記録します。",
@@ -310,6 +317,7 @@ const messages = {
     recordDelivery: "納品を記録",
     recordingDelivery: "納品を記録中: {hash}",
     deliveryRecorded: "Portaldot V3テストネットに納品証明を記録しました。",
+    deliveryAlreadyRecorded: "納品証明は記録済みです。重複取引は送信していません。",
     paymentEvidence: "支払い証跡を記録",
     paymentHelp: "依頼者から実際に行われた送金の内容を確認して記録します。",
     paymentTxHash: "支払いトランザクションハッシュ",
@@ -322,6 +330,7 @@ const messages = {
     paymentIncomplete: "支払い証跡が不足しています。任意のトランザクションハッシュは記録できません。",
     recordingPayment: "検証済み支払い証跡を記録中: {hash}",
     paymentRecorded: "支払い証跡を記録しました。参照先の送金内容は審査員も確認する必要があります。",
+    paymentAlreadyRecorded: "支払い証跡は記録済みです。重複取引は送信していません。",
     certificatePreview: "証明書",
     certificateHelp: "この依頼の証跡をまとめて確認する画面です。",
     creator: "クリエイター",
@@ -402,7 +411,11 @@ function App() {
   const [submitted, setSubmitted] = useState(null);
   const [proofs, setProofs] = useState(null);
   const [wallet, setWallet] = useState("");
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState(() => [
+    storedJob?.paymentRecordTxHash && { label: "PaymentRecorded", txHash: storedJob.paymentRecordTxHash },
+    storedJob?.deliveryTxHash && { label: "DeliverySubmitted", txHash: storedJob.deliveryTxHash },
+    storedJob?.orderTxHash && { label: "OrderCreated", txHash: storedJob.orderTxHash }
+  ].filter(Boolean));
   const [qr, setQr] = useState("");
   const [status, setStatus] = useState({ key: "ready" });
   const [deploymentCheck, setDeploymentCheck] = useState(null);
@@ -435,6 +448,15 @@ function App() {
     expectedAmount: jobDraft?.amount
   }), [jobDraft]);
   const onChainReady = executionMode === "testnet" && Boolean(contractAddress);
+  const orderComplete = Boolean(jobDraft?.orderId);
+  const deliveryComplete = Boolean(jobDraft?.deliveryTxHash) || ["delivered", "paid"].includes(jobDraft?.status);
+  const paymentComplete = Boolean(jobDraft?.paymentRecordTxHash) || jobDraft?.status === "paid";
+  const stageAvailable = {
+    agreement: true,
+    delivery: orderComplete,
+    payment: deliveryComplete,
+    certificate: paymentComplete
+  };
 
   useEffect(() => {
     document.documentElement.lang = language;
@@ -468,6 +490,40 @@ function App() {
       return updated;
     });
   }, [jobDraft]);
+
+  useEffect(() => {
+    if (page !== "job" || !jobDraft?.orderId || jobDraft.orderTxHash) return undefined;
+    let cancelled = false;
+    const recoverOrderTransaction = async () => {
+      try {
+        const provider = new ethers.JsonRpcProvider(
+          PORTALDOT_V3.rpcUrls[0],
+          Number(BigInt(PORTALDOT_V3.chainId)),
+          { staticNetwork: true }
+        );
+        const contract = new ethers.Contract(contractAddress, PORTALPROOF_ABI, provider);
+        const logs = await contract.queryFilter(
+          contract.filters.OrderCreated(jobDraft.orderId),
+          CONTRACT_DEPLOYMENT_BLOCK,
+          "latest"
+        );
+        const client = String(jobDraft.clientWallet || "").toLowerCase();
+        const creator = String(jobDraft.creatorWallet || "").toLowerCase();
+        const matching = logs.find((item) =>
+          item.args.client.toLowerCase() === client && item.args.creator.toLowerCase() === creator
+        );
+        if (!matching || cancelled) return;
+        setJobDraft((current) => ({ ...current, orderTxHash: matching.transactionHash, status: "active" }));
+        setEvents((items) => items.some((item) => item.txHash === matching.transactionHash)
+          ? items
+          : [{ label: "OrderCreated", txHash: matching.transactionHash }, ...items]);
+      } catch {
+        // The proof remains usable if history recovery is temporarily unavailable.
+      }
+    };
+    recoverOrderTransaction();
+    return () => { cancelled = true; };
+  }, [page, jobDraft?.id, jobDraft?.orderId, jobDraft?.orderTxHash]);
 
   useEffect(() => {
     if (!activeDraft) return;
@@ -533,8 +589,36 @@ function App() {
 
   async function createOnChainOrder() {
     if (!jobDraft) return;
+    if (jobDraft.orderId) {
+      setStatus({ key: "orderAlreadyCreated" });
+      return;
+    }
     try {
       const contract = await getSignerContract();
+      const existing = await contract.queryFilter(
+        contract.filters.OrderCreated(proofs.termsHash),
+        CONTRACT_DEPLOYMENT_BLOCK,
+        "latest"
+      );
+      const client = jobDraft.clientWallet.toLowerCase();
+      const creator = jobDraft.creatorWallet.toLowerCase();
+      const matching = existing.find((item) =>
+        item.args.client.toLowerCase() === client && item.args.creator.toLowerCase() === creator
+      );
+      if (matching) {
+        setJobDraft((current) => ({
+          ...current,
+          orderId: matching.args.proofId.toString(),
+          orderTxHash: matching.transactionHash,
+          status: "active"
+        }));
+        setEvents((items) => items.some((item) => item.txHash === matching.transactionHash)
+          ? items
+          : [{ label: "OrderCreated", txHash: matching.transactionHash }, ...items]);
+        setStatus({ key: "orderAlreadyCreated" });
+        setManageStage("delivery");
+        return;
+      }
       const tx = await contract.createOrder(
         jobDraft.clientWallet,
         jobDraft.creatorWallet,
@@ -546,7 +630,7 @@ function App() {
         .map((log) => { try { return contract.interface.parseLog(log); } catch { return null; } })
         .find((item) => item?.name === "OrderCreated");
       const orderId = event?.args?.proofId?.toString() || "";
-      setJobDraft((current) => ({ ...current, orderId, status: "active" }));
+      setJobDraft((current) => ({ ...current, orderId, orderTxHash: receipt.hash, status: "active" }));
       setEvents((items) => [{ label: "OrderCreated", txHash: receipt.hash }, ...items]);
       setStatus({ key: "orderCreated", values: { orderId: orderId || t("checkExplorer") } });
       setManageStage("delivery");
@@ -557,12 +641,16 @@ function App() {
 
   async function markDelivered() {
     if (!jobDraft) return;
+    if (jobDraft.deliveryTxHash || ["delivered", "paid"].includes(jobDraft.status)) {
+      setStatus({ key: "deliveryAlreadyRecorded" });
+      return;
+    }
     try {
       const contract = await getSignerContract();
       const tx = await contract.markDelivered(jobDraft.orderId, proofs.deliveryHash);
       setStatus({ key: "recordingDelivery", values: { hash: tx.hash } });
       const receipt = await tx.wait();
-      setJobDraft((current) => ({ ...current, status: "delivered" }));
+      setJobDraft((current) => ({ ...current, deliveryTxHash: receipt.hash, status: "delivered" }));
       setEvents((items) => [{ label: "DeliverySubmitted", txHash: receipt.hash }, ...items]);
       setStatus({ key: "deliveryRecorded" });
       setManageStage("payment");
@@ -576,12 +664,16 @@ function App() {
       setStatus({ key: "paymentIncomplete" });
       return;
     }
+    if (jobDraft.paymentRecordTxHash || jobDraft.status === "paid") {
+      setStatus({ key: "paymentAlreadyRecorded" });
+      return;
+    }
     try {
       const contract = await getSignerContract();
       const tx = await contract.recordVerifiedPayment(jobDraft.orderId, paymentEvidence.normalized);
       setStatus({ key: "recordingPayment", values: { hash: tx.hash } });
       const receipt = await tx.wait();
-      setJobDraft((current) => ({ ...current, status: "paid" }));
+      setJobDraft((current) => ({ ...current, paymentRecordTxHash: receipt.hash, status: "paid" }));
       setEvents((items) => [{ label: "PaymentRecorded", txHash: receipt.hash }, ...items]);
       setStatus({ key: "paymentRecorded" });
       setManageStage("certificate");
@@ -819,10 +911,10 @@ function App() {
           <div className="activityCompact"><strong>{t("activityLog")}</strong>{events.length === 0 ? <small>{t("noActivity")}</small> : events.map((event) => <a key={event.txHash} href={`https://node-console.portaldot.dev/#/explorer/query/${event.txHash}`} target="_blank" rel="noreferrer"><ExternalLink size={14} />{event.label}</a>)}</div>
         </aside>
         <div className="workflowArea">
-          <nav className="stageTabs">{["agreement", "delivery", "payment", "certificate"].map((stage, index) => <button key={stage} className={manageStage === stage ? "active" : ""} onClick={() => setManageStage(stage)}><span>{index + 1}</span>{t(`${stage}Tab`)}</button>)}</nav>
-          {manageStage === "agreement" && <section className="panel stagePanel"><p className="eyebrow">1 / 4</p><h2>{t("agreementHash")}</h2><p className="muted">{t("agreementHelp")}</p><div className="hashBox"><span>{t("termsHash")}</span><code>{proofs?.termsHash}</code><button className="icon" aria-label={t("copyTermsHash")} onClick={() => copy(proofs?.termsHash || "")}><Copy size={16} /></button></div><button className="primary wide" onClick={createOnChainOrder} disabled={!onChainReady || !agreementReady}><FileCheck2 size={18} />{t("mintOrder")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !contractAddress ? <p className="formHint">{t("deployFirst")}</p> : !agreementReady && <p className="formHint">{t("agreementRequirements")}</p>}</section>}
-          {manageStage === "delivery" && <section className="panel stagePanel"><p className="eyebrow">2 / 4</p><h2>{t("delivery")}</h2><p className="muted">{t("deliveryHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} onChange={updateJob("orderId")} placeholder={t("createdAfterMint")} /></label><label>{t("deliveryUrl")}<input value={jobDraft.deliveryUrl} onChange={updateJob("deliveryUrl")} /></label><div className="hashBox"><span>{t("deliveryHash")}</span><code>{proofs?.deliveryHash}</code></div><button className="secondary wide" onClick={markDelivered} disabled={!jobDraft.orderId || !onChainReady}><Link2 size={18} />{t("recordDelivery")}</button>{executionMode === "local" && <p className="formHint">{t("switchToTestnet")}</p>}</section>}
-          {manageStage === "payment" && <section className="panel stagePanel"><p className="eyebrow">3 / 4</p><h2>{t("paymentEvidence")}</h2><p className="muted">{t("paymentHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} onChange={updateJob("orderId")} placeholder={t("createdAfterMint")} /></label><label>{t("paymentTxHash")}<input value={jobDraft.paymentTxHash} onChange={updateJob("paymentTxHash")} placeholder="0x..." /></label><ul className="checks">{Object.entries(paymentEvidence.checks).map(([key, value]) => <li key={key} className={value ? "ok" : ""}><CheckCircle2 size={15} />{t(checkMessageKeys[key])}</li>)}</ul><button className="secondary wide" onClick={recordPayment} disabled={!jobDraft.orderId || !onChainReady}>{t("recordPayment")}</button><p className="formHint">{executionMode === "local" ? t("switchToTestnet") : t("paymentWarning")}</p></section>}
+          <nav className="stageTabs">{["agreement", "delivery", "payment", "certificate"].map((stage, index) => <button key={stage} className={manageStage === stage ? "active" : ""} disabled={!stageAvailable[stage]} onClick={() => setManageStage(stage)}><span>{index + 1}</span>{t(`${stage}Tab`)}</button>)}</nav>
+          {manageStage === "agreement" && <section className="panel stagePanel"><p className="eyebrow">1 / 4</p><h2>{t("agreementHash")}</h2><p className="muted">{t("agreementHelp")}</p><div className="hashBox"><span>{t("termsHash")}</span><code>{proofs?.termsHash}</code><button className="icon" aria-label={t("copyTermsHash")} onClick={() => copy(proofs?.termsHash || "")}><Copy size={16} /></button></div><button className="primary wide" onClick={createOnChainOrder} disabled={!onChainReady || !agreementReady || !proofs?.termsHash || orderComplete}><FileCheck2 size={18} />{orderComplete ? t("orderIssued") : t("mintOrder")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !contractAddress ? <p className="formHint">{t("deployFirst")}</p> : !agreementReady && <p className="formHint">{t("agreementRequirements")}</p>}</section>}
+          {manageStage === "delivery" && <section className="panel stagePanel"><p className="eyebrow">2 / 4</p><h2>{t("delivery")}</h2><p className="muted">{t("deliveryHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} readOnly placeholder={t("createdAfterMint")} /></label><label>{t("deliveryUrl")}<input value={jobDraft.deliveryUrl} onChange={updateJob("deliveryUrl")} /></label><div className="hashBox"><span>{t("deliveryHash")}</span><code>{proofs?.deliveryHash}</code></div><button className="secondary wide" onClick={markDelivered} disabled={!jobDraft.orderId || !onChainReady || deliveryComplete}><Link2 size={18} />{t("recordDelivery")}</button>{executionMode === "local" && <p className="formHint">{t("switchToTestnet")}</p>}</section>}
+          {manageStage === "payment" && <section className="panel stagePanel"><p className="eyebrow">3 / 4</p><h2>{t("paymentEvidence")}</h2><p className="muted">{t("paymentHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} readOnly placeholder={t("createdAfterMint")} /></label><label>{t("paymentTxHash")}<input value={jobDraft.paymentTxHash} onChange={updateJob("paymentTxHash")} placeholder="0x..." /></label><ul className="checks">{Object.entries(paymentEvidence.checks).map(([key, value]) => <li key={key} className={value ? "ok" : ""}><CheckCircle2 size={15} />{t(checkMessageKeys[key])}</li>)}</ul><button className="secondary wide" onClick={recordPayment} disabled={!jobDraft.orderId || !onChainReady || paymentComplete}>{t("recordPayment")}</button><p className="formHint">{executionMode === "local" ? t("switchToTestnet") : t("paymentWarning")}</p></section>}
           {manageStage === "certificate" && <section className="panel stagePanel certificatePanel"><p className="eyebrow">4 / 4</p><h2>{t("certificatePreview")}</h2><p className="muted">{t("certificateHelp")}</p><div className="certificateBody"><dl><dt>{t("creator")}</dt><dd>{jobDraft.creatorName}</dd><dt>{t("client")}</dt><dd>{jobDraft.clientName}</dd><dt>{t("contract")}</dt><dd>{contractAddress || t("notDeployed")}</dd><dt>{t("order")}</dt><dd>{jobDraft.orderId || t("notMinted")}</dd><dt>{t("terms")}</dt><dd><code>{proofs?.termsHash}</code></dd><dt>{t("payment")}</dt><dd><code>{jobDraft.paymentTxHash || t("notRecorded")}</code></dd></dl>{qr && <img src={qr} alt={t("qrAlt")} />}</div></section>}
         </div>
       </section>

@@ -111,7 +111,10 @@ export function createRequestRecord(draft, { id, createdAt }) {
     deadline: draft.deadline,
     deliveryUrl: "",
     paymentTxHash: "",
-    orderId: ""
+    orderId: "",
+    orderTxHash: "",
+    deliveryTxHash: "",
+    paymentRecordTxHash: ""
   };
 }
 
