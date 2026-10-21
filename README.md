@@ -1,5 +1,9 @@
 # PortalProof
 
+<p align="center">
+  <img src="public/portalproof-icon-192.png" width="128" height="128" alt="PortalProof app icon" />
+</p>
+
 ## English
 
 ### One-sentence Overview
