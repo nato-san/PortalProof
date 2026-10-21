@@ -896,10 +896,11 @@ function App() {
     ? new Intl.DateTimeFormat(language === "ja" ? "ja-JP" : "en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
     : "";
   const statusLabel = (value) => t(`${value || "new"}Request`);
+  const brandContent = <><img className="brandLogo" src={`${import.meta.env.BASE_URL}portalproof-icon-192.png`} alt="" aria-hidden="true" /><span>PortalProof</span></>;
 
   const topBar = (
     <nav className="topBar">
-      {page === "request" ? <span className="brand">PortalProof</span> : <a className="brand" href={baseUrl}>PortalProof</a>}
+      {page === "request" ? <span className="brand">{brandContent}</span> : <a className="brand" href={baseUrl}>{brandContent}</a>}
       <div className="topActions">
         {page !== "request" && <div className="modeControl" aria-label={t("modeLabel")}>
           <span>{t("modeLabel")}</span>
