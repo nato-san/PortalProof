@@ -27,8 +27,8 @@
 - [x] Reproducible or runnable final code / 再現・実行可能な最終コード
 - [x] Testnet deployment information / テストネット情報
 - [x] Runnable demo / 動くデモ
-- [ ] Demo video under 3 minutes / 3分以内のデモ動画
-- [ ] Pitch deck / ピッチ資料
+- [x] Demo video under 3 minutes / 3分以内のデモ動画
+- [x] Pitch deck / ピッチ資料
 - [x] Contract address and transaction hashes / コントラクトアドレスとTxHash
 
 ## Do Not Forget / 忘れないこと

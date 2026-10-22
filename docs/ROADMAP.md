@@ -22,10 +22,10 @@
 - [x] Prevent duplicate proof transactions and reject arbitrary payment transaction hashes.
 - 日本語訳: 証明トランザクションの重複を防ぎ、任意の支払いTxHashを受け付けないようにする。
 
-- [ ] Update the check-in material with the completed testnet evidence.
+- [x] Update the check-in material with the completed testnet evidence.
 - 日本語訳: 完了したテストネット証跡を中間報告資料へ反映する。
 
-- [ ] Record a short demo video under 3 minutes.
+- [x] Record a short demo video under 3 minutes.
 - 日本語訳: 3分以内の短いデモ動画を録画する。
 
 ## Completed Testnet Evidence / 完了したテストネット証跡
@@ -65,7 +65,7 @@
 - [x] Publish the repository and README.
 - 日本語訳: リポジトリとREADMEを公開する。
 
-- [ ] Record a short demo video under 3 minutes.
+- [x] Record a short demo video under 3 minutes.
 - 日本語訳: 3分以内の短いデモ動画を録画する。
 
 ## Final Target / 最終提出目標
@@ -82,7 +82,7 @@
 - [x] Publish a live DApp link.
 - 日本語訳: 公開DAppリンクを用意する。
 
-- Add a small pitch deck.
+- [x] Add a small pitch deck.
 - 日本語訳: 簡単なピッチ資料を追加する。
 
 ## Deferred / 後回し

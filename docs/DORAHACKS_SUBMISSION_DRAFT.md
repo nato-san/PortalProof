@@ -101,8 +101,8 @@ The end-to-end test confirmed the technical flow, but also showed that direct wa
 
 ## Outstanding Items / 残作業
 
-- Record demo video under 3 minutes
-- 日本語訳: 3分以内のデモ動画を録画
+- Demo video completed: https://youtube.com/watch?v=5DtARDfIMM0
+- 日本語訳: デモ動画完成: https://youtube.com/watch?v=5DtARDfIMM0
 
 - Review the wording and submit the check-in report
 - 日本語訳: 文面を最終確認して中間報告を提出

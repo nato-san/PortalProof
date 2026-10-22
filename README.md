@@ -4,6 +4,8 @@
   <img src="public/portalproof-icon-192.png" width="128" height="128" alt="PortalProof app icon" />
 </p>
 
+> Continuing this project in a new ChatGPT or Codex version? Start with [`docs/PROJECT_HANDOFF.md`](docs/PROJECT_HANDOFF.md). It records the canonical repository location, completed deployment state, verified testnet evidence, safety rules, and next priorities.
+
 ## English
 
 ### One-sentence Overview
@@ -17,6 +19,8 @@ Ecosystem DApps
 ### Live Demo
 
 [Open PortalProof](https://nato-san.github.io/PortalProof/)
+
+[Watch the short demo video](https://youtube.com/watch?v=5DtARDfIMM0)
 
 The public demo starts in local-demo mode so reviewers can explore the creator and client flows without a wallet or test tokens. Portaldot V3 mode remains available from the header for the on-chain flow.
 
@@ -172,6 +176,8 @@ Open-source dependencies are listed in `package.json`.
 # PortalProof
 
 ## 日本語
+
+> 新しいChatGPT／Codexバージョンで開発を続ける場合は、最初に[`docs/PROJECT_HANDOFF.md`](docs/PROJECT_HANDOFF.md)を確認してください。正式な保存場所、完成状態、テストネット証跡、安全上の注意、次の作業をまとめています。
 
 ### 1文概要
 
