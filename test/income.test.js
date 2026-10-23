@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import { monthlyIncome, completedJob } from "../src/income.js";
+const paid = { id: "1", status: "paid", paymentRecordTxHash: "0xrecord", paymentTxHash: "0xpayment", amount: "0.1", paidAt: new Date(2026, 9, 10).toISOString() };
+assert.equal(completedJob({ status: "paid" }), false);
+assert.equal(monthlyIncome([paid, { ...paid, id: "2", paymentTxHash: "0xother", amount: "0.2", archivedAt: "date" }], "2026-10").total, "0.3");
+assert.equal(monthlyIncome([paid, paid], "2026-10").entries.length, 1);
+assert.equal(monthlyIncome([paid], "2026-09").total, "0.0");
+assert.equal(monthlyIncome([{ ...paid, paidAt: null }], "2026-10").undated.length, 1);
+assert.equal(monthlyIncome([{ ...paid, status: "delivered" }], "2026-10").entries.length, 0);
+console.log("Income tests passed");

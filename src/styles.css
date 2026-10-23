@@ -1161,3 +1161,5 @@ dd {
     flex-direction: column;
   }
 }
+.activeJobList .isArchived { display: none; }
+.archivedJobList .requestCards, .archivedJobList .emptyState { display: none; }

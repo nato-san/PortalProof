@@ -20,6 +20,7 @@ import {
   validateTxEvidence
 } from "./domain.js";
 import "./styles.css";
+import { completedJob, monthlyIncome } from "./income.js";
 
 const DEPLOYED_CONTRACT_ADDRESS = "0xBaE8933886e1520e5FCa3eDed119c08b29022D79";
 const DEPLOYMENT_TRANSACTION_HASH = "0x29b2c7b2b91bf6cc6804040fb0590c020a3b0a4bdae1f81864f1f9f227035365";
@@ -455,6 +456,20 @@ function App() {
   const [executionMode, setExecutionMode] = useState(() => localStorage.getItem(MODE_KEY) === "testnet" ? "testnet" : "local");
   const [profile, setProfile] = useState(() => ({ ...emptyDraft(), ...loadJson(PROFILE_KEY, {}) }));
   const [requests, setRequests] = useState(() => loadJson(REQUESTS_KEY, []));
+  const [jobFilter, setJobFilter] = useState("active");
+  const [incomeMonth, setIncomeMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+  const income = monthlyIncome(requests, incomeMonth);
+  function toggleArchive(id) {
+    setRequests((current) => {
+      const updated = current.map((item) => item.id === id && completedJob(item)
+        ? { ...item, archivedAt: item.archivedAt ? null : new Date().toISOString() } : item);
+      localStorage.setItem(REQUESTS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }
   const storedJob = requests.find((item) => item.id === jobId) || null;
   const [requestDraft, setRequestDraft] = useState(() => ({
     ...emptyDraft(),
@@ -750,7 +765,14 @@ function App() {
       const tx = await contract.recordVerifiedPayment(jobDraft.orderId, verifiedEvidence.normalized);
       setStatus({ key: "recordingPayment", values: { hash: tx.hash } });
       const receipt = await tx.wait();
-      setJobDraft((current) => ({ ...current, paymentRecordTxHash: receipt.hash, status: "paid" }));
+      let paidAt = null;
+      try {
+        const provider = new ethers.JsonRpcProvider(PORTALDOT_V3.rpcUrls[0]);
+        const paymentReceipt = await provider.getTransactionReceipt(verifiedEvidence.normalized);
+        const block = paymentReceipt && await provider.getBlock(paymentReceipt.blockNumber);
+        if (block) paidAt = new Date(block.timestamp * 1000).toISOString();
+      } catch { /* Payment succeeded; missing dates remain explicitly unclassified. */ }
+      setJobDraft((current) => ({ ...current, paymentRecordTxHash: receipt.hash, status: "paid", paidAmount: current.amount, paidAt }));
       setEvents((items) => [{ label: "PaymentRecorded", txHash: receipt.hash }, ...items]);
       setStatus({ key: "paymentRecorded" });
       setManageStage("certificate");
@@ -1022,9 +1044,21 @@ function App() {
       <section className="panel formPanel"><h2>{t("creatorSetup")}</h2><p className="muted">{t("creatorSetupHelp")}</p><label>{t("creatorName")}<input value={profile.creatorName} onChange={updateProfile("creatorName")} /></label><label>{t("serviceName")}<input value={profile.serviceName} onChange={updateProfile("serviceName")} /></label><label>{t("serviceDescription")}<textarea value={profile.serviceDescription} onChange={updateProfile("serviceDescription")} /></label><div className="fieldRow"><label>{t("creatorWallet")}<input value={profile.creatorWallet} onChange={updateProfile("creatorWallet")} placeholder="0x..." /></label><label>{t("referenceAmount")}<input value={profile.amount} onChange={updateProfile("amount")} /></label></div></section>
       <aside className="panel actionPanel"><h2>{t("requestLink")}</h2><p className="muted">{t("requestLinkHelp")}</p><div className="requestLinkBox"><input readOnly value={requestLinkReady ? requestUrl : ""} placeholder={t("requestLinkRequirements")} /><button className="primary wide" onClick={() => copy(requestUrl, "requestLinkCopied")} disabled={!requestLinkReady}><Copy size={16} />{t("copyRequestLink")}</button><a className="buttonLink secondary" href={requestUrl}><ExternalLink size={16} />{t("previewRequestPage")}</a></div></aside>
     </section> : <section className="inboxSection">
+      <section className="panel">
+        <h2>{language === "ja" ? "月別収益" : "Monthly income"}</h2>
+        <p className="muted">{language === "ja" ? "確認済み入金を集計（アーカイブ含む）。テストネットのtPOTv3で表示します。月はこの端末のタイムゾーンです。" : "Confirmed payments including archived jobs. Testnet tPOTv3, grouped in your device timezone."}</p>
+        <label>{language === "ja" ? "対象月" : "Month"}<input type="month" value={incomeMonth} onChange={(event) => setIncomeMonth(event.target.value)} /></label>
+        <h3>{income.total} tPOTv3 · {income.entries.length} {language === "ja" ? "件" : "payments"}</h3>
+        {income.entries.map((item) => <p key={item.id}><a href={buildJobUrl(baseUrl, item.id)}>{item.clientName} / {item.serviceName}</a> — {item.paidAmount || item.amount} tPOTv3 · {formatDate(item.paidAt)}</p>)}
+        {income.undated.length > 0 && <p>{language === "ja" ? `入金日未確認：${income.undated.length}件（月別集計の対象外）` : `Payment date unknown: ${income.undated.length} (excluded from monthly totals)`}</p>}
+      </section>
+      <div className="modeToggle"><button className={jobFilter === "active" ? "active" : ""} onClick={() => setJobFilter("active")}>{language === "ja" ? "案件一覧" : "Jobs"}</button><button className={jobFilter === "archive" ? "active" : ""} onClick={() => setJobFilter("archive")}>{language === "ja" ? "アーカイブ" : "Archive"}</button></div>
+      {requests.filter((item) => Boolean(item.archivedAt) === (jobFilter === "archive") && completedJob(item)).map((item) => <div className="panel" key={item.id}><a href={buildJobUrl(baseUrl, item.id)}>{item.clientName} / {item.serviceName}</a><button className="secondary" onClick={() => toggleArchive(item.id)}>{item.archivedAt ? (language === "ja" ? "一覧へ戻す" : "Restore") : (language === "ja" ? "アーカイブへ移動" : "Archive")}</button></div>)}
+      <div className={jobFilter === "archive" ? "archivedJobList" : "activeJobList"}>
       <div className="sectionHeading"><div><h2>{t("incomingTitle")}</h2><p className="muted">{t("incomingHelp")}</p></div><a className="buttonLink secondary" href={requestUrl}><ExternalLink size={16} />{t("openPublicPage")}</a></div>
       <div className="localNote"><ClipboardList size={18} /><span>{t("localStorageNote")}</span></div>
-      {requests.length === 0 ? <div className="panel emptyState"><Inbox size={42} /><h3>{t("emptyInbox")}</h3><p>{t("emptyInboxHelp")}</p><a className="buttonLink primary" href={requestUrl}>{t("openPublicPage")}<ArrowRight size={17} /></a></div> : <div className="requestCards">{requests.map((request) => <article className="panel requestCard" key={request.id}><div className="requestCardTop"><div><span className={`statusBadge ${request.status}`}>{statusLabel(request.status)}</span><h3>{request.clientName}</h3></div><time>{formatDate(request.createdAt)}</time></div><p className="requestService">{request.serviceName}</p><p className="requestBrief">{request.requestBrief}</p><dl><dt>{t("amount")}</dt><dd>{request.amount} tPOTv3</dd><dt>{t("deadline")}</dt><dd>{request.deadline}</dd><dt>{t("requestId")}</dt><dd><code>{request.id}</code></dd></dl><a className="buttonLink primary wide" href={buildJobUrl(baseUrl, request.id)}>{t("openJob")}<ArrowRight size={17} /></a></article>)}</div>}
+      {requests.length === 0 ? <div className="panel emptyState"><Inbox size={42} /><h3>{t("emptyInbox")}</h3><p>{t("emptyInboxHelp")}</p><a className="buttonLink primary" href={requestUrl}>{t("openPublicPage")}<ArrowRight size={17} /></a></div> : <div className="requestCards">{requests.map((request) => <article className={`panel requestCard ${request.archivedAt ? "isArchived" : ""}`} key={request.id}><div className="requestCardTop"><div><span className={`statusBadge ${request.status}`}>{statusLabel(request.status)}</span><h3>{request.clientName}</h3></div><time>{formatDate(request.createdAt)}</time></div><p className="requestService">{request.serviceName}</p><p className="requestBrief">{request.requestBrief}</p><dl><dt>{t("amount")}</dt><dd>{request.amount} tPOTv3</dd><dt>{t("deadline")}</dt><dd>{request.deadline}</dd><dt>{t("requestId")}</dt><dd><code>{request.id}</code></dd></dl><a className="buttonLink primary wide" href={buildJobUrl(baseUrl, request.id)}>{t("openJob")}<ArrowRight size={17} /></a></article>)}</div>}
+      </div>
     </section>}</>}
   </main>;
 }

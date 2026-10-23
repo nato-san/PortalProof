@@ -7,7 +7,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node test/domain.test.js && node test/contract.test.js",
+    "test": "node test/domain.test.js && node test/contract.test.js && node test/income.test.js",
     "compile:contract": "node scripts/compile-contract.mjs",
     "check:portaldot": "node scripts/deploy-portaldot.mjs --check-only",
     "deploy:portaldot": "node scripts/deploy-portaldot.mjs"
