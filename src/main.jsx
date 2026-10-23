@@ -1035,7 +1035,7 @@ function App() {
       <div className="homeCards">
         <a className="homeCard" href={setupUrl}><span className="homeCardIcon"><Settings2 size={26} /></span><div><strong>{t("topCreateTitle")}</strong><p>{t("topCreateHelp")}</p></div><span className="homeCardAction">{t("openPage")}<ArrowRight size={17} /></span></a>
         <a className="homeCard" href={inboxUrl}><span className="homeCardIcon"><BriefcaseBusiness size={26} /></span><div><strong>{t("topManageTitle")}</strong><p>{t("topManageHelp")}</p></div><span className="homeCardCount">{requests.length}</span><span className="homeCardAction">{t("openPage")}<ArrowRight size={17} /></span></a>
-        <a className="homeCard publicEntry" href={requestUrl}><span className="homeCardIcon"><ExternalLink size={26} /></span><div><strong>{t("topRequestTitle")}</strong><p>{t("topRequestHelp")}</p></div><span className="homeCardAction">{t("openPage")}<ArrowRight size={17} /></span></a>
+        <a className="homeCard publicEntry" href={requestUrl} target="_blank" rel="noopener noreferrer"><span className="homeCardIcon"><ExternalLink size={26} /></span><div><strong>{t("topRequestTitle")}</strong><p>{t("topRequestHelp")}</p></div><span className="homeCardAction">{t("openPage")}<ArrowRight size={17} /></span></a>
       </div>
     </section> : <>
     <nav className="creatorNav">
