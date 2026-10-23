@@ -626,6 +626,28 @@ function App() {
   const updateRequest = (field) => (event) => setRequestDraft((current) => ({ ...current, [field]: event.target.value }));
   const updateJob = (field) => (event) => setJobDraft((current) => ({ ...current, [field]: event.target.value }));
 
+  useEffect(() => {
+    const provider = window.ethereum;
+    if (!provider?.on) return;
+    const changed = (accounts) => {
+      setWallet((current) => current ? (accounts?.[0] || "") : "");
+      setDeploymentCheck(null);
+    };
+    provider.on("accountsChanged", changed);
+    return () => provider.removeListener?.("accountsChanged", changed);
+  }, []);
+
+  async function disconnectWallet() {
+    setWallet("");
+    setDeploymentCheck(null);
+    setStatus({ key: "ready" });
+    try {
+      await window.ethereum?.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: {} }] });
+    } catch {
+      // Some providers only support disconnecting the application's session.
+    }
+  }
+
   async function connectWallet() {
     if (!window.ethereum) {
       setStatus({ key: "walletRequired" });
@@ -667,9 +689,10 @@ function App() {
   }
 
   async function getSignerContract() {
+    if (!wallet) throw new Error(language === "ja" ? "先にウォレットを接続してください。" : "Connect your wallet first.");
     if (!contractAddress) throw new Error(t("contractNotConfigured"));
     const provider = new ethers.BrowserProvider(window.ethereum);
-    return new ethers.Contract(contractAddress, PORTALPROOF_ABI, await provider.getSigner());
+    return new ethers.Contract(contractAddress, PORTALPROOF_ABI, await provider.getSigner(wallet));
   }
 
   async function createOnChainOrder() {
@@ -937,6 +960,7 @@ function App() {
           <button className={language === "ja" ? "active" : ""} onClick={() => setLanguage("ja")}>日本語</button>
         </div>
         <button className="primary" onClick={connectWallet} disabled={status.key === "connectingWallet"}><Wallet size={17} />{wallet ? short(wallet) : status.key === "connectingWallet" ? t("connectingWallet") : t("connectWallet")}</button>
+        {wallet && <button className="secondary" onClick={disconnectWallet}>{language === "ja" ? "接続解除" : "Disconnect"}</button>}
       </div>
     </nav>
   );
