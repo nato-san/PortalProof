@@ -1161,8 +1161,9 @@ dd {
     flex-direction: column;
   }
 }
-.activeJobList .isArchived { display: none; }
-.archivedJobList .requestCards, .archivedJobList .emptyState { display: none; }
+.archiveActions { margin-top: 16px; }
+.archiveActions small { display: block; margin-top: 10px; }
+.statusBadge.cancelled { background: #fce7e7; color: #9d2424; }
 .clientRequestPage { max-width: 1000px; }
 .clientRequestPage h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); }
 .clientRequestPage code { overflow-wrap: anywhere; white-space: normal; }

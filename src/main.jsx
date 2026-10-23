@@ -20,7 +20,8 @@ import {
   validateTxEvidence
 } from "./domain.js";
 import "./styles.css";
-import { completedJob, monthlyIncome } from "./income.js";
+import { archiveJob, restoreJob, monthlyIncome } from "./income.js";
+import { ArchiveControls } from "./ArchiveControls.jsx";
 import { ClientPaymentReport, CreatorPaymentReport } from "./PaymentReport.jsx";
 
 const DEPLOYED_CONTRACT_ADDRESS = "0xBaE8933886e1520e5FCa3eDed119c08b29022D79";
@@ -463,10 +464,9 @@ function App() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
   const income = monthlyIncome(requests, incomeMonth);
-  function toggleArchive(id) {
+  function changeArchive(id, reason, restore = false) {
     setRequests((current) => {
-      const updated = current.map((item) => item.id === id && completedJob(item)
-        ? { ...item, archivedAt: item.archivedAt ? null : new Date().toISOString() } : item);
+      const updated = current.map((item) => item.id === id ? (restore ? restoreJob(item) : archiveJob(item, reason)) : item);
       localStorage.setItem(REQUESTS_KEY, JSON.stringify(updated));
       return updated;
     });
@@ -515,7 +515,7 @@ function App() {
     jobDraft?.clientName && jobDraft?.requestBrief &&
     ethers.isAddress(jobDraft?.clientWallet || "") && ethers.isAddress(jobDraft?.creatorWallet || "")
   );
-  const onChainReady = executionMode === "testnet" && Boolean(contractAddress);
+  const onChainReady = executionMode === "testnet" && Boolean(contractAddress) && !jobDraft?.cancelledAt;
   const orderComplete = Boolean(jobDraft?.orderId);
   const deliveryComplete = Boolean(jobDraft?.deliveryTxHash) || ["delivered", "paid"].includes(jobDraft?.status);
   const deliveryReady = validateDeliveryUrl(jobDraft?.deliveryUrl);
@@ -948,7 +948,7 @@ function App() {
   const formatDate = (value) => value
     ? new Intl.DateTimeFormat(language === "ja" ? "ja-JP" : "en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value))
     : "";
-  const statusLabel = (value) => t(`${value || "new"}Request`);
+  const statusLabel = (value) => value === "cancelled" ? (language === "ja" ? "キャンセル" : "Cancelled") : t(`${value || "new"}Request`);
   const brandContent = <><img className="brandLogo" src={`${import.meta.env.BASE_URL}portalproof-icon-192.png`} alt="" aria-hidden="true" /><span>PortalProof</span></>;
 
   const topBar = (
@@ -1087,11 +1087,10 @@ function App() {
         {income.undated.length > 0 && <p>{language === "ja" ? `入金日未確認：${income.undated.length}件（月別集計の対象外）` : `Payment date unknown: ${income.undated.length} (excluded from monthly totals)`}</p>}
       </section>
       <div className="modeToggle"><button className={jobFilter === "active" ? "active" : ""} onClick={() => setJobFilter("active")}>{language === "ja" ? "案件一覧" : "Jobs"}</button><button className={jobFilter === "archive" ? "active" : ""} onClick={() => setJobFilter("archive")}>{language === "ja" ? "アーカイブ" : "Archive"}</button></div>
-      {requests.filter((item) => Boolean(item.archivedAt) === (jobFilter === "archive") && completedJob(item)).map((item) => <div className="panel" key={item.id}><a href={buildJobUrl(baseUrl, item.id)}>{item.clientName} / {item.serviceName}</a><button className="secondary" onClick={() => toggleArchive(item.id)}>{item.archivedAt ? (language === "ja" ? "一覧へ戻す" : "Restore") : (language === "ja" ? "アーカイブへ移動" : "Archive")}</button></div>)}
       <div className={jobFilter === "archive" ? "archivedJobList" : "activeJobList"}>
       <div className="sectionHeading"><div><h2>{t("incomingTitle")}</h2><p className="muted">{t("incomingHelp")}</p></div><a className="buttonLink secondary" href={requestUrl}><ExternalLink size={16} />{t("openPublicPage")}</a></div>
       <div className="localNote"><ClipboardList size={18} /><span>{t("localStorageNote")}</span></div>
-      {requests.length === 0 ? <div className="panel emptyState"><Inbox size={42} /><h3>{t("emptyInbox")}</h3><p>{t("emptyInboxHelp")}</p><a className="buttonLink primary" href={requestUrl}>{t("openPublicPage")}<ArrowRight size={17} /></a></div> : <div className="requestCards">{requests.map((request) => <article className={`panel requestCard ${request.archivedAt ? "isArchived" : ""}`} key={request.id}><div className="requestCardTop"><div><span className={`statusBadge ${request.status}`}>{statusLabel(request.status)}</span><h3>{request.clientName}</h3></div><time>{formatDate(request.createdAt)}</time></div><p className="requestService">{request.serviceName}</p><p className="requestBrief">{request.requestBrief}</p><dl><dt>{t("amount")}</dt><dd>{request.amount} tPOTv3</dd><dt>{t("deadline")}</dt><dd>{request.deadline}</dd><dt>{t("requestId")}</dt><dd><code>{request.id}</code></dd></dl><a className="buttonLink primary wide" href={buildJobUrl(baseUrl, request.id)}>{t("openJob")}<ArrowRight size={17} /></a></article>)}</div>}
+      {requests.length === 0 ? <div className="panel emptyState"><Inbox size={42} /><h3>{t("emptyInbox")}</h3><p>{t("emptyInboxHelp")}</p><a className="buttonLink primary" href={requestUrl}>{t("openPublicPage")}<ArrowRight size={17} /></a></div> : <div className="requestCards">{requests.filter((request) => Boolean(request.archivedAt) === (jobFilter === "archive")).map((request) => <article className={`panel requestCard ${request.archivedAt ? "isArchived" : ""}`} key={request.id}><div className="requestCardTop"><div><span className={`statusBadge ${request.status}`}>{statusLabel(request.status)}</span><h3>{request.clientName}</h3></div><time>{formatDate(request.createdAt)}</time></div><p className="requestService">{request.serviceName}</p><p className="requestBrief">{request.requestBrief}</p><dl><dt>{t("amount")}</dt><dd>{request.amount} tPOTv3</dd><dt>{t("deadline")}</dt><dd>{request.deadline}</dd><dt>{t("requestId")}</dt><dd><code>{request.id}</code></dd></dl><a className="buttonLink primary wide" href={buildJobUrl(baseUrl, request.id)}>{t("openJob")}<ArrowRight size={17} /></a><ArchiveControls job={request} language={language} onArchive={(id, reason) => changeArchive(id, reason)} onRestore={(id) => changeArchive(id, "", true)} /></article>)}</div>}
       </div>
     </section>}</>}
   </main>;

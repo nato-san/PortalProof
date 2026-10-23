@@ -1,7 +1,18 @@
 import { parseUnits, formatUnits } from "ethers";
 
 export function completedJob(job) {
-  return job.status === "paid" && Boolean(job.paymentRecordTxHash && job.paymentTxHash);
+  return !job.cancelledAt && job.status === "paid" && Boolean(job.paymentRecordTxHash && job.paymentTxHash);
+}
+
+export function archiveJob(job, reason = "", now = new Date().toISOString()) {
+  if (job.archivedAt) return job;
+  if (completedJob(job)) return { ...job, archivedAt: now };
+  if (!reason.trim()) throw new Error("Cancellation reason is required");
+  return { ...job, archivedAt: now, cancelledAt: now, cancellationReason: reason.trim(), statusBeforeCancellation: job.status, status: "cancelled" };
+}
+
+export function restoreJob(job) {
+  return { ...job, archivedAt: null, ...(job.cancelledAt ? { status: job.statusBeforeCancellation || "new", cancelledAt: null } : {}) };
 }
 
 export function monthlyIncome(jobs, month) {
