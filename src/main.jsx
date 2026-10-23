@@ -21,6 +21,7 @@ import {
 } from "./domain.js";
 import "./styles.css";
 import { completedJob, monthlyIncome } from "./income.js";
+import { ClientPaymentReport, CreatorPaymentReport } from "./PaymentReport.jsx";
 
 const DEPLOYED_CONTRACT_ADDRESS = "0xBaE8933886e1520e5FCa3eDed119c08b29022D79";
 const DEPLOYMENT_TRANSACTION_HASH = "0x29b2c7b2b91bf6cc6804040fb0590c020a3b0a4bdae1f81864f1f9f227035365";
@@ -1013,6 +1014,7 @@ function App() {
           <div className="activityCompact"><strong>{t("activityLog")}</strong>{events.length === 0 ? <small>{t("noActivity")}</small> : events.map((event) => <a key={event.txHash} href={`https://node-console.portaldot.dev/#/explorer/query/${event.txHash}`} target="_blank" rel="noreferrer"><ExternalLink size={14} />{event.label}</a>)}</div>
         </aside>
         <div className="workflowArea">
+          {jobDraft.orderId && !paymentComplete && <CreatorPaymentReport job={jobDraft} language={language} onReceive={(report) => setJobDraft((current) => ({ ...current, paymentTxHash: report.paymentTxHash }))} />}
           <nav className="stageTabs">{["agreement", "delivery", "payment", "certificate"].map((stage, index) => <button key={stage} className={manageStage === stage ? "active" : ""} disabled={!stageAvailable[stage]} onClick={() => setManageStage(stage)}><span>{index + 1}</span>{t(`${stage}Tab`)}</button>)}</nav>
           {manageStage === "agreement" && <section className="panel stagePanel"><p className="eyebrow">1 / 4</p><h2>{t("agreementHash")}</h2><p className="muted">{t("agreementHelp")}</p><div className="hashBox"><span>{t("termsHash")}</span><code>{proofs?.termsHash}</code><button className="icon" aria-label={t("copyTermsHash")} onClick={() => copy(proofs?.termsHash || "")}><Copy size={16} /></button></div><button className="primary wide" onClick={createOnChainOrder} disabled={!onChainReady || !agreementReady || !proofs?.termsHash || orderComplete}><FileCheck2 size={18} />{orderComplete ? t("orderIssued") : t("mintOrder")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !contractAddress ? <p className="formHint">{t("deployFirst")}</p> : !agreementReady && <p className="formHint">{t("agreementRequirements")}</p>}</section>}
           {manageStage === "delivery" && <section className="panel stagePanel"><p className="eyebrow">2 / 4</p><h2>{t("delivery")}</h2><p className="muted">{t("deliveryHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} readOnly placeholder={t("createdAfterMint")} /></label><label>{t("deliveryUrl")}<input value={jobDraft.deliveryUrl} onChange={updateJob("deliveryUrl")} disabled={deliveryComplete} placeholder="https://..." /></label><div className="hashBox"><span>{t("deliveryHash")}</span><code>{deliveryReady ? proofs?.deliveryHash : "—"}</code></div><button className="secondary wide" onClick={markDelivered} disabled={!jobDraft.orderId || !onChainReady || !deliveryReady || deliveryComplete}><Link2 size={18} />{t("recordDelivery")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !deliveryReady && <p className="formHint">{t("deliveryUrlRequired")}</p>}</section>}
@@ -1063,4 +1065,5 @@ function App() {
   </main>;
 }
 
-createRoot(document.getElementById("root")).render(<App />);
+const reportToken = new URL(location.href).searchParams.get("paymentReport");
+createRoot(document.getElementById("root")).render(reportToken ? <ClientPaymentReport token={reportToken} /> : <App />);
