@@ -1,5 +1,13 @@
 # Local payment-report prototype
 
+## Client revisit flow (2026-10-24)
+
+New client submissions now create a persistent private URL immediately, before an on-chain order exists. Save or bookmark that URL from the submission confirmation. It shows the request and polls its status every five seconds. The creator workspace publishes order, delivery and payment-record milestones to that same page. After delivery, clients can submit a payment hash and revisit to see the reported hash and recording status. Existing requests without a URL can use the creator's link-creation control.
+
+The creator workspace must be opened to synchronize changes. The server stores client pages on disk; closing the browser does not delete them. Losing the private URL is not recoverable through a client login yet. A public deployment and authenticated account-based request history remain future work.
+
+依頼送信後に専用URLを保存すれば、ブラウザを閉じても再訪できます。依頼・納品・支払い報告・記録済み状態を同じページで確認します。ローカルサーバー起動中のみ利用可能で、別端末へ公開する機能やログイン式の依頼履歴はまだありません。新しいAPIの確認用プレビューは `http://127.0.0.1:4176/` です。
+
 Run `npm run build` followed by `npm run preview -- --port 4175 --configLoader runner`.
 Open `http://127.0.0.1:4175/?view=jobs`.
 

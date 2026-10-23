@@ -906,13 +906,20 @@ function App() {
     }
   }
 
-  function submitRequest(event) {
+  async function submitRequest(event) {
     event.preventDefault();
     if (!requestReady) return;
     const record = createRequestRecord(requestDraft, {
       id: makeRequestId(),
       createdAt: new Date().toISOString()
     });
+    try {
+      const response = await fetch("/api/payment-reports", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(record) });
+      if (!response.ok) throw new Error("依頼者ページを保存できません。ローカルプレビュー4175が起動しているか確認してください。 / Unable to save client page.");
+      const access = await response.json();
+      record.clientToken = access.clientToken;
+      localStorage.setItem(`portalproof-report-link-${record.id}`, JSON.stringify(access));
+    } catch (error) { setStatus({ key: "error", detail: error.message }); return; }
     const updated = [record, ...loadJson(REQUESTS_KEY, [])];
     localStorage.setItem(REQUESTS_KEY, JSON.stringify(updated));
     setRequests(updated);
@@ -998,6 +1005,7 @@ function App() {
       {submitted ? <section className="panel submittedCard">
         <CheckCircle2 size={46} />
         <h2>{t("submissionComplete")}</h2>
+        {submitted.clientToken && <div className="requestLinkBox"><p>{language === "ja" ? "この専用URLを保存してください。閉じた後も依頼の確認と支払い報告に使えます。" : "Save this private URL to revisit your request and report payment."}</p><input readOnly value={`${baseUrl}?paymentReport=${submitted.clientToken}`} /><button className="secondary" onClick={() => copy(`${baseUrl}?paymentReport=${submitted.clientToken}`)}>{language === "ja" ? "専用URLをコピー" : "Copy private URL"}</button><a className="buttonLink primary" href={`${baseUrl}?paymentReport=${submitted.clientToken}`} target="_blank" rel="noreferrer">{language === "ja" ? "自分の依頼を確認" : "View my request"}</a></div>}
         <p>{t("submissionCompleteHelp")}</p>
         <div className="requestIdBox"><span>{t("requestId")}</span><code>{submitted.id}</code><button className="icon" onClick={() => copy(submitted.id)}><Copy size={16} /></button></div>
         <p className="muted">{t("keepRequestId")}</p>
@@ -1038,7 +1046,7 @@ function App() {
           <div className="activityCompact"><strong>{t("activityLog")}</strong>{events.length === 0 ? <small>{t("noActivity")}</small> : events.map((event) => <a key={event.txHash} href={`https://node-console.portaldot.dev/#/explorer/query/${event.txHash}`} target="_blank" rel="noreferrer"><ExternalLink size={14} />{event.label}</a>)}</div>
         </aside>
         <div className="workflowArea">
-          {jobDraft.orderId && !paymentComplete && <CreatorPaymentReport job={jobDraft} language={language} onReceive={(report) => setJobDraft((current) => ({ ...current, paymentTxHash: report.paymentTxHash }))} />}
+          <CreatorPaymentReport job={jobDraft} language={language} onReceive={(report) => setJobDraft((current) => ({ ...current, paymentTxHash: report.paymentTxHash }))} />
           <nav className="stageTabs">{["agreement", "delivery", "payment", "certificate"].map((stage, index) => <button key={stage} className={manageStage === stage ? "active" : ""} disabled={!stageAvailable[stage]} onClick={() => setManageStage(stage)}><span>{index + 1}</span>{t(`${stage}Tab`)}</button>)}</nav>
           {manageStage === "agreement" && <section className="panel stagePanel"><p className="eyebrow">1 / 4</p><h2>{t("agreementHash")}</h2><p className="muted">{t("agreementHelp")}</p><div className="hashBox"><span>{t("termsHash")}</span><code>{proofs?.termsHash}</code><button className="icon" aria-label={t("copyTermsHash")} onClick={() => copy(proofs?.termsHash || "")}><Copy size={16} /></button></div><button className="primary wide" onClick={createOnChainOrder} disabled={!onChainReady || !agreementReady || !proofs?.termsHash || orderComplete}><FileCheck2 size={18} />{orderComplete ? t("orderIssued") : t("mintOrder")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !contractAddress ? <p className="formHint">{t("deployFirst")}</p> : !agreementReady && <p className="formHint">{t("agreementRequirements")}</p>}</section>}
           {manageStage === "delivery" && <section className="panel stagePanel"><p className="eyebrow">2 / 4</p><h2>{t("delivery")}</h2><p className="muted">{t("deliveryHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} readOnly placeholder={t("createdAfterMint")} /></label><label>{t("deliveryUrl")}<input value={jobDraft.deliveryUrl} onChange={updateJob("deliveryUrl")} disabled={deliveryComplete} placeholder="https://..." /></label><div className="hashBox"><span>{t("deliveryHash")}</span><code>{deliveryReady ? proofs?.deliveryHash : "—"}</code></div><button className="secondary wide" onClick={markDelivered} disabled={!jobDraft.orderId || !onChainReady || !deliveryReady || deliveryComplete}><Link2 size={18} />{t("recordDelivery")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !deliveryReady && <p className="formHint">{t("deliveryUrlRequired")}</p>}</section>}

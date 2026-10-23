@@ -9,13 +9,26 @@ async function api(path, options = {}) {
 
 export function ClientPaymentReport({ token }) {
   const [order, setOrder] = useState(null), [hash, setHash] = useState(""), [status, setStatus] = useState(""), [busy, setBusy] = useState(false);
-  useEffect(() => { api(`/${token}`).then(setOrder).catch((error) => setStatus(error.message)); }, [token]);
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = () => api(`/${token}`).then((value) => { if (!cancelled) { setOrder(value); setStatus(""); } }).catch((error) => { if (!cancelled) setStatus(error.message); });
+    refresh(); const timer = setInterval(refresh, 5000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [token]);
   async function submit(event) {
     event.preventDefault(); setBusy(true); setStatus("");
     try { await api(`/${token}`, { method: "POST", body: JSON.stringify({ paymentTxHash: hash.trim() }) }); setOrder((item) => ({ ...item, reported: true })); }
     catch (error) { setStatus(error.message); } finally { setBusy(false); }
   }
-  return <main className="shell"><section className="panel"><h1>支払いを報告 / Report payment</h1><p>Portaldot V3 testnet · tPOTv3</p>{status && <p role="status">{status}</p>}{order && <><p>注文 / Order: <code>{order.orderId}</code></p><p>送金先 / Recipient: <code>{order.creatorWallet}</code></p><p>送金元 / Sender: <code>{order.clientWallet}</code></p><h2>{order.amount} tPOTv3</h2>{order.reported ? <p role="status">支払い報告を受け付けました。クリエイターが確認・記録します。 / Report received. Awaiting creator confirmation.</p> : <form onSubmit={submit}><label>Payment transaction hash<input value={hash} onChange={(event) => setHash(event.target.value)} placeholder="0x…" required /></label><button className="primary" disabled={busy}>{busy ? "検証中 / Verifying…" : "支払いを報告 / Report payment"}</button></form>}</>}</section></main>;
+  return <main className="shell"><section className="panel"><h1>自分の依頼 / My request</h1><p>このURLをブックマークすると、閉じた後も確認できます。 / Bookmark this private URL to return later.</p><button className="secondary" onClick={() => navigator.clipboard?.writeText(location.href)}>専用URLをコピー / Copy URL</button><p>Portaldot V3 testnet · tPOTv3</p>{status && <p role="status">{status}</p>}{order && <>
+    <h2>{order.serviceName}</h2><p>{order.creatorName} / {order.clientName}</p><p>{order.requestBrief}</p><p>納期 / Deadline: {order.deadline || "—"}</p>
+    <h3>{order.paymentRecordTxHash ? "取引完了 / Completed" : order.reported ? "支払い報告済み・記録待ち / Payment reported, awaiting recording" : order.deliveryTxHash ? "納品済み・支払い報告待ち / Delivered, awaiting payment report" : order.orderId ? "制作中 / In progress" : "依頼受付済み / Request received"}</h3>
+    <p>注文 / Order: <code>{order.orderId || order.id}</code></p><p>送金先 / Recipient: <code>{order.creatorWallet}</code></p><p>送金元 / Sender: <code>{order.clientWallet}</code></p><h2>{order.amount} tPOTv3</h2>
+    {order.deliveryTxHash && /^https?:\/\//i.test(order.deliveryUrl || "") && <a href={order.deliveryUrl} target="_blank" rel="noreferrer">納品物を確認 / View delivery</a>}
+    {order.report && <p>報告した支払い / Reported payment: <code>{order.report.paymentTxHash}</code></p>}
+    {order.paymentRecordTxHash && <p>支払い証明 / Payment record: <code>{order.paymentRecordTxHash}</code></p>}
+    {!order.reported && !order.paymentRecordTxHash && order.deliveryTxHash && <form onSubmit={submit}><label>Payment transaction hash<input value={hash} onChange={(event) => setHash(event.target.value)} placeholder="0x…" required /></label><button className="primary" disabled={busy}>{busy ? "検証中 / Verifying…" : "支払いを報告 / Report payment"}</button></form>}
+    </>}</section></main>;
 }
 
 export function CreatorPaymentReport({ job, language, onReceive }) {
@@ -24,7 +37,7 @@ export function CreatorPaymentReport({ job, language, onReceive }) {
   const [status, setStatus] = useState(""), [busy, setBusy] = useState(false);
   const ja = language === "ja";
   useEffect(() => {
-    if (!access || job.paymentRecordTxHash) return;
+    if (!access) return;
     let cancelled = false;
     const check = async () => {
       try {
@@ -38,6 +51,12 @@ export function CreatorPaymentReport({ job, language, onReceive }) {
     check(); const timer = setInterval(check, 5000);
     return () => { cancelled = true; clearInterval(timer); };
   }, [access, job.paymentTxHash, job.paymentRecordTxHash, ja]);
+  useEffect(() => {
+    if (!access) return;
+    let cancelled = false;
+    api(`/${access.clientToken}`, { method: "POST", headers: { Authorization: `Bearer ${access.creatorToken}` }, body: JSON.stringify({ ...job, action: "sync" }) }).catch((error) => { if (!cancelled) setStatus(error.message); });
+    return () => { cancelled = true; };
+  }, [access, job.id, job.status, job.orderId, job.orderTxHash, job.deliveryUrl, job.deliveryTxHash, job.paymentRecordTxHash]);
   async function create() {
     setBusy(true);
     try {

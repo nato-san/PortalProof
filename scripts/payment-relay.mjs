@@ -7,6 +7,7 @@ import { validateTxEvidence, PORTALDOT_V3 } from "../src/domain.js";
 const directory = fileURLToPath(new URL("../cache/payment-reports/", import.meta.url));
 const token = () => randomBytes(32).toString("hex");
 const validToken = (value) => /^[a-f0-9]{64}$/.test(value || "");
+const snapshot = (body) => Object.fromEntries(["id", "serviceName", "creatorName", "clientName", "requestBrief", "deadline", "status", "orderId", "orderTxHash", "deliveryUrl", "deliveryTxHash", "paymentRecordTxHash"].map((key) => [key, String(body[key] || "").slice(0, 4000)]));
 export function paymentRelay() {
   const install = (server) => { server.middlewares.use(async (req, res, next) => {
     const url = new URL(req.url, "http://localhost");
@@ -23,9 +24,9 @@ export function paymentRelay() {
       }
       await mkdir(directory, { recursive: true });
       if (url.pathname === "/api/payment-reports" && req.method === "POST") {
-        if (!ethers.isAddress(body.clientWallet) || !ethers.isAddress(body.creatorWallet) || !/^0x[a-fA-F0-9]{64}$/.test(body.orderId || "") || ethers.parseUnits(String(body.amount), 18) <= 0n) return send(400, { error: "Invalid order" });
+        if (!ethers.isAddress(body.clientWallet) || !ethers.isAddress(body.creatorWallet) || (body.orderId && !/^0x[a-fA-F0-9]{64}$/.test(body.orderId)) || ethers.parseUnits(String(body.amount), 18) <= 0n) return send(400, { error: "Invalid order" });
         const clientToken = token(), creatorToken = token();
-        const record = { clientToken, creatorToken, clientWallet: body.clientWallet, creatorWallet: body.creatorWallet, amount: String(body.amount), orderId: body.orderId, report: null };
+        const record = { ...snapshot(body), clientToken, creatorToken, clientWallet: body.clientWallet, creatorWallet: body.creatorWallet, amount: String(body.amount), report: null };
         await writeFile(`${directory}${clientToken}.json`, JSON.stringify(record), { mode: 0o600 });
         return send(201, { clientToken, creatorToken });
       }
@@ -35,9 +36,18 @@ export function paymentRelay() {
       try { record = JSON.parse(await readFile(`${directory}${id}.json`, "utf8")); } catch { return send(404, { error: "Link not found" }); }
       if (req.method === "GET") {
         const creator = req.headers.authorization === `Bearer ${record.creatorToken}`;
-        return send(200, { clientWallet: record.clientWallet, creatorWallet: record.creatorWallet, amount: record.amount, orderId: record.orderId, report: creator ? record.report : null, reported: Boolean(record.report) });
+        return send(200, { ...snapshot(record), clientWallet: record.clientWallet, creatorWallet: record.creatorWallet, amount: record.amount, report: record.report, reported: Boolean(record.report) });
       }
       if (req.method !== "POST") return send(405, { error: "Method not allowed" });
+      if (body.action === "sync") {
+        if (req.headers.authorization !== `Bearer ${record.creatorToken}`) return send(403, { error: "Creator authorization required" });
+        record = { ...record, ...snapshot(body) };
+        const temporary = `${directory}${id}.${token()}.tmp`;
+        await writeFile(temporary, JSON.stringify(record), { mode: 0o600 });
+        await rename(temporary, `${directory}${id}.json`);
+        return send(200, { synced: true });
+      }
+      if (!record.orderId || !record.deliveryTxHash) return send(409, { error: "Awaiting order and delivery" });
       if (record.report) return send(409, { error: "Payment already reported" });
       if (!/^0x[a-fA-F0-9]{64}$/.test(body.paymentTxHash || "")) return send(400, { error: "Invalid transaction hash" });
       const provider = new ethers.JsonRpcProvider(PORTALDOT_V3.rpcUrls[0]);
