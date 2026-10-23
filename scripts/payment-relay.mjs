@@ -47,7 +47,7 @@ export function paymentRelay() {
         await rename(temporary, `${directory}${id}.json`);
         return send(200, { synced: true });
       }
-      if (!record.orderId || !record.deliveryTxHash) return send(409, { error: "Awaiting order and delivery" });
+      if (!record.orderId) return send(409, { error: "Awaiting order proof" });
       if (record.report) return send(409, { error: "Payment already reported" });
       if (!/^0x[a-fA-F0-9]{64}$/.test(body.paymentTxHash || "")) return send(400, { error: "Invalid transaction hash" });
       const provider = new ethers.JsonRpcProvider(PORTALDOT_V3.rpcUrls[0]);

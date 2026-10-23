@@ -1163,3 +1163,9 @@ dd {
 }
 .activeJobList .isArchived { display: none; }
 .archivedJobList .requestCards, .archivedJobList .emptyState { display: none; }
+.clientRequestPage { max-width: 1000px; }
+.clientRequestPage h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); }
+.clientRequestPage code { overflow-wrap: anywhere; white-space: normal; }
+.clientRequestPage .notice { margin: 24px 0; }
+.clientRequestPage input { width: 100%; min-width: 0; }
+.clientRequestPage li { margin: 12px 0; }
