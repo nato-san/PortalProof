@@ -52,6 +52,7 @@ export function CreatorPaymentReport({ job, language, onReceive }) {
   const key = `portalproof-report-link-${job.id}`;
   const [access, setAccess] = useState(() => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } });
   const [status, setStatus] = useState(""), [busy, setBusy] = useState(false);
+  const [syncStatus, setSyncStatus] = useState("");
   const ja = language === "ja";
   useEffect(() => {
     if (!access) return;
@@ -71,9 +72,17 @@ export function CreatorPaymentReport({ job, language, onReceive }) {
   useEffect(() => {
     if (!access) return;
     let cancelled = false;
-    api(`/${access.clientToken}`, { method: "POST", headers: { Authorization: `Bearer ${access.creatorToken}` }, body: JSON.stringify({ ...job, action: "sync" }) }).catch((error) => { if (!cancelled) setStatus(error.message); });
-    return () => { cancelled = true; };
-  }, [access, job.id, job.status, job.orderId, job.orderTxHash, job.deliveryUrl, job.deliveryTxHash, job.paymentRecordTxHash]);
+    const sync = async () => {
+      try {
+        await api(`/${access.clientToken}`, { method: "POST", headers: { Authorization: `Bearer ${access.creatorToken}` }, body: JSON.stringify({ ...job, action: "sync" }) });
+        if (!cancelled) setSyncStatus(ja ? "依頼者ページへ最新の案件情報を同期しました。" : "Latest job details synced to the client page.");
+      } catch (error) {
+        if (!cancelled) setSyncStatus((ja ? "依頼者ページへの同期に失敗しました。再試行中です：" : "Client sync failed; retrying: ") + error.message);
+      }
+    };
+    sync(); const timer = setInterval(sync, 5000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [access, job.id, job.status, job.orderId, job.orderTxHash, job.deliveryUrl, job.deliveryTxHash, job.paymentRecordTxHash, ja]);
   async function create() {
     setBusy(true);
     try {
@@ -82,5 +91,6 @@ export function CreatorPaymentReport({ job, language, onReceive }) {
     } catch (error) { setStatus(error.message); } finally { setBusy(false); }
   }
   const link = access ? `${location.origin}${location.pathname}?paymentReport=${access.clientToken}` : "";
-  return <section className="panel"><h2>{ja ? "依頼者用の支払い報告リンク" : "Client payment-report link"}</h2><p>{ja ? "依頼者は専用ページへ支払いTxHashを入力できます。この画面を開いている間、5秒ごとに受信を確認します。" : "Clients submit their payment hash through this link. This page checks for reports every five seconds."}</p>{!access ? <button className="secondary" onClick={create} disabled={busy || !job.orderId}>{ja ? "報告リンクを作成" : "Create report link"}</button> : <><input aria-label="Client payment-report URL" readOnly value={link} /><a className="buttonLink secondary" href={link} target="_blank" rel="noreferrer">{ja ? "依頼者ページを開く" : "Open client page"}</a></>}<p role="status">{status}</p><small>{ja ? "ローカル試作版：このMacのサーバーが必要です。127.0.0.1のリンクは別端末では開けません。" : "Local prototype: requires this Mac's server. A 127.0.0.1 link cannot be opened on another device."}</small></section>;
+  const syncNotice = <p role="status">{syncStatus}</p>;
+  return <section className="panel"><h2>{ja ? "依頼者用の支払い報告リンク" : "Client payment-report link"}</h2><p>{ja ? "依頼者は専用ページへ支払いTxHashを入力できます。この画面を開いている間、5秒ごとに受信を確認します。" : "Clients submit their payment hash through this link. This page checks for reports every five seconds."}</p>{!access ? <button className="secondary" onClick={create} disabled={busy || !job.orderId}>{ja ? "報告リンクを作成" : "Create report link"}</button> : <><input aria-label="Client payment-report URL" readOnly value={link} /><a className="buttonLink secondary" href={link} target="_blank" rel="noreferrer">{ja ? "依頼者ページを開く" : "Open client page"}</a></>}<p role="status">{status}</p>{syncNotice}<small>{ja ? "ローカル試作版：このMacのサーバーが必要です。127.0.0.1のリンクは別端末では開けません。" : "Local prototype: requires this Mac's server. A 127.0.0.1 link cannot be opened on another device."}</small></section>;
 }
