@@ -1098,4 +1098,4 @@ function App() {
 }
 
 const reportToken = new URL(location.href).searchParams.get("paymentReport");
-createRoot(document.getElementById("root")).render(reportToken ? <ClientPaymentReport token={reportToken} /> : <App />);
+createRoot(document.getElementById("root")).render(reportToken ? <ClientPaymentReport token={reportToken} contractAddress={contractAddress} /> : <App />);
