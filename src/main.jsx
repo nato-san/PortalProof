@@ -32,6 +32,7 @@ const DEPLOYMENT_COST_LIMIT = ethers.parseUnits("160", 18);
 const REQUESTS_KEY = "portalproof-requests-v1";
 const PROFILE_KEY = "portalproof-creator-profile-v1";
 const MODE_KEY = "portalproof-execution-mode-v1";
+const localRelayEnabled = ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
 const short = (value) => value ? `${value.slice(0, 6)}...${value.slice(-4)}` : "";
 
 function loadJson(key, fallback) {
@@ -913,7 +914,7 @@ function App() {
       id: makeRequestId(),
       createdAt: new Date().toISOString()
     });
-    try {
+    if (localRelayEnabled) try {
       const response = await fetch("/api/payment-reports", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(record) });
       if (!response.ok) throw new Error("依頼者ページを保存できません。ローカルプレビュー4175が起動しているか確認してください。 / Unable to save client page.");
       const access = await response.json();
@@ -1046,7 +1047,7 @@ function App() {
           <div className="activityCompact"><strong>{t("activityLog")}</strong>{events.length === 0 ? <small>{t("noActivity")}</small> : events.map((event) => <a key={event.txHash} href={`https://node-console.portaldot.dev/#/explorer/query/${event.txHash}`} target="_blank" rel="noreferrer"><ExternalLink size={14} />{event.label}</a>)}</div>
         </aside>
         <div className="workflowArea">
-          <CreatorPaymentReport job={jobDraft} language={language} onReceive={(report) => setJobDraft((current) => ({ ...current, paymentTxHash: report.paymentTxHash }))} />
+          {localRelayEnabled && <CreatorPaymentReport job={jobDraft} language={language} onReceive={(report) => setJobDraft((current) => ({ ...current, paymentTxHash: report.paymentTxHash }))} />}
           <nav className="stageTabs">{["agreement", "delivery", "payment", "certificate"].map((stage, index) => <button key={stage} className={manageStage === stage ? "active" : ""} disabled={!stageAvailable[stage]} onClick={() => setManageStage(stage)}><span>{index + 1}</span>{t(`${stage}Tab`)}</button>)}</nav>
           {manageStage === "agreement" && <section className="panel stagePanel"><p className="eyebrow">1 / 4</p><h2>{t("agreementHash")}</h2><p className="muted">{t("agreementHelp")}</p><div className="hashBox"><span>{t("termsHash")}</span><code>{proofs?.termsHash}</code><button className="icon" aria-label={t("copyTermsHash")} onClick={() => copy(proofs?.termsHash || "")}><Copy size={16} /></button></div><button className="primary wide" onClick={createOnChainOrder} disabled={!onChainReady || !agreementReady || !proofs?.termsHash || orderComplete}><FileCheck2 size={18} />{orderComplete ? t("orderIssued") : t("mintOrder")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !contractAddress ? <p className="formHint">{t("deployFirst")}</p> : !agreementReady && <p className="formHint">{t("agreementRequirements")}</p>}</section>}
           {manageStage === "delivery" && <section className="panel stagePanel"><p className="eyebrow">2 / 4</p><h2>{t("delivery")}</h2><p className="muted">{t("deliveryHelp")}</p><label>{t("orderId")}<input value={jobDraft.orderId} readOnly placeholder={t("createdAfterMint")} /></label><label>{t("deliveryUrl")}<input value={jobDraft.deliveryUrl} onChange={updateJob("deliveryUrl")} disabled={deliveryComplete} placeholder="https://..." /></label><div className="hashBox"><span>{t("deliveryHash")}</span><code>{deliveryReady ? proofs?.deliveryHash : "—"}</code></div><button className="secondary wide" onClick={markDelivered} disabled={!jobDraft.orderId || !onChainReady || !deliveryReady || deliveryComplete}><Link2 size={18} />{t("recordDelivery")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !deliveryReady && <p className="formHint">{t("deliveryUrlRequired")}</p>}</section>}

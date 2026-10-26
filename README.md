@@ -144,6 +144,9 @@ Open-source dependencies are listed in `package.json`.
 
 ### Known Limitations
 
+- Job-card archiving, reasoned cancellation/restoration, monthly income, wallet disconnect, and request-page opening in a new tab are available in the updated frontend.
+- Automatic client payment reporting and private request-status pages are currently local prototypes only. GitHub Pages has no relay API; public request intake keeps the original browser-local behavior and payment evidence remains manually entered. Public cross-device synchronization requires a separately hosted backend.
+
 - Payment verification currently supports native tPOTv3 transfers; token-contract payments are not supported yet.
 - The current MVP records payment evidence after delivery but does not escrow funds, so payment is not guaranteed.
 - The prototype request inbox is stored in the current browser and does not yet sync incoming requests across devices; accepted proofs are recorded separately on-chain.
