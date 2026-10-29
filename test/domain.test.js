@@ -1,4 +1,13 @@
 import assert from "node:assert/strict";
+import { walletFreeRequestReady, createWalletFreeRequest } from "../src/domain.js";
+const walletFreeDraft = { clientName: "Client", requestBrief: "Draw an icon", amount: "10", deadline: "2026-11-01" };
+assert.equal(walletFreeRequestReady(walletFreeDraft), true);
+assert.equal(walletFreeRequestReady({ ...walletFreeDraft, amount: "0" }), false);
+assert.equal(walletFreeRequestReady({ ...walletFreeDraft, clientName: " " }), false);
+const walletFree = createWalletFreeRequest({ ...walletFreeDraft, clientWallet: "must-not-be-used" }, { id: "no-wallet", createdAt: "2026-10-30" });
+assert.equal(walletFree.clientWallet, "");
+assert.equal(walletFree.requestVersion, 2);
+assert.equal(walletFree.agreementMethod, "not-yet-confirmed");
 import {
   PORTALDOT_V3,
   buildCreatorRequestUrl,

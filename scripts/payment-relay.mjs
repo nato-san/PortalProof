@@ -24,7 +24,7 @@ export function paymentRelay() {
       }
       await mkdir(directory, { recursive: true });
       if (url.pathname === "/api/payment-reports" && req.method === "POST") {
-        if (!ethers.isAddress(body.clientWallet) || !ethers.isAddress(body.creatorWallet) || (body.orderId && !/^0x[a-fA-F0-9]{64}$/.test(body.orderId)) || ethers.parseUnits(String(body.amount), 18) <= 0n) return send(400, { error: "Invalid order" });
+        if ((body.clientWallet && !ethers.isAddress(body.clientWallet)) || !ethers.isAddress(body.creatorWallet) || (body.orderId && !/^0x[a-fA-F0-9]{64}$/.test(body.orderId)) || ethers.parseUnits(String(body.amount), 18) <= 0n) return send(400, { error: "Invalid order" });
         const clientToken = token(), creatorToken = token();
         const record = { ...snapshot(body), clientToken, creatorToken, clientWallet: body.clientWallet, creatorWallet: body.creatorWallet, amount: String(body.amount), report: null };
         await writeFile(`${directory}${clientToken}.json`, JSON.stringify(record), { mode: 0o600 });

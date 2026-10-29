@@ -13,6 +13,8 @@ import {
   buildJobUrl,
   buildProofs,
   createRequestRecord,
+  createWalletFreeRequest,
+  walletFreeRequestReady,
   emptyDraft,
   readCreatorRequestUrl,
   readJobId,
@@ -483,6 +485,7 @@ function App() {
   }));
   const [jobDraft, setJobDraft] = useState(() => storedJob || null);
   const [submitted, setSubmitted] = useState(null);
+  const [requestSubmitting, setRequestSubmitting] = useState(false);
   const [proofs, setProofs] = useState(null);
   const [wallet, setWallet] = useState("");
   const [events, setEvents] = useState(() => [
@@ -510,9 +513,7 @@ function App() {
   const activeDraft = page === "request" ? requestDraft : page === "job" ? jobDraft : profile;
   const requestUrl = useMemo(() => buildCreatorRequestUrl(baseUrl, profile), [baseUrl, profile]);
   const requestLinkReady = Boolean(profile.creatorName && profile.serviceName && ethers.isAddress(profile.creatorWallet));
-  const requestReady = Boolean(
-    requestDraft.clientName && requestDraft.requestBrief && ethers.isAddress(requestDraft.clientWallet)
-  );
+  const requestReady = walletFreeRequestReady(requestDraft);
   const agreementReady = Boolean(
     jobDraft?.clientName && jobDraft?.requestBrief &&
     ethers.isAddress(jobDraft?.clientWallet || "") && ethers.isAddress(jobDraft?.creatorWallet || "")
@@ -699,6 +700,10 @@ function App() {
 
   async function createOnChainOrder() {
     if (!jobDraft) return;
+    if (jobDraft.requestVersion === 2) {
+      setStatus({ key: "error", detail: language === "ja" ? "この受付のオンチェーン記録はV2対応後に利用できます。" : "On-chain recording for this request requires V2 integration." });
+      return;
+    }
     if (jobDraft.orderId) {
       setStatus({ key: "orderAlreadyCreated" });
       return;
@@ -910,8 +915,9 @@ function App() {
 
   async function submitRequest(event) {
     event.preventDefault();
-    if (!requestReady) return;
-    const record = createRequestRecord(requestDraft, {
+    if (!requestReady || requestSubmitting) return;
+    setRequestSubmitting(true);
+    const record = createWalletFreeRequest(requestDraft, {
       id: makeRequestId(),
       createdAt: new Date().toISOString()
     });
@@ -921,12 +927,13 @@ function App() {
       const access = await response.json();
       record.clientToken = access.clientToken;
       localStorage.setItem(`portalproof-report-link-${record.id}`, JSON.stringify(access));
-    } catch (error) { setStatus({ key: "error", detail: error.message }); return; }
+    } catch (error) { setRequestSubmitting(false); setStatus({ key: "error", detail: error.message }); return; }
     const updated = [record, ...loadJson(REQUESTS_KEY, [])];
     localStorage.setItem(REQUESTS_KEY, JSON.stringify(updated));
     setRequests(updated);
     setSubmitted(record);
     setStatus({ key: "requestSaved" });
+    setRequestSubmitting(false);
   }
 
   function copy(value, statusKey = "copied") {
@@ -969,8 +976,8 @@ function App() {
           <button className={language === "en" ? "active" : ""} onClick={() => setLanguage("en")}>English</button>
           <button className={language === "ja" ? "active" : ""} onClick={() => setLanguage("ja")}>日本語</button>
         </div>
-        <button className="primary" onClick={connectWallet} disabled={status.key === "connectingWallet"}><Wallet size={17} />{wallet ? short(wallet) : status.key === "connectingWallet" ? t("connectingWallet") : t("connectWallet")}</button>
-        {wallet && <button className="secondary" onClick={disconnectWallet}>{language === "ja" ? "接続解除" : "Disconnect"}</button>}
+        {page !== "request" && <button className="primary" onClick={connectWallet} disabled={status.key === "connectingWallet"}><Wallet size={17} />{wallet ? short(wallet) : status.key === "connectingWallet" ? t("connectingWallet") : t("connectWallet")}</button>}
+        {page !== "request" && wallet && <button className="secondary" onClick={disconnectWallet}>{language === "ja" ? "接続解除" : "Disconnect"}</button>}
       </div>
     </nav>
   );
@@ -1023,11 +1030,11 @@ function App() {
         <form className="panel formPanel" onSubmit={submitRequest}>
           <h2>{t("clientRequest")}</h2><p className="muted">{t("clientRequestHelp")}</p>
           <label>{t("clientName")}<input value={requestDraft.clientName} onChange={updateRequest("clientName")} /></label>
-          <label>{t("clientWallet")}<input value={requestDraft.clientWallet} onChange={updateRequest("clientWallet")} placeholder="0x..." /></label>
+          <p className="formHint">{language === "ja" ? "依頼の送信にウォレット接続・署名・支払い・ガス代は不要です。" : "No wallet connection, signature, payment or gas fee is needed to submit a request."}</p>
           <label>{t("requestBrief")}<textarea value={requestDraft.requestBrief} onChange={updateRequest("requestBrief")} /></label>
           <div className="fieldRow"><label>{t("amount")}<input value={requestDraft.amount} onChange={updateRequest("amount")} /></label><label>{t("deadline")}<input type="date" value={requestDraft.deadline} onChange={updateRequest("deadline")} /></label></div>
-          <button className="primary wide" type="submit" disabled={!requestReady}><Send size={17} />{t("submitRequest")}</button>
-          {!requestReady && <p className="formHint">{t("requestRequirements")}</p>}
+          <button className="primary wide" type="submit" disabled={!requestReady || requestSubmitting}><Send size={17} />{requestSubmitting ? (language === "ja" ? "送信中…" : "Sending…") : t("submitRequest")}</button>
+          {!requestReady && <p className="formHint">{language === "ja" ? "名前・依頼内容・正の金額・希望納期を入力してください。" : "Enter your name, brief, a positive amount and deadline."}</p>}
         </form>
       </section>}
     </main>;
@@ -1049,6 +1056,7 @@ function App() {
           <div className="activityCompact"><strong>{t("activityLog")}</strong>{events.length === 0 ? <small>{t("noActivity")}</small> : events.map((event) => <a key={event.txHash} href={`https://node-console.portaldot.dev/#/explorer/query/${event.txHash}`} target="_blank" rel="noreferrer"><ExternalLink size={14} />{event.label}</a>)}</div>
         </aside>
         <div className="workflowArea">
+          {jobDraft.requestVersion === 2 && <p className="notice">{language === "ja" ? "ウォレット不要で受け付けた依頼です。条件の同意・V2オンチェーン記録は準備中です。既存V1の発注操作は利用できません。" : "Wallet-free request received. Terms approval and V2 on-chain recording are pending integration. Legacy V1 issuance is unavailable."}</p>}
           {localRelayEnabled && <CreatorPaymentReport job={jobDraft} language={language} onReceive={(report) => setJobDraft((current) => ({ ...current, paymentTxHash: report.paymentTxHash }))} />}
           <nav className="stageTabs">{["agreement", "delivery", "payment", "certificate"].map((stage, index) => <button key={stage} className={manageStage === stage ? "active" : ""} disabled={!stageAvailable[stage]} onClick={() => setManageStage(stage)}><span>{index + 1}</span>{t(`${stage}Tab`)}</button>)}</nav>
           {manageStage === "agreement" && <section className="panel stagePanel"><p className="eyebrow">1 / 4</p><h2>{t("agreementHash")}</h2><p className="muted">{t("agreementHelp")}</p><div className="hashBox"><span>{t("termsHash")}</span><code>{proofs?.termsHash}</code><button className="icon" aria-label={t("copyTermsHash")} onClick={() => copy(proofs?.termsHash || "")}><Copy size={16} /></button></div><button className="primary wide" onClick={createOnChainOrder} disabled={!onChainReady || !agreementReady || !proofs?.termsHash || orderComplete}><FileCheck2 size={18} />{orderComplete ? t("orderIssued") : t("mintOrder")}</button>{executionMode === "local" ? <p className="formHint">{t("switchToTestnet")}</p> : !contractAddress ? <p className="formHint">{t("deployFirst")}</p> : !agreementReady && <p className="formHint">{t("agreementRequirements")}</p>}</section>}
