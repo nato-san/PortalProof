@@ -1,4 +1,5 @@
 -- Apply once in a NEW Supabase project's SQL Editor.
+BEGIN;
 create extension if not exists pgcrypto with schema extensions;
 create table public.pp_offerings (
  id uuid primary key default gen_random_uuid(), owner_id uuid not null references auth.users(id),
@@ -12,6 +13,7 @@ create table public.pp_requests (
 alter table public.pp_offerings enable row level security;
 alter table public.pp_requests enable row level security;
 create index on public.pp_requests(owner_id, created_at desc);
+create unique index pp_request_idempotency on public.pp_requests(offering_id,client_token_hash);
 create policy offering_owner on public.pp_offerings for all to authenticated using(owner_id=auth.uid()) with check(owner_id=auth.uid());
 create policy request_owner_read on public.pp_requests for select to authenticated using(owner_id=auth.uid());
 revoke all on public.pp_offerings, public.pp_requests from anon, authenticated;
@@ -26,7 +28,8 @@ create function public.pp_submit_request(p_offering uuid, p_payload jsonb, p_tok
 returns jsonb language plpgsql security definer set search_path='' as $$
 declare offering public.pp_offerings; rid uuid; result jsonb;
 begin
- if p_token !~ '^[a-f0-9]{64}$' or length(p_payload::text)>12000
+ if p_token is null or p_token !~ '^[a-f0-9]{64}$'
+ or p_payload is null or jsonb_typeof(p_payload)<>'object' or length(p_payload::text)>12000
  or length(trim(coalesce(p_payload->>'clientName','')))=0
  or length(trim(coalesce(p_payload->>'requestBrief','')))=0
  or coalesce(p_payload->>'amount','') !~ '^[0-9]+(\.[0-9]{1,18})?$'
@@ -49,7 +52,6 @@ begin
  select id,data into rid,result from public.pp_requests where offering_id=p_offering and client_token_hash=encode(extensions.digest(p_token,'sha256'),'hex');
  return result || jsonb_build_object('id',rid,'clientToken',p_token);
 end; $$;
-create unique index pp_request_idempotency on public.pp_requests(offering_id,client_token_hash);
 
 create function public.pp_get_client_request(p_id uuid,p_token text) returns jsonb
 language sql security definer set search_path='' as $$
@@ -63,8 +65,8 @@ declare row public.pp_requests; clean jsonb;
 begin
  select * into row from public.pp_requests where id=p_id and owner_id=auth.uid() for update;
  if not found then raise exception 'Not authorized'; end if;
- if row.version<>p_version then raise exception 'Conflict: refresh the job before saving'; end if;
- if length(p_patch::text)>16000 then raise exception 'Update too large'; end if;
+ if p_version is null or row.version<>p_version then raise exception 'Conflict: refresh the job before saving'; end if;
+ if p_patch is null or jsonb_typeof(p_patch)<>'object' or length(p_patch::text)>16000 then raise exception 'Invalid update'; end if;
  -- Ownership, terms, amount and client report cannot be overwritten by a stale client.
  select coalesce(jsonb_object_agg(key,value),'{}') into clean from jsonb_each(p_patch)
  where key in ('status','archivedAt','cancelledAt','cancellationReason','statusBeforeCancellation','deliveryUrl','orderId','orderTxHash','deliveryTxHash','paymentRecordTxHash','paidAt','paidAmount');
@@ -76,7 +78,7 @@ create function public.pp_client_report(p_id uuid,p_token text,p_hash text) retu
 language plpgsql security definer set search_path='' as $$
 declare row public.pp_requests;
 begin
- if p_hash !~ '^0x[0-9a-fA-F]{64}$' then raise exception 'Invalid transaction hash'; end if;
+ if p_hash is null or p_hash !~ '^0x[0-9a-fA-F]{64}$' then raise exception 'Invalid transaction hash'; end if;
  select * into row from public.pp_requests where id=p_id and client_token_hash=encode(extensions.digest(p_token,'sha256'),'hex') for update;
  if not found then raise exception 'Link unavailable'; end if;
  if coalesce(row.data->>'orderId','')='' then raise exception 'Awaiting order record'; end if;
@@ -91,3 +93,4 @@ end; $$;
 revoke all on function public.pp_get_offering(uuid), public.pp_submit_request(uuid,jsonb,text), public.pp_get_client_request(uuid,text), public.pp_client_report(uuid,text,text), public.pp_update_request(uuid,integer,jsonb) from public;
 grant execute on function public.pp_get_offering(uuid), public.pp_submit_request(uuid,jsonb,text), public.pp_get_client_request(uuid,text), public.pp_client_report(uuid,text,text) to anon,authenticated;
 grant execute on function public.pp_update_request(uuid,integer,jsonb) to authenticated;
+COMMIT;
