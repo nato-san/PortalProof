@@ -25,6 +25,7 @@ import "./styles.css";
 import { archiveJob, restoreJob, monthlyIncome } from "./income.js";
 import { ArchiveControls } from "./ArchiveControls.jsx";
 import { GuideLink, UsageGuide } from "./UsageGuide.jsx";
+import { SharedWorkspace } from "./SharedWorkspace.jsx";
 import { ClientPaymentReport, CreatorPaymentReport } from "./PaymentReport.jsx";
 
 const DEPLOYED_CONTRACT_ADDRESS = "0xBaE8933886e1520e5FCa3eDed119c08b29022D79";
@@ -964,6 +965,7 @@ function App() {
     <nav className="topBar">
       {page === "request" ? <span className="brand">{brandContent}</span> : <a className="brand" href={baseUrl}>{brandContent}</a>}
       <div className="topActions">
+        {page !== "request" && <a className="buttonLink secondary" href={`${baseUrl}?view=shared`}>{language === "ja" ? "共有受付" : "Shared inbox"}</a>}
         <GuideLink role={page === "request" ? "client" : "creator"} language={language} />
         {page !== "request" && <div className="modeControl" aria-label={t("modeLabel")}>
           <span>{t("modeLabel")}</span>
@@ -1109,4 +1111,4 @@ function App() {
 
 const reportToken = new URL(location.href).searchParams.get("paymentReport");
 const guideRole = new URL(location.href).searchParams.get("guide");
-createRoot(document.getElementById("root")).render(["creator", "client"].includes(guideRole) ? <UsageGuide role={guideRole} /> : reportToken ? <ClientPaymentReport token={reportToken} contractAddress={contractAddress} /> : <App />);
+createRoot(document.getElementById("root")).render(new URL(location.href).searchParams.get("view") === "shared" ? <SharedWorkspace /> : ["creator", "client"].includes(guideRole) ? <UsageGuide role={guideRole} /> : reportToken ? <ClientPaymentReport token={reportToken} contractAddress={contractAddress} /> : <App />);
