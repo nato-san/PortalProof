@@ -177,6 +177,17 @@ button:disabled {
   font-weight: 750;
 }
 
+.sharedTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.sharedTabs button {
+  flex: 1 1 140px;
+}
+
 .languageToggle {
   display: inline-flex;
   overflow: hidden;

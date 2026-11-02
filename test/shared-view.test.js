@@ -1,0 +1,13 @@
+import assert from "node:assert/strict";
+import { creatorTab, creatorTabs, offeringMatches, sharedLanguage, sharedStatus } from "../src/sharedView.js";
+for (const tab of creatorTabs) assert.equal(creatorTab(tab), tab);
+assert.equal(creatorTab("bad"), "create");
+assert.equal(sharedLanguage("en"), "en");
+assert.equal(sharedLanguage("ja"), "ja");
+assert.equal(sharedLanguage("bad"), "ja");
+const rows = [{ id: "open", active: true }, { id: "closed", active: false }];
+assert.deepEqual(rows.filter(row => offeringMatches(row, "open")).map(row => row.id), ["open"]);
+assert.deepEqual(rows.filter(row => offeringMatches(row, "closed")).map(row => row.id), ["closed"]);
+assert.equal(sharedStatus("new", "ja"), "新着");
+assert.equal(sharedStatus("new", "en"), "New");
+console.log("Shared view tests passed (tab selection, language and open/closed separation)");
