@@ -1,6 +1,6 @@
 # Supabase shared intake — setup and release gate
 
-Status: prepared locally, NOT connected or deployed. A Supabase project does not exist yet. SQL has not been executed against Supabase. Two-device tests have not run. Do not describe this as a working deployed service.
+Status (2026-11-02): Supabase project created and connected. User executed migration successfully; wallet-free submission and creator receipt were demonstrated on the same Mac. Anonymous table reads/creator updates and wrong-token reads/payment reports were rejected in live API checks. Shared intake is being released as a test version; two-device and second-creator isolation tests remain pending. V2 lifecycle integration remains incomplete. Do not describe this as a complete deployed commission workflow.
 
 ## User setup
 

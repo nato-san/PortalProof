@@ -32,6 +32,10 @@ jobs:
         run: npm test
 
       - name: Build site
+        # Browser-public configuration only. Never put secret/service_role keys here.
+        env:
+          VITE_SUPABASE_URL: https://jpagtalwwdykopwqhbgp.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_qVppdv_wV33HlpH6UXKiGA_WAPDW9jg
         run: npm run build
 
       - name: Configure GitHub Pages
