@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 
-export function GuideLink({ role, language }) {
-  const href = `${location.pathname}?guide=${role}&lang=${language}`;
+export function GuideLink({ role, language, flow }) {
+  const href = `${location.pathname}?guide=${role}&lang=${language}${flow === "shared" ? "&flow=shared" : ""}`;
   return <a className="buttonLink secondary" href={href} target="_blank" rel="noopener noreferrer">{language === "ja" ? "使い方ガイド" : "How to use"} ↗</a>;
 }
 
-const steps = {
+const legacySteps = {
   creator: {
     ja: [
       ["受付ページを作る", "クリエイターTOPの「受付作成」で、仕事内容・参考価格・受取用ウォレットを入力します。依頼ページを確認し、受付リンクをSNSなどで共有してください。"],
@@ -44,8 +44,48 @@ const steps = {
   }
 };
 
+export const sharedGuideSteps = {
+  creator: {
+    ja: [
+      ["ウォレットでログイン", "ブラウザのウォレット、またはスマホのMetaMaskなどのウォレット内ブラウザから署名ログインします。ログインに送金・ガス代は不要です。"],
+      ["募集を作成・共有", "ホームの「募集を作成」で仕事内容と受取ウォレットを設定します。受取ウォレットはログインした本人確認済みウォレットを指定してください。「募集管理」で受付URLをコピーしてSNSなどへ掲載できます。募集は複数作成でき、受付停止・再開もできます。"],
+      ["届いた依頼を確認", "「案件管理」の「未処理」から案件の詳細を開きます。「承認して商談を開始」で承認済へ進みます。この時点ではまだ条件確定・受注成立ではありません。"],
+      ["条件を確定", "元の依頼内容・金額・納期でよければ「元の条件で交渉を確定」を選びます。変更を提案した場合は、依頼者が承認して交渉済（受注成立）になります。商談中は理由を送って辞退できますが、成立後はキャンセルを申請して相手の同意が必要です。"],
+      ["案件を整理", "案件は未処理・承認済・交渉済・納品済・キャンセル済に分かれます。アーカイブは自分の一覧を整理するだけで、取引の状態や依頼者側の記録は変えません。アーカイブから元の一覧へ戻せます。"],
+      ["現在の確認範囲", "共有フローの納品・支払い・オンチェーン証明書は接続準備中です。納品済タブがあることは、これらの操作が実装済みであることを意味しません。追加サーバー設定が未適用の場合は、承認・キャンセル・アーカイブ操作を無効にしています。現在は受付・商談のテストとして利用してください。"],
+    ],
+    en: [
+      ["Sign in with your wallet", "Use a browser wallet or an EVM wallet's in-app browser on mobile, such as MetaMask. Authentication signatures do not send funds or incur gas fees."],
+      ["Create and share an offering", "Use Create an offering on the home screen. The receiving wallet must match your authenticated wallet. Manage offerings to copy a public link for social media, create multiple offerings, and close or reopen them."],
+      ["Review incoming requests", "Open a job from Manage jobs → Unprocessed. Approve and start negotiation moves it to Approved. This starts negotiation; it does not finalize terms."],
+      ["Finalize terms", "Finalize the client's original terms if unchanged. If you propose a different brief, price or deadline, the client must approve. You may decline with a reason during negotiation. After terms are agreed, cancellation requires the other participant's consent."],
+      ["Organize jobs", "Browse Unprocessed, Approved, Terms agreed, Delivered and Cancelled. Archiving only organizes your own list; it does not cancel a commission or change client records. Restore archived jobs to their existing stage."],
+      ["Current test scope", "The shared delivery, payment and on-chain certificate workflow is still being integrated. A Delivered tab does not mean those operations are available. Agreement and archive actions are disabled until the additional server setup is applied. Use this release to test intake and negotiation, not completed payments."],
+    ],
+  },
+  client: {
+    ja: [
+      ["募集ページを開く", "クリエイターがSNSなどで共有した受付URLを開き、仕事内容を確認します。"],
+      ["ログインして依頼を送る", "送信前に自分のウォレットで署名ログインし、名前・依頼内容・希望金額・納期を入力します。ログインや依頼送信で送金・ガス代は発生しません。クリエイターとは別のご自身のウォレットを使ってください。"],
+      ["自分の依頼を確認", "送信後の「自分の依頼を確認する」または上部の「自分が依頼した仕事」から管理できます。同じウォレットでログインすれば、別端末からも自分の新方式の依頼を確認できます。以前の未ログインのテスト依頼は自動では紐づきません。"],
+      ["条件を確認", "クリエイターが依頼を確認して商談を開始します。元の条件のままならクリエイターの条件確定で成立し、変更提案があればあなたの承認で成立します。商談中はクリエイターが理由付きで辞退できます。成立後のキャンセルには相手の同意が必要です。"],
+      ["キャンセルに回答", "キャンセル申請と理由が届いたら、依頼の詳細で同意・不同意を選べます。自分の申請を自分で承認することはできません。キャンセルされても依頼と理由の記録は残ります。"],
+      ["まだ支払わない", "この共有フローは納品・支払い・証明書の接続準備中です。現在のテストでは送金せず、受付と商談の確認までにしてください。"],
+    ],
+    en: [
+      ["Open an offering", "Open the creator's public request link from social media and review the service."],
+      ["Sign in and submit", "Sign in with your own wallet before submitting your name, brief, proposed amount and deadline. Neither sign-in nor request submission sends funds or charges gas. Use a wallet separate from the creator's."],
+      ["Find your commissions", "After submitting, select View my request or My commissions in the header. The same wallet can access its new authenticated requests on another device. Earlier unsigned test requests are not automatically linked."],
+      ["Review terms", "The creator reviews and starts negotiation. The creator can finalize unchanged original terms; proposed changes require your approval. The creator may decline with a reason before agreement. Cancellation after agreement needs the other participant's consent."],
+      ["Respond to cancellation", "Open request details to agree to or decline a cancellation request. You cannot approve your own cancellation request. Original requests and cancellation reasons remain recorded."],
+      ["Do not pay yet", "Shared delivery, payment and certificate integration are still pending. Do not transfer funds in this test; verify intake and negotiation only."],
+    ],
+  },
+};
+
 export function UsageGuide({ role }) {
   const [language, setLanguage] = useState(() => new URL(location.href).searchParams.get("lang") === "en" ? "en" : "ja");
   const ja = language === "ja";
+  const steps = new URL(location.href).searchParams.get("flow") === "shared" ? sharedGuideSteps : legacySteps;
   return <main className="shell clientRequestPage"><nav className="topBar"><strong>PortalProof</strong><div className="languageToggle"><button onClick={() => setLanguage("ja")} className={ja ? "active" : ""}>日本語</button><button onClick={() => setLanguage("en")} className={!ja ? "active" : ""}>English</button></div></nav><header className="hero compactHero"><h1>{role === "creator" ? (ja ? "クリエイター向けガイド" : "Creator guide") : (ja ? "依頼者向けガイド" : "Client guide")}</h1><p>{ja ? "元の画面は別タブに残っています。確認したら、そのタブへ戻って操作してください。" : "Your original page remains in its tab. Return there to continue."}</p></header><section className="panel"><ol>{steps[role][language].map(([title, body]) => <li key={title}><h2>{title}</h2><p>{body}</p></li>)}</ol></section><p className="localNote">{ja ? "テストネットのtPOTv3を使います。秘密鍵やシードフレーズの入力は不要です。同じブラウザのタブはウォレットを共有します。両者を試す場合は別プロフィールを使うと分かりやすくなります。" : "Use testnet tPOTv3. Never enter a private key or seed phrase. Browser tabs share the wallet; separate profiles help test creator and client roles."}</p></main>;
 }

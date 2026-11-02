@@ -6,6 +6,7 @@ import { CreatorDashboard } from "./CreatorDashboard.jsx";
 import { creatorTab, sharedLanguage, sharedStatus } from "./sharedView.js";
 import { verifiedSessionWallet } from "./negotiation.js";
 import { RequestNegotiation } from "./RequestNegotiation.jsx";
+import { GuideLink } from "./UsageGuide.jsx";
 
 export function SharedWorkspace() {
   const query = new URL(location.href).searchParams;
@@ -83,6 +84,7 @@ export function SharedWorkspace() {
     <nav className="topBar">
       <a className="brand" href={`${base}?view=shared&role=${clientRole ? "client" : "creator"}&lang=${language}`}><img className="brandLogo" src="./portalproof-icon-192.png" alt="" />PortalProof</a>
       <div className="topActions">
+      <GuideLink role={clientRole || offeringId || requestId ? "client" : "creator"} language={language} flow="shared" />
       {session && <a className="buttonLink secondary" href={`${base}?view=shared&role=${clientRole ? "creator" : "client"}&lang=${language}`}>{clientRole ? t("クリエイターの管理画面", "Creator workspace") : t("自分が依頼した仕事", "My commissions")}</a>}
       <div className="languageToggle" aria-label={t("言語", "Language")}>
         <button type="button" className={language === "ja" ? "active" : ""} aria-pressed={language === "ja"} onClick={() => setLanguage("ja")}>日本語</button>
