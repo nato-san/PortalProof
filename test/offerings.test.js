@@ -1,0 +1,16 @@
+import assert from "node:assert/strict";
+import { loadCreatorOfferings, offeringUrl } from "../src/offerings.js";
+assert.equal(offeringUrl("https://example.com/PortalProof/?access=secret#private", "one"), "https://example.com/PortalProof/?view=shared&offering=one");
+const rows = [{ id: "one", profile: { serviceName: "Icon" }, active: true }, { id: "two", profile: { serviceName: "Portrait" }, active: true }];
+const calls = [];
+const client = { from(table) { calls.push(table); return {
+  select(columns) { calls.push(columns); return this; },
+  eq(column, value) { calls.push([column, value]); return this; },
+  async order(column) { calls.push(column); return { data: rows, error: null }; },
+}; } };
+assert.deepEqual(await loadCreatorOfferings(client, "creator-a"), rows);
+assert.deepEqual(calls, ["pp_offerings", "id,profile,active", ["owner_id", "creator-a"], "id"]);
+await assert.rejects(loadCreatorOfferings(client, ""), /ログイン/);
+const failing = { from() { return { select() { return this; }, eq() { return this; }, async order() { return { error: new Error("denied") }; } }; } };
+await assert.rejects(loadCreatorOfferings(failing, "creator-b"), /denied/);
+console.log("Offering loader tests passed (multiple rows, owner filter, private URL removal, errors)");
