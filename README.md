@@ -12,6 +12,12 @@
 
 PortalProof is a creator workflow DApp that lets creators publish a request flow, record agreed work terms on the Portaldot V3 testnet, and generate a delivery and payment proof certificate.
 
+### Who PortalProof Is For
+
+PortalProof is not limited to illustrators, artists, or people who identify as creators. Its intended scope includes anyone offering commissioned work, making something, or providing skills and services—for example, design, video production, software development, translation, handmade goods, consulting, and instruction. The interface continues to use “creator” as a familiar label for the person taking on the work.
+
+These examples describe the product's intended audience, not a claim that every service-specific workflow is already implemented. The current delivery-proof flow uses a delivery URL; completion evidence for services without a deliverable file still needs to be defined and implemented.
+
 ### Track
 
 Ecosystem DApps
@@ -185,6 +191,12 @@ Open-source dependencies are listed in `package.json`.
 ### 1文概要
 
 PortalProofは、クリエイターが依頼受付フローを公開し、合意した仕事内容をPortaldot V3テストネットに記録して、納品・支払い証明書を生成するDAppです。
+
+### 対象となる利用者
+
+PortalProofは、イラストレーターやアーティスト、クリエイターと呼ばれる人だけに限定したアプリではありません。何かを制作する人、スキルやサービスを提供する人など、幅広い仕事の受発注を対象としています。例えば、デザイン、動画制作、開発、翻訳、ハンドメイド制作、相談・指導などを想定しています。画面上では親しみやすい呼び方として、仕事を受ける側を引き続き「クリエイター」と表記します。
+
+これらは想定する利用対象であり、すべてのサービス固有の業務フローが実装済みという意味ではありません。現在の納品証明は納品URLを使う方式です。納品ファイルのないサービスの完了証跡については、今後の仕様検討・実装が必要です。
 
 ### 参加部門
 
