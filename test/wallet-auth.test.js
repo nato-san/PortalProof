@@ -1,0 +1,22 @@
+import assert from "node:assert/strict";
+import { signInCreatorWithWallet } from "../src/walletAuth.js";
+let called = 0;
+const wallet = { request() { throw new Error("Wrapper must delegate signing to SDK, not send transactions"); } };
+const result = { session: { access_token: "test-only" }, user: { id: "test" } };
+const auth = { async signInWithWeb3(options) {
+  called++;
+  assert.equal(options.wallet, wallet);
+  assert.equal(options.chain, "ethereum");
+  assert.equal(options.options.url, "https://example.com/PortalProof/?view=shared");
+  assert.match(options.statement, /not a payment/);
+  const ttl = options.options.signInWithEthereum.expirationTime.getTime() - Date.now();
+  assert.ok(ttl > 290000 && ttl <= 300000);
+  return { data: result, error: null };
+} };
+assert.equal(await signInCreatorWithWallet(auth, wallet, "https://example.com/PortalProof/?access=private#token"), result);
+await assert.rejects(signInCreatorWithWallet(auth, null, "https://example.com"), /ウォレット/);
+assert.equal(called, 1);
+const error = new Error("Provider disabled");
+await assert.rejects(signInCreatorWithWallet({ async signInWithWeb3() { return { error }; } }, wallet, "https://example.com"), e => e === error);
+await assert.rejects(signInCreatorWithWallet({ async signInWithWeb3() { return { data: {} }; } }, wallet, "https://example.com"), /認証/);
+console.log("Wallet auth wrapper tests passed (mocked SDK; no live wallet authentication claimed)");
