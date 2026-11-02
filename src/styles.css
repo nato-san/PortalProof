@@ -177,6 +177,48 @@ button:disabled {
   font-weight: 750;
 }
 
+.sharedMainNav, .jobFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 24px;
+}
+
+.sharedMainNav button, .jobFilters button {
+  color: var(--muted);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 8px;
+  min-height: 42px;
+  padding: 10px 16px;
+}
+
+.sharedMainNav button.active, .jobFilters button.active {
+  color: white;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.jobFilters button span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  margin-left: 6px;
+  padding: 0 4px;
+  border-radius: 20px;
+  background: rgba(100, 130, 120, 0.12);
+}
+
+.jobFilters button.active span { background: rgba(255,255,255,0.18); }
+.sharedHomeCard { align-items: flex-start; text-align: left; justify-content: flex-start; height: auto; }
+.sharedForm { max-width: 760px; margin: 24px auto; }
+.sharedJobDetail { margin-top: 20px; }
+.sharedJobCards { margin-top: 24px; }
+.sharedBriefPreview { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.statusBadge.approved, .statusBadge.proposed { color: #245e9a; background: #e6f1ff; }
+.statusBadge.agreed { color: var(--accent); background: var(--soft); }
+.statusBadge.negotiating { color: #8a5e00; background: #fff3d0; }
+
 .sharedTabs {
   display: flex;
   flex-wrap: wrap;

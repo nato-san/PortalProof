@@ -23,7 +23,8 @@ export function SharedWorkspace() {
   const [offering, setOffering] = useState(null), [draft, setDraft] = useState({ clientName: "", requestBrief: "", amount: "10", deadline: "" });
   const [jobs, setJobs] = useState([]), [clientJob, setClientJob] = useState(null), [savedUrl, setSavedUrl] = useState(""), [hash, setHash] = useState("");
   const [offeringState, setOfferingState] = useState("loading");
-  const [workflowReady, setWorkflowReady] = useState(false);
+  const [workflowVersion, setWorkflowVersion] = useState(0);
+  const workflowReady = workflowVersion >= 1;
   const [requestNonce] = useState(() => crypto.randomUUID());
   const walletIdentity = verifiedSessionWallet(session?.user);
   const base = `${location.origin}${location.pathname}`;
@@ -40,7 +41,7 @@ export function SharedWorkspace() {
   }, [language]);
   useEffect(() => {
     if (!shared) return;
-    shared.rpc("pp_signed_workflow_version").then(({ data, error }) => setWorkflowReady(!error && data === 1));
+    shared.rpc("pp_signed_workflow_version").then(({ data, error }) => setWorkflowVersion(!error && Number.isInteger(data) ? data : 0));
     shared.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = shared.auth.onAuthStateChange((_event, value) => setSession(value));
     return () => data.subscription.unsubscribe();
@@ -60,31 +61,38 @@ export function SharedWorkspace() {
         } else if (session) {
           const { data, error } = await shared.from("pp_requests").select("id,data,version").eq(clientRole ? "client_user_id" : "owner_id", session.user.id).order("created_at", { ascending: false });
           if (error) throw error;
-          if (!cancelled) setJobs(data.map((row) => ({ ...row.data, id: row.id, version: row.version })));
+          let archives = [];
+          if (!clientRole && workflowVersion >= 2) {
+            const result = await shared.from("pp_request_archives").select("request_id,archived_at").eq("user_id", session.user.id);
+            if (result.error) throw result.error;
+            archives = result.data;
+          }
+          if (!cancelled) setJobs(data.map(row => ({ ...row.data, id: row.id, version: row.version, archivedAt: archives.find(item => item.request_id === row.id)?.archived_at || null })));
         }
       } catch (error) { if (!cancelled) { setMessage(error.message); if (offeringId) { setOffering(null); setOfferingState("error"); } } }
     };
     refresh(); const timer = setInterval(refresh, 5000);
     return () => { cancelled = true; clearInterval(timer); };
-  }, [offeringId, requestId, token, session?.user?.id, clientRole]);
+  }, [offeringId, requestId, token, session?.user?.id, clientRole, workflowVersion]);
   const jobChanged = (job) => {
-    setJobs(current => current.map(item => item.id === job.id ? job : item));
+    setJobs(current => current.map(item => item.id === job.id ? { ...item, ...job } : item));
     if (requestId === job.id) setClientJob(job);
   };
   const field = (key) => ({ value: draft[key], onChange: (event) => setDraft((old) => ({ ...old, [key]: event.target.value })) });
-  const creator = !offeringId && !requestId;
   return <main className="shell">
     <nav className="topBar">
-      <strong>PortalProof · {t("共有受付", "Shared workspace")}</strong>
-      {creator && <a href={base}>{t("従来の管理画面", "Legacy workspace")}</a>}
-      {session && <a href={`${base}?view=shared&role=${clientRole ? "creator" : "client"}&lang=${language}`}>{clientRole ? t("クリエイターの管理画面", "Creator workspace") : t("自分が依頼した仕事", "My commissions")}</a>}
+      <a className="brand" href={`${base}?view=shared&role=${clientRole ? "client" : "creator"}&lang=${language}`}><img className="brandLogo" src="./portalproof-icon-192.png" alt="" />PortalProof</a>
+      <div className="topActions">
+      {session && <a className="buttonLink secondary" href={`${base}?view=shared&role=${clientRole ? "creator" : "client"}&lang=${language}`}>{clientRole ? t("クリエイターの管理画面", "Creator workspace") : t("自分が依頼した仕事", "My commissions")}</a>}
       <div className="languageToggle" aria-label={t("言語", "Language")}>
         <button type="button" className={language === "ja" ? "active" : ""} aria-pressed={language === "ja"} onClick={() => setLanguage("ja")}>日本語</button>
         <button type="button" className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => setLanguage("en")}>English</button>
       </div>
       {session && shared && <button className="secondary" onClick={() => run(async () => { const { error } = await shared.auth.signOut(); if (error) throw error; setJobs([]); setClientJob(null); })}>{t("ログアウト", "Log out")}</button>}
+      </div>
     </nav>
-    <p className="notice" role="status">{message || t("依頼情報は共有データベースに保存します。", "Request information is stored in the shared database.")}</p>
+    {message && <p className="notice" role="status">{message}</p>}
+    {session && workflowVersion < 2 && <p className="notice">{t("段階別管理・アーカイブの追加設定待ちです。募集一覧と案件の閲覧は引き続き利用できます。", "The stage/archive server update is pending. Offerings and existing requests remain viewable.")}</p>}
     {!shared ? <section className="panel"><h1>{t("共有受付の設定が必要です", "Shared workspace setup required")}</h1><p>{t("Supabaseの接続情報とデータベースを設定してください。", "Configure the Supabase connection and database first.")}</p></section>
       : offeringId && !requestId && !savedUrl && !offering ? <section className="panel" role="status">
         {offeringState === "unavailable" ? <><h1>{t("この募集は現在受け付けていません", "Not accepting requests")}</h1><p>{t("受付が停止されているか、募集が見つかりません。送信済みの依頼は、ご自身の依頼確認URLから確認できます。", "This offering is closed or unavailable. Existing requests remain accessible through their private URLs.")}</p></>
@@ -97,7 +105,7 @@ export function SharedWorkspace() {
         {clientJob && <><h2>{clientJob.serviceName}</h2><p>{clientJob.clientName} → {clientJob.creatorName}</p><p>{clientJob.requestBrief}</p>
           <p>{t("金額：", "Amount: ")}{clientJob.amount} tPOTv3 ／ {t("納期：", "Deadline: ")}{clientJob.deadline}</p>
           <p>{t("状態：", "Status: ")}{sharedStatus(clientJob.status, language)}</p>
-          {clientJob.requestVersion === 3 && session && <RequestNegotiation key={`${clientJob.id}-${clientJob.version}`} job={clientJob} kind="client" userId={session.user.id} t={t} onChange={jobChanged} />}
+          {clientJob.requestVersion === 3 && session && <RequestNegotiation key={`${clientJob.id}-${clientJob.version}`} job={clientJob} kind="client" userId={session.user.id} t={t} onChange={jobChanged} workflowVersion={workflowVersion} />}
           {clientJob.requestVersion === 3 ? <p>{clientJob.workflowPhase === "cancelled" ? t("この依頼はキャンセル済みです。送金しないでください。", "This request is cancelled. Do not pay.") : t("商談・受注の確認ができます。新方式の納品・オンチェーン証明との接続は準備中です。まだ送金しないでください。", "Review negotiation and agreement here. Delivery and on-chain proof integration are still pending. Do not pay yet.")}</p>
             : clientJob.reported ? <p>{t("支払い報告を受信しました。照合待ちです。再送金は不要です。", "Payment report received, awaiting verification. Do not pay again.")}<code>{clientJob.paymentTxHash}</code></p>
             : clientJob.orderId ? <form onSubmit={(event) => { event.preventDefault(); run(async () => setClientJob(await sharedRpc("pp_client_report", { p_id: requestId, p_token: token, p_hash: hash.trim() }))); }}>
@@ -129,8 +137,8 @@ export function SharedWorkspace() {
             })}>{t("新規登録", "Sign up")}</button>
           </form>
         </section>
-      </> : clientRole ? <section><h1>{t("自分が依頼した仕事", "My commissions")}</h1><p>{t("このウォレットで送信した依頼です。", "Requests submitted with this wallet.")}</p>{!jobs.length && <p>{t("依頼はまだありません。", "No commissions yet.")}</p>}{jobs.map(job => <article className="panel" key={job.id}><h2>{job.serviceName}</h2><p>{job.creatorName}</p><p>{job.requestBrief}</p><p>{job.amount} tPOTv3 / {job.deadline}</p><RequestNegotiation key={`${job.id}-${job.version}`} job={job} kind="client" userId={session.user.id} t={t} onChange={jobChanged} /><a className="buttonLink secondary" href={`${base}?view=shared&role=client&clientRequest=${job.id}&lang=${language}`}>{t("依頼の詳細", "Request details")}</a></article>)}</section>
-      : <CreatorDashboard tab={tab} onTabChange={changeTab} profile={profile} setProfile={setProfile} busy={busy} savedUrl={savedUrl} ownerId={session.user.id} base={base} jobs={jobs} language={language} t={t} onJobChange={jobChanged} createOffering={() => run(async () => {
+      </> : clientRole ? <section><header className="hero compactHero"><div><h1>{t("自分が依頼した仕事", "My commissions")}</h1><p>{t("このウォレットで送信した依頼です。", "Requests submitted with this wallet.")}</p></div></header>{!jobs.length && <p>{t("依頼はまだありません。", "No commissions yet.")}</p>}<div className="requestCards">{jobs.map(job => <article className="panel requestCard" key={job.id}><span className={`statusBadge ${job.status}`}>{sharedStatus(job.status, language)}</span><h2>{job.serviceName}</h2><p>{job.creatorName}</p><p className="sharedBriefPreview">{job.requestBrief}</p><p>{job.amount} tPOTv3 / {job.deadline}</p><a className="buttonLink primary wide" href={`${base}?view=shared&role=client&clientRequest=${job.id}&lang=${language}`}>{t("依頼の詳細", "Request details")}</a></article>)}</div></section>
+      : <CreatorDashboard tab={tab} onTabChange={changeTab} profile={profile} setProfile={setProfile} busy={busy} savedUrl={savedUrl} ownerId={session.user.id} base={base} jobs={jobs} language={language} t={t} onJobChange={jobChanged} workflowVersion={workflowVersion} onArchiveChange={(id, archivedAt) => setJobs(current => current.map(job => job.id === id ? { ...job, archivedAt } : job))} createOffering={() => run(async () => {
         const { data, error } = await shared.from("pp_offerings").insert({ owner_id: session.user.id, profile }).select("id").single(); if (error) throw error;
         setSavedUrl(`${base}?view=shared&offering=${data.id}`); changeTab("open"); setMessage(t("募集を作成しました。一覧からURLをコピーできます。", "Offering created. Copy its URL from the list."));
       })} />}

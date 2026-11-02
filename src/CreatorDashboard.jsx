@@ -1,41 +1,49 @@
 import React from "react";
+import { Settings2, BriefcaseBusiness, Link2, ArrowRight, Home } from "lucide-react";
 import { CreatorOfferings } from "./CreatorOfferings.jsx";
-import { creatorTabs, sharedStatus } from "./sharedView.js";
-import { RequestNegotiation } from "./RequestNegotiation.jsx";
+import { CreatorJobs } from "./CreatorJobs.jsx";
 
 export function CreatorNavigation({ tab, onChange, t }) {
-  const labels = { create: t("募集作成", "Create offering"), open: t("受付中", "Open offerings"), closed: t("受付終了", "Closed offerings"), requests: t("届いた依頼", "Incoming requests") };
-  return <nav className="sharedTabs" aria-label={t("クリエイターメニュー", "Creator navigation")}>
-    {creatorTabs.map((key) => <button type="button" key={key} className={tab === key ? "primary" : "secondary"} aria-current={tab === key ? "page" : undefined} onClick={() => onChange(key)}>{labels[key]}</button>)}
+  const selected = tab === "closed" ? "open" : tab;
+  const labels = { home: t("ホーム", "Home"), create: t("募集作成", "Create offering"), open: t("募集管理", "Manage offerings"), requests: t("案件管理", "Manage jobs") };
+  return <nav className="sharedMainNav" aria-label={t("クリエイターメニュー", "Creator navigation")}>
+    {Object.entries(labels).map(([key, label]) => <button type="button" key={key} className={selected === key ? "active" : ""} aria-current={selected === key ? "page" : undefined} onClick={() => onChange(key)}>{label}</button>)}
   </nav>;
 }
 
-export function CreatorDashboard({ tab, onTabChange, profile, setProfile, createOffering, busy, savedUrl, ownerId, base, jobs, language, t, onJobChange }) {
+export function CreatorDashboard({ tab, onTabChange, profile, setProfile, createOffering, busy, savedUrl, ownerId, base, jobs, language, t, onJobChange, onArchiveChange, workflowVersion }) {
   return <>
-    <CreatorNavigation tab={tab} onChange={onTabChange} t={t} />
-    {tab === "create" && <section className="panel">
-      <h1>{t("募集を作成", "Create an offering")}</h1>
-      <p>{t("サービスごとに受付リンクを作成できます。既存の募集は「受付中」「受付終了」から確認できます。", "Create a request link for each service. Find existing offerings under Open or Closed offerings.")}</p>
-      <form onSubmit={(event) => { event.preventDefault(); createOffering(); }}>
-        {["creatorName", "creatorWallet", "serviceName", "serviceDescription"].map((key) => <label key={key}>
+    {tab !== "home" && <CreatorNavigation tab={tab} onChange={onTabChange} t={t} />}
+    {tab === "home" && <>
+      <header className="hero compactHero"><div><p className="eyebrow">PORTALDOT HACKER HOUSE 2026 / ECOSYSTEM DAPPS</p><h1>{t("クリエイターホーム", "Creator home")}</h1><p>{t("やりたいことを選んで、制作の仕事を進めましょう。", "Choose what you want to do as the creator.")}</p></div></header>
+      <section className="creatorHome">
+        <div className="creatorOnlyNote"><Home size={20} /><div><strong>{t("クリエイター専用エリア", "Creator-only area")}</strong><span>{t("このウォレットで管理する募集と依頼を確認できます。", "Manage this wallet's offerings and incoming requests.")}</span></div></div>
+        <div className="homeCards">
+          {[
+            { tab: "create", icon: <Settings2 size={24} />, title: t("募集を作成", "Create an offering"), help: t("仕事内容と受付ページを設定し、募集を公開します。", "Set up a service and create its public request page.") },
+            { tab: "requests", icon: <BriefcaseBusiness size={24} />, title: t("案件を管理", "Manage your jobs"), help: t("届いた依頼を段階別に確認し、案件ごとに進めます。", "Review incoming jobs by stage and open each workspace."), count: jobs.filter(job => !job.archivedAt).length },
+            { tab: "open", icon: <Link2 size={24} />, title: t("募集とリンクを管理", "Manage offerings and links"), help: t("SNS用リンクのコピーや、受付の停止・再開ができます。", "Copy links for social media, close or reopen offerings.") },
+          ].map(card => <button type="button" key={card.tab} className={`homeCard sharedHomeCard ${card.tab === "open" ? "publicEntry" : ""}`} onClick={() => onTabChange(card.tab)}>
+            <span className="homeCardIcon">{card.icon}</span>{card.count !== undefined && <span className="homeCardCount">{card.count}</span>}
+            <div><strong>{card.title}</strong><p>{card.help}</p></div><span className="homeCardAction">{t("開く", "Open page")}<ArrowRight size={16} /></span>
+          </button>)}
+        </div>
+      </section>
+    </>}
+    {tab === "create" && <section className="panel sharedForm">
+      <h1>{t("募集を作成", "Create an offering")}</h1><p className="muted">{t("サービスごとに受付リンクを作成できます。", "Create a request link for each service.")}</p>
+      <form onSubmit={event => { event.preventDefault(); createOffering(); }}>
+        {["creatorName", "creatorWallet", "serviceName", "serviceDescription"].map(key => <label key={key}>
           {({ creatorName: t("クリエイター名", "Creator name"), creatorWallet: t("受取ウォレット", "Receiving wallet"), serviceName: t("サービス名", "Service name"), serviceDescription: t("仕事内容", "Service description") })[key]}
-          <input value={profile[key]} onChange={(event) => setProfile((old) => ({ ...old, [key]: event.target.value }))} />
+          <input value={profile[key]} onChange={event => setProfile(old => ({ ...old, [key]: event.target.value }))} />
         </label>)}
-        <button className="primary" disabled={busy}>{t("受付リンクを作成", "Create request link")}</button>
+        <button className="primary wide" disabled={busy}>{t("受付リンクを作成", "Create request link")}</button>
       </form>
     </section>}
-    {(tab === "open" || tab === "closed") && <CreatorOfferings key={ownerId} ownerId={ownerId} base={base} refreshKey={savedUrl} filter={tab} language={language} t={t} />}
-    {tab === "requests" && <section>
-      <h1>{t("届いた依頼", "Incoming requests")}</h1>
-      {!jobs.length && <p>{t("まだ依頼は届いていません。", "No requests yet.")}</p>}
-      {jobs.map((job) => <article className="panel" key={job.id}>
-        <h3>{job.clientName} ／ {job.serviceName}</h3><p>{job.requestBrief}</p>
-        <p>{job.amount} tPOTv3 ／ {job.deadline}</p>
-        <p>{t("状態：", "Status: ")}{sharedStatus(job.status, language)}</p>
-        {job.requestVersion === 3 && <RequestNegotiation key={`${job.id}-${job.version}`} job={job} kind="creator" userId={ownerId} t={t} onChange={onJobChange} />}
-        {job.paymentTxHash && <p>{t("支払い報告（未照合）：", "Payment report (unverified): ")}<code>{job.paymentTxHash}</code></p>}
-        <p>{t("新方式のオンチェーン記録は改訂版コントラクトとの接続後に利用できます。", "On-chain recording for this workflow requires integration with the revised contract.")}</p>
-      </article>)}
-    </section>}
+    {(tab === "open" || tab === "closed") && <>
+      <nav className="jobFilters" aria-label={t("募集の受付状況", "Offering availability")}>{["open", "closed"].map(key => <button type="button" key={key} className={tab === key ? "active" : ""} aria-current={tab === key ? "page" : undefined} onClick={() => onTabChange(key)}>{key === "open" ? t("受付中", "Open") : t("受付終了", "Closed")}</button>)}</nav>
+      <CreatorOfferings key={ownerId} ownerId={ownerId} base={base} refreshKey={savedUrl} filter={tab} language={language} t={t} />
+    </>}
+    {tab === "requests" && <CreatorJobs jobs={jobs} ownerId={ownerId} language={language} t={t} onJobChange={onJobChange} onArchiveChange={onArchiveChange} workflowVersion={workflowVersion} />}
   </>;
 }

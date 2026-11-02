@@ -1,0 +1,12 @@
+# Confirmed job stages and compact UI — 2026-11-03
+
+Human confirmation: Unprocessed → Approved (negotiation started; terms NOT final) → Terms agreed (agreement established) → Delivered. Cancelled and Archive are separate views. This supersedes the previous immediate-acceptance meaning of approval. Existing agreed orders are NOT demoted.
+
+- Reuses the original creator home-card, spacing, colour and job-sidebar styles. Shared header has the PortalProof brand, language switch and account controls; the confusing legacy-workspace link is removed without deleting the original implementation.
+- Home has three entry cards: create offering, manage jobs, manage offerings/links. Creator jobs have six mutually exclusive lists. Only summaries and navigation/archive controls appear on list cards; agreement/proposal/reason forms appear in the selected job detail.
+- Artist uses `start_negotiation` to move an unprocessed request to Approved. Unchanged original terms can then be finalized by the artist; changed terms still need client approval. Negotiation-phase artist decline remains possible; agreed-phase cancellation requires the other participant.
+- Per-creator archive preferences are stored in `pp_request_archives`, not in transaction state or client data. Restoring removes only this preference and returns the job to its existing stage. No request/history is deleted.
+- Server migration: `supabase/migrations/20261103_job_stages_archives.sql`, apply ONCE after 20261102. Adds an approved phase, wraps/reuses tested version-1 consent rules, revokes direct use of the old action function, adds owner-scoped archive RPC and reports workflow version 2.
+- Until live migration reports version 2, approval/cancellation and archive controls are disabled; old agreed records are not silently reinterpreted or reset. Submission schema remains compatible.
+- Tests: npm test/build, isolated PGlite database tests with both migration files, stage/filter unit tests, Japanese/English server-render checks for compact list/home/form separation. Actual browser screenshot/layout inspection and live Supabase version-2 two-account tests remain pending.
+- No push, contract deployment or live database mutation performed for this change. Shared on-chain delivery/payment/certificate integration remains incomplete; Delivered is a truthful filter for existing delivery evidence, not a new manual completion shortcut.

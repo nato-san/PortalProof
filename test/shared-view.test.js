@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import { creatorTab, creatorTabs, offeringMatches, sharedLanguage, sharedStatus } from "../src/sharedView.js";
+import { creatorTab, creatorTabs, offeringMatches, sharedLanguage, sharedStatus, jobStage, jobMatches, jobStageLabel, jobStages } from "../src/sharedView.js";
 for (const tab of creatorTabs) assert.equal(creatorTab(tab), tab);
-assert.equal(creatorTab("bad"), "create");
+assert.equal(creatorTab("bad"), "home");
 assert.equal(sharedLanguage("en"), "en");
 assert.equal(sharedLanguage("ja"), "ja");
 assert.equal(sharedLanguage("bad"), "ja");
@@ -11,3 +11,21 @@ assert.deepEqual(rows.filter(row => offeringMatches(row, "closed")).map(row => r
 assert.equal(sharedStatus("new", "ja"), "新着");
 assert.equal(sharedStatus("new", "en"), "New");
 console.log("Shared view tests passed (tab selection, language and open/closed separation)");
+const jobs = [
+  { id: "new", workflowPhase: "negotiating" },
+  { id: "approved", workflowPhase: "approved" },
+  { id: "proposed", workflowPhase: "proposed" },
+  { id: "agreed", workflowPhase: "agreed" },
+  { id: "delivered", workflowPhase: "agreed", deliveryTxHash: "hash" },
+  { id: "cancelled", workflowPhase: "cancelled", deliveryTxHash: "hash" },
+  { id: "archived", workflowPhase: "agreed", archivedAt: "2026-11-03" },
+];
+for (const job of jobs) assert.equal(jobStages.filter(stage => jobMatches(job, stage)).length, 1);
+assert.equal(jobStage(jobs[1]), "approved");
+assert.equal(jobStage(jobs[2]), "approved");
+assert.equal(jobStage(jobs[4]), "delivered");
+assert.equal(jobStage(jobs[5]), "cancelled");
+assert.equal(jobStageLabel("agreed", "ja"), "交渉済");
+assert.equal(jobStageLabel("archive", "en"), "Archive");
+assert.ok(jobMatches({ ...jobs[6], archivedAt: null }, "agreed"));
+console.log("Job stage tests passed: six disjoint lists, cancellation precedence and archive restoration");
