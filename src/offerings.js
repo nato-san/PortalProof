@@ -15,3 +15,13 @@ export async function loadCreatorOfferings(client, ownerId) {
   if (error) throw error;
   return data || [];
 }
+
+export async function setOfferingActive(client, ownerId, id, active) {
+  if (!ownerId || !id || typeof active !== "boolean") throw new Error("募集の指定が不正です / Invalid offering");
+  const { data, error } = await client.from("pp_offerings")
+    .update({ active }).eq("owner_id", ownerId).eq("id", id)
+    .select("id,profile,active").single();
+  if (error) throw error;
+  if (!data) throw new Error("募集を更新できませんでした / Offering unavailable");
+  return data;
+}

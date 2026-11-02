@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { shared } from "./shared.js";
-import { loadCreatorOfferings, offeringUrl } from "./offerings.js";
+import { loadCreatorOfferings, offeringUrl, setOfferingActive } from "./offerings.js";
 
-export function OfferingCards({ rows, base, onCopy }) {
+export function OfferingCards({ rows, base, onCopy, onToggle, disabled = false }) {
   return rows.map((row) => {
     const profile = row.profile || {};
     const url = offeringUrl(base, row.id);
@@ -14,6 +14,7 @@ export function OfferingCards({ rows, base, onCopy }) {
       <label>受付URL / Request URL<input readOnly value={url} onFocus={(event) => event.target.select()} /></label>
       {row.active && <a className="buttonLink primary" href={url} target="_blank" rel="noopener noreferrer">依頼者ページを開く / Open request page</a>}
       <button type="button" className="secondary" onClick={() => onCopy(url)}>URLをコピー / Copy URL</button>
+      <button type="button" className="secondary" disabled={disabled} onClick={() => onToggle(row)}>{row.active ? "受付を停止 / Close offering" : "受付を再開 / Reopen offering"}</button>
     </article>;
   });
 }
@@ -24,6 +25,7 @@ export function CreatorOfferings({ ownerId, base, refreshKey }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [reload, setReload] = useState(0);
+  const [updating, setUpdating] = useState(false);
   useEffect(() => {
     let cancelled = false;
     let pending = false;
@@ -49,6 +51,16 @@ export function CreatorOfferings({ ownerId, base, refreshKey }) {
     try { await navigator.clipboard.writeText(url); setNotice("URLをコピーしました / URL copied"); }
     catch { setNotice("コピーできませんでした。受付URL欄を選択してコピーしてください。 / Select the URL field to copy manually."); }
   }
+  async function toggle(row) {
+    if (updating) return;
+    if (row.active && !window.confirm("この募集の新規受付を停止しますか？既存の依頼は残ります。 / Close new requests? Existing jobs will be kept.")) return;
+    setUpdating(true); setError(""); setNotice("");
+    try {
+      await setOfferingActive(shared, ownerId, row.id, !row.active);
+      setNotice(row.active ? "受付を停止しました。既存の依頼は残っています。 / Offering closed; existing jobs kept." : "同じURLで受付を再開しました。 / Offering reopened at the same URL.");
+    } catch (err) { setNotice(`更新できませんでした / Update failed: ${err.message}`); }
+    finally { setUpdating(false); setReload((value) => value + 1); }
+  }
   return <section aria-labelledby="creator-offerings-heading">
     <h2 id="creator-offerings-heading">作成済みの募集一覧 / Your offerings</h2>
     <p>このアカウントで作成した募集です。メールとウォレットのアカウントは別々に表示されます。</p>
@@ -57,6 +69,6 @@ export function CreatorOfferings({ ownerId, base, refreshKey }) {
     {error && <p role="alert">{error}</p>}
     {notice && <p role="status">{notice}</p>}
     {!loading && !error && rows.length === 0 && <p>まだ募集がありません。上のフォームから作成できます。 / No offerings yet.</p>}
-    <OfferingCards rows={rows} base={base} onCopy={copy} />
+    <OfferingCards rows={rows} base={base} onCopy={copy} onToggle={toggle} disabled={loading || updating} />
   </section>;
 }
