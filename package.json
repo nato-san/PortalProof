@@ -7,7 +7,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node test/domain.test.js && node test/contract.test.js && node test/income.test.js && node test/wallet-auth.test.js && node test/offerings.test.js && node test/shared-view.test.js && node test/contract-v2.test.js",
+    "test": "node test/domain.test.js && node test/contract.test.js && node test/income.test.js && node test/wallet-auth.test.js && node test/offerings.test.js && node test/shared-view.test.js && node test/negotiation.test.js && node test/contract-v2.test.js",
     "test:contract-v2": "node test/contract-v2.test.js",
     "compile:contract": "node scripts/compile-contract.mjs",
     "check:portaldot": "node scripts/deploy-portaldot.mjs --check-only",

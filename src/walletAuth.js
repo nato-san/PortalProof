@@ -8,7 +8,7 @@ export async function signInCreatorWithWallet(auth, wallet, pageUrl) {
   url.hash = "";
   const { data, error } = await auth.signInWithWeb3({
     chain: "ethereum", wallet,
-    statement: "Sign in to PortalProof creator workspace. Authentication only, not a payment or order approval.",
+    statement: "Sign in to PortalProof workspace. Authentication only, not a payment or order approval.",
     options: { url: url.href, signInWithEthereum: { expirationTime: new Date(Date.now() + 300000) } },
   });
   if (error) throw error;

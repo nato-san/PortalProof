@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import { negotiationActions, verifiedSessionWallet } from '../src/negotiation.js';
+const creator={kind:'creator',userId:'artist'}, client={kind:'client',userId:'client'};
+const job={requestVersion:3,workflowPhase:'negotiating'};
+assert.deepEqual(negotiationActions(job,creator),['accept','propose','decline']);
+assert.deepEqual(negotiationActions(job,client),['request_cancel']);
+assert.ok(!negotiationActions({...job,workflowPhase:'agreed'},creator).includes('decline'));
+assert.deepEqual(negotiationActions({...job,workflowPhase:'agreed'},creator),['request_cancel']);
+assert.deepEqual(negotiationActions({...job,workflowPhase:'proposed'},client),['approve_terms','request_cancel']);
+assert.deepEqual(negotiationActions({...job,cancellationRequest:{by:'artist'}},creator),[]);
+assert.deepEqual(negotiationActions({...job,cancellationRequest:{by:'artist'}},client),['approve_cancel','reject_cancel']);
+assert.deepEqual(negotiationActions({...job,workflowPhase:'cancelled'},creator),[]);
+assert.deepEqual(negotiationActions({...job,requestVersion:2},creator),[]);
+assert.equal(verifiedSessionWallet({user_metadata:{address:'0x'+'1'.repeat(40)}}),'');
+assert.equal(verifiedSessionWallet({identities:[{provider:'web3',identity_data:{custom_claims:{chain:'ethereum',address:'0x'+'A'.repeat(40)}}}]}),'0x'+'a'.repeat(40));
+console.log('Negotiation UI rules passed (not a substitute for database authorization tests)');

@@ -6,6 +6,7 @@ export function offeringMatches(row, filter) {
 }
 export function sharedStatus(value, language) {
   const labels = {
+    negotiating: ["商談中", "Negotiating"], proposed: ["変更条件の承認待ち", "Awaiting terms approval"], agreed: ["受注成立", "Agreed"],
     new: ["新着", "New"], recorded: ["発注記録済み", "Order recorded"],
     delivered: ["納品済み", "Delivered"], completed: ["完了", "Completed"],
     cancelled: ["キャンセル", "Cancelled"], "in-progress": ["制作中", "In progress"],

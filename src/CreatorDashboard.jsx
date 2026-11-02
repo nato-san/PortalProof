@@ -1,6 +1,7 @@
 import React from "react";
 import { CreatorOfferings } from "./CreatorOfferings.jsx";
 import { creatorTabs, sharedStatus } from "./sharedView.js";
+import { RequestNegotiation } from "./RequestNegotiation.jsx";
 
 export function CreatorNavigation({ tab, onChange, t }) {
   const labels = { create: t("募集作成", "Create offering"), open: t("受付中", "Open offerings"), closed: t("受付終了", "Closed offerings"), requests: t("届いた依頼", "Incoming requests") };
@@ -9,7 +10,7 @@ export function CreatorNavigation({ tab, onChange, t }) {
   </nav>;
 }
 
-export function CreatorDashboard({ tab, onTabChange, profile, setProfile, createOffering, busy, savedUrl, ownerId, base, jobs, language, t }) {
+export function CreatorDashboard({ tab, onTabChange, profile, setProfile, createOffering, busy, savedUrl, ownerId, base, jobs, language, t, onJobChange }) {
   return <>
     <CreatorNavigation tab={tab} onChange={onTabChange} t={t} />
     {tab === "create" && <section className="panel">
@@ -31,6 +32,7 @@ export function CreatorDashboard({ tab, onTabChange, profile, setProfile, create
         <h3>{job.clientName} ／ {job.serviceName}</h3><p>{job.requestBrief}</p>
         <p>{job.amount} tPOTv3 ／ {job.deadline}</p>
         <p>{t("状態：", "Status: ")}{sharedStatus(job.status, language)}</p>
+        {job.requestVersion === 3 && <RequestNegotiation key={`${job.id}-${job.version}`} job={job} kind="creator" userId={ownerId} t={t} onChange={onJobChange} />}
         {job.paymentTxHash && <p>{t("支払い報告（未照合）：", "Payment report (unverified): ")}<code>{job.paymentTxHash}</code></p>}
         <p>{t("新方式のオンチェーン記録は改訂版コントラクトとの接続後に利用できます。", "On-chain recording for this workflow requires integration with the revised contract.")}</p>
       </article>)}
