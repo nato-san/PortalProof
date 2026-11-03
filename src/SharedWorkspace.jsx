@@ -9,6 +9,7 @@ import { RequestNegotiation } from "./RequestNegotiation.jsx";
 import { GuideLink } from "./UsageGuide.jsx";
 import { usePageUrl } from "./usePageUrl.js";
 import { navigate, sharedUrl } from "./navigation.js";
+import { useWorkflowStatus } from "./useWorkflowStatus.js";
 
 export function SharedWorkspace() {
   const query = usePageUrl().searchParams;
@@ -23,12 +24,11 @@ export function SharedWorkspace() {
   const t = (ja, en) => language === "en" ? en : ja;
   const tab = creatorTab(query.get("creatorTab"));
   const [session, setSession] = useState(null), [message, setMessage] = useState(""), [busy, setBusy] = useState(false);
-  const [email, setEmail] = useState(""), [password, setPassword] = useState("");
   const [profile, setProfile] = useState({ ...emptyDraft(), creatorWallet: "" });
   const [offering, setOffering] = useState(null), [draft, setDraft] = useState({ clientName: "", requestBrief: "", amount: "10", deadline: "" });
   const [jobs, setJobs] = useState([]), [clientJob, setClientJob] = useState(null), [savedUrl, setSavedUrl] = useState(""), [hash, setHash] = useState("");
   const [offeringState, setOfferingState] = useState("loading");
-  const [workflowVersion, setWorkflowVersion] = useState(0);
+  const { version: workflowVersion, error: workflowError } = useWorkflowStatus();
   const workflowReady = workflowVersion >= 1;
   const [requestNonce] = useState(() => crypto.randomUUID());
   const walletIdentity = verifiedSessionWallet(session?.user);
@@ -44,7 +44,6 @@ export function SharedWorkspace() {
   }, [language]);
   useEffect(() => {
     if (!shared) return;
-    shared.rpc("pp_signed_workflow_version").then(({ data, error }) => setWorkflowVersion(!error && Number.isInteger(data) ? data : 0));
     shared.auth.getSession().then(({ data }) => setSession(data.session));
     const { data } = shared.auth.onAuthStateChange((_event, value) => setSession(value));
     return () => data.subscription.unsubscribe();
@@ -96,7 +95,9 @@ export function SharedWorkspace() {
       </div>
     </nav>
     {message && <p className="notice" role="status">{message}</p>}
-    {session && workflowVersion < 2 && <p className="notice">{t("段階別管理・アーカイブの追加設定待ちです。募集一覧と案件の閲覧は引き続き利用できます。", "The stage/archive server update is pending. Offerings and existing requests remain viewable.")}</p>}
+    {session && workflowError && <p className="notice" role="alert">{t("利用設定を確認できません。接続を確認してください。自動で再確認します。", "Unable to check server setup. Check your connection; we will retry automatically.")}</p>}
+    {session && !workflowError && workflowVersion === null && <p className="notice" role="status">{t("利用設定を確認しています。", "Checking server setup…")}</p>}
+    {session && workflowVersion !== null && workflowVersion < 2 && <p className="notice">{t("段階別管理・アーカイブの追加設定待ちです。募集一覧と案件の閲覧は引き続き利用できます。", "The stage/archive server update is pending. Offerings and existing requests remain viewable.")}</p>}
     {!shared ? <section className="panel"><h1>{t("共有受付の設定が必要です", "Shared workspace setup required")}</h1><p>{t("Supabaseの接続情報とデータベースを設定してください。", "Configure the Supabase connection and database first.")}</p></section>
       : offeringId && !requestId && !savedUrl && !offering ? <section className="panel" role="status">
         {offeringState === "unavailable" ? <><h1>{t("この募集は現在受け付けていません", "Not accepting requests")}</h1><p>{t("受付が停止されているか、募集が見つかりません。送信済みの依頼は、ご自身の依頼確認URLから確認できます。", "This offering is closed or unavailable. Existing requests remain accessible through their private URLs.")}</p></>
@@ -132,17 +133,8 @@ export function SharedWorkspace() {
             <button className="primary" disabled={busy || !offering || !walletFreeRequestReady(draft)}>{t("依頼を送る", "Send request")}</button>
           </form>}
       </section>
-      : !session ? <>
-        <WalletSignIn busy={busy} run={run} t={t} />
-        <section className="panel"><h2>{t("メールでログイン（既存アカウント用）", "Email login (existing accounts)")}</h2><p>{t("新しい依頼の送信にはウォレット署名ログインをご利用ください。", "Use wallet sign-in to submit new requests.")}</p>
-          <form onSubmit={(event) => { event.preventDefault(); run(async () => { const { error } = await shared.auth.signInWithPassword({ email, password }); if (error) throw error; }); }}>
-            <label>{t("メール", "Email")}<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label><label>{t("パスワード", "Password")}<input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
-            <button className="primary" disabled={busy}>{t("ログイン", "Log in")}</button><button type="button" className="secondary" disabled={busy} onClick={() => run(async () => {
-              const { error } = await shared.auth.signUp({ email, password, options: { emailRedirectTo: `${base}?view=shared` } }); if (error) throw error; setMessage(t("確認メールを開いてからログインしてください。", "Confirm your email, then log in."));
-            })}>{t("新規登録", "Sign up")}</button>
-          </form>
-        </section>
-      </> : clientRole ? <section><header className="hero compactHero"><div><h1>{t("自分が依頼した仕事", "My commissions")}</h1><p>{t("このウォレットで送信した依頼です。", "Requests submitted with this wallet.")}</p></div></header>{!jobs.length && <p>{t("依頼はまだありません。", "No commissions yet.")}</p>}<div className="requestCards">{jobs.map(job => <article className="panel requestCard" key={job.id}><span className={`statusBadge ${job.status}`}>{sharedStatus(job.status, language)}</span><h2>{job.serviceName}</h2><p>{job.creatorName}</p><p className="sharedBriefPreview">{job.requestBrief}</p><p>{job.amount} tPOTv3 / {job.deadline}</p><a className="buttonLink primary wide" href={`${base}?view=shared&role=client&clientRequest=${job.id}&lang=${language}`}>{t("依頼の詳細", "Request details")}</a></article>)}</div></section>
+      : !session ? <WalletSignIn busy={busy} run={run} t={t} />
+      : clientRole ? <section><header className="hero compactHero"><div><h1>{t("自分が依頼した仕事", "My commissions")}</h1><p>{t("このウォレットで送信した依頼です。", "Requests submitted with this wallet.")}</p></div></header>{!jobs.length && <p>{t("依頼はまだありません。", "No commissions yet.")}</p>}<div className="requestCards">{jobs.map(job => <article className="panel requestCard" key={job.id}><span className={`statusBadge ${job.status}`}>{sharedStatus(job.status, language)}</span><h2>{job.serviceName}</h2><p>{job.creatorName}</p><p className="sharedBriefPreview">{job.requestBrief}</p><p>{job.amount} tPOTv3 / {job.deadline}</p><a className="buttonLink primary wide" href={`${base}?view=shared&role=client&clientRequest=${job.id}&lang=${language}`}>{t("依頼の詳細", "Request details")}</a></article>)}</div></section>
       : <CreatorDashboard tab={tab} onTabChange={changeTab} profile={profile} setProfile={setProfile} busy={busy} savedUrl={savedUrl} ownerId={session.user.id} base={base} jobs={jobs} language={language} t={t} onJobChange={jobChanged} workflowVersion={workflowVersion} onArchiveChange={(id, archivedAt) => setJobs(current => current.map(job => job.id === id ? { ...job, archivedAt } : job))} createOffering={() => run(async () => {
         const { data, error } = await shared.from("pp_offerings").insert({ owner_id: session.user.id, profile }).select("id").single(); if (error) throw error;
         setSavedUrl(`${base}?view=shared&offering=${data.id}`); changeTab("open"); setMessage(t("募集を作成しました。一覧からURLをコピーできます。", "Offering created. Copy its URL from the list."));

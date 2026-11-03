@@ -13,6 +13,7 @@ for (const mode of ["job", "request"]) assert.equal(resolveRoute(base + `?mode=$
 assert.equal(resolveRoute(localWorkspaceUrl(base + "?mode=job&id=old")).kind, "local");
 assert.equal(resolveRoute(base + "?view=deploy").kind, "local");
 assert.equal(resolveRoute(base + "?guide=creator").kind, "guide");
+assert.equal(resolveRoute(base + "?setup=job-stages").kind, "stage-setup");
 assert.equal(resolveRoute(base + "?paymentReport=private").kind, "payment-report");
 const detail = sharedUrl(base + "?lang=en&view=shared&creatorTab=requests&sharedJob=job&jobStage=approved", { sharedJob: null });
 assert.equal(detail.searchParams.has("sharedJob"), false);
@@ -36,7 +37,7 @@ assert.throws(() => navigate("https://untrusted.example/", {}, browser), /same-o
 const guide = new URL(base + "?guide=client");
 guide.searchParams.set("returnTo", "/PortalProof/?view=shared&role=client&clientRequest=job");
 assert.equal(new URL(guideReturnUrl(guide.href, "client", "en")).searchParams.get("clientRequest"), "job");
-for (const bad of ["https://untrusted.example/", "/another-app/", "?mode=job&id=old", "?guide=creator", "http://["]) {
+for (const bad of ["https://untrusted.example/", "/another-app/", "?mode=job&id=old", "?guide=creator", "?setup=job-stages", "http://["]) {
   guide.searchParams.set("returnTo", bad);
   assert.equal(guideReturnUrl(guide.href, "client", "ja"), base + "?view=shared&role=client&lang=ja");
 }

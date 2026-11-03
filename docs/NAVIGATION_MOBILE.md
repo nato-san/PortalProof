@@ -1,5 +1,9 @@
 # Navigation and mobile wallet rollout / 導線・スマホ接続（2026-11-03）
 
+2026-11-04 addendum: public login is wallet-only; email forms and existing-account explanations are removed without deleting Auth users or records. The operator-only direct route `?setup=job-stages` copies the exact existing `20261103_job_stages_archives.sql` migration and checks its version through the public read-only RPC. It cannot execute SQL or receive admin credentials. It is not linked from normal app navigation. Execute that migration once in the project's SQL Editor; the application rechecks capabilities on focus and every 15 seconds. Network failures are reported separately from a missing migration. Do not claim the live archive is enabled until the server reports version 2 and an authenticated archive/restore check succeeds.
+
+2026-11-04追記：公開ログインをウォレットのみに整理。運営者専用の直接URL `?setup=job-stages` で、用意済みSQLの一括コピーと読み取り専用の適用確認ができます。アプリから管理SQLを実行する機能・管理キー入力欄・通常メニューのリンクはありません。Supabaseで一度実行した後、タブ復帰時と15秒ごとに自動再確認します。サーバーの反映と本人によるアーカイブ・復元を確認するまで、公開版のアーカイブ完了とは扱いません。
+
 ## Scope / 今回の変更
 
 - `/PortalProof/`, `?view=shared`, and installed-home-screen launches enter the same Supabase-backed workspace. Old setup/jobs aliases map to its creation/job pages.

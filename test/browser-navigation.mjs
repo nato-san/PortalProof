@@ -53,6 +53,8 @@ for (const [name, engine, options] of [
     page.on("pageerror", error => errors.push(error.message));
     await page.goto(base);
     await page.getByRole("heading", { name: "ウォレットでログイン", exact: true }).waitFor();
+    assert.equal(await page.locator('input[type="email"], input[type="password"]').count(), 0);
+    assert.doesNotMatch(await page.locator("body").textContent(), /既存アカウント用|メールログインから/);
     assert.equal(new URL(page.url()).searchParams.get("view"), "shared");
     await page.getByRole("button", { name: "ウォレットで署名してログイン", exact: true }).click();
     await page.getByRole("heading", { name: "クリエイターホーム", exact: true }).waitFor();

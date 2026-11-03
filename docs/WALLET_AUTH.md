@@ -1,5 +1,9 @@
 # Wallet sign-in — additive rollout (2026-11-02)
 
+2026-11-04 update: the public/shared UI is now wallet-only. Email sign-in and sign-up forms, and references to using an existing email account, were removed at the user's request. Existing Auth users and their records were not deleted; Supabase provider settings were not changed by this frontend update. Mobile transport and routing status: `NAVIGATION_MOBILE.md`. The original rollout notes below are historical and do not authorize restoring email UI.
+
+2026-11-04更新：ユーザーの指示で公開画面をウォレットログインのみに統一し、メールログイン・新規登録・既存メールアカウントの案内を撤去しました。既存ユーザー・データは削除せず、Supabase管理画面の認証設定も変更していません。以下は過去の導入記録です。
+
 - Shared intake only; legacy wallet/contract code and database schema unchanged.
 - Uses installed Supabase SDK `signInWithWeb3`, EIP-4361 verification by Supabase Auth, not address-only login. SDK reads selected EVM account/chain and requests `personal_sign`. No transaction or network switching is requested.
 - Five-minute signature expiry, SDK message generation, current shared-page URI; never include private client query/hash in sign-in message.

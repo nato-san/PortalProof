@@ -3,6 +3,7 @@
 export function resolveRoute(value) {
   const url = new URL(value);
   const q = url.searchParams;
+  if (q.get("setup") === "job-stages") return { kind: "stage-setup" };
   if (["creator", "client"].includes(q.get("guide"))) return { kind: "guide", role: q.get("guide") };
   if (q.get("paymentReport")) return { kind: "payment-report", token: q.get("paymentReport") };
   if (q.get("workspace") === "local" || q.get("view") === "deploy") return { kind: "local" };

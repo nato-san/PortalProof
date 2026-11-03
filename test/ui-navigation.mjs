@@ -11,10 +11,11 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const React = require("react"), { act } = React;
 const { createRoot } = require("react-dom/client");
 const user = { id: "test-owner" };
+let sessionUser = user, workflowVersion = 2, workflowFailure = false;
 const job = { id: "test-job", requestVersion: 3, version: 1, serviceName: "Test service", clientName: "Test client", requestBrief: "Test brief", workflowPhase: "negotiating", status: "negotiating", amount: "10", deadline: "2026-11-06" };
 globalThis.__portalproofTestClient = {
-  auth: { getSession: async () => ({ data: { session: { user } } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
-  rpc: async name => ({ data: name === "pp_signed_workflow_version" ? 2 : name === "pp_get_client_request" ? job : null, error: null }),
+  auth: { getSession: async () => ({ data: { session: sessionUser ? { user: sessionUser } : null } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
+  rpc: async name => ({ data: name === "pp_signed_workflow_version" ? workflowVersion : name === "pp_get_client_request" ? job : null, error: workflowFailure && name === "pp_signed_workflow_version" ? new Error("Test network outage") : null }),
   from(name) {
     const data = name === "pp_requests" ? [{ id: job.id, data: job, version: 1 }] : [];
     const query = { select: () => query, eq: () => query, order: () => query, then: (resolve, reject) => Promise.resolve({ data, error: null }).then(resolve, reject) };
@@ -23,6 +24,7 @@ globalThis.__portalproofTestClient = {
 };
 const bundle = await build({
   entryPoints: ["src/AppRouter.jsx"], bundle: true, write: false, platform: "node", format: "cjs", packages: "external",
+  loader: { ".sql": "text" },
   plugins: [{ name: "mock-shared-backend", setup(api) {
     api.onResolve({ filter: /\/shared\.js$/ }, () => ({ path: "shared", namespace: "test" }));
     api.onLoad({ filter: /.*/, namespace: "test" }, () => ({ contents: "export const shared = globalThis.__portalproofTestClient; export async function sharedRpc(name) { return (await shared.rpc(name)).data; }" }));
@@ -82,6 +84,39 @@ assert.match(text(), /ISOLATED LOCAL APP/);
 await visit("/");
 assert.match(text(), /クリエイターホーム/);
 assert.equal(localStorage.getItem("portalproof-requests-v1"), "preserve-test-only");
+// Logged-out reviewer entry has one wallet-only login in either language.
+sessionUser = null;
+await visit("?view=shared&role=client");
+assert.match(text(), /ウォレットでログイン/);
+assert.equal(document.querySelectorAll('input[type="email"], input[type="password"]').length, 0);
+assert.doesNotMatch(text(), /既存アカウント|新規登録|下のメールログイン/);
+await visit("?view=shared&role=creator&lang=en");
+assert.match(text(), /Wallet sign-in/);
+assert.doesNotMatch(text(), /Email login|Sign up|email login below/);
+// Setup helper is not on normal navigation; it uses the exact migration file.
+workflowVersion = 1;
+await visit("?setup=job-stages");
+assert.match(text(), /追加設定は未適用/);
+const { readFile } = await import("node:fs/promises");
+const sql = await readFile(new URL("../supabase/migrations/20261103_job_stages_archives.sql", import.meta.url), "utf8");
+assert.equal(document.querySelector("textarea").value, sql);
+assert.equal([...document.querySelectorAll("button")].find(item => item.textContent === "SQL全文をコピー").disabled, false);
+workflowVersion = 2;
+await settle(() => window.dispatchEvent(new Event("focus")));
+assert.match(text(), /追加設定は反映済み/);
+assert.equal([...document.querySelectorAll("button")].find(item => item.textContent === "SQL全文をコピー").disabled, true);
+sessionUser = user; workflowVersion = 1;
+await visit("?view=shared&creatorTab=requests&lang=ja");
+assert.match(text(), /段階別管理・アーカイブの追加設定待ち/);
+assert.equal([...document.querySelectorAll("button")].find(item => item.textContent === "アーカイブ").disabled, true);
+workflowFailure = true;
+await settle(() => window.dispatchEvent(new Event("focus")));
+assert.match(text(), /利用設定を確認できません/);
+assert.doesNotMatch(text(), /段階別管理・アーカイブの追加設定待ち/);
+workflowFailure = false; workflowVersion = 2;
+await settle(() => window.dispatchEvent(new Event("focus")));
+assert.doesNotMatch(text(), /利用設定を確認できません|段階別管理・アーカイブの追加設定待ち/);
+assert.equal([...document.querySelectorAll("button")].find(item => item.textContent === "アーカイブ").disabled, false);
 await settle(() => root.unmount());
 dom.window.close();
 console.log("DOM integration passed: canonical root, creator/job/stage back-forward, guide return, client details, old entry aliases, explicit saved-data isolation, data preservation. Backend mocked; not physical mobile QA.");

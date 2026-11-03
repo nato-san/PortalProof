@@ -67,7 +67,7 @@ export function CreatorOfferings({ ownerId, base, refreshKey, filter, language =
   const visibleRows = rows.filter((row) => offeringMatches(row, filter));
   return <section aria-labelledby="creator-offerings-heading">
     <h1 id="creator-offerings-heading">{filter === "closed" ? t("受付終了の募集", "Closed offerings") : t("受付中の募集", "Open offerings")}</h1>
-    <p>{t("このアカウントで作成した募集です。メールとウォレットのアカウントは別々に表示されます。", "Offerings belong to this account. Email and wallet accounts are separate.")}</p>
+    <p>{t("このアカウントで作成した募集です。", "Offerings created by this account.")}</p>
     <button type="button" className="secondary" disabled={loading} onClick={() => setReload((value) => value + 1)}>{t("一覧を更新", "Refresh")}</button>
     {loading && <p role="status">{t("読み込み中", "Loading…")}</p>}
     {error && <p role="alert">{t("募集一覧を取得できませんでした", "Unable to load offerings")}: {error}</p>}
