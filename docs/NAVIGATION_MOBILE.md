@@ -1,8 +1,8 @@
 # Navigation and mobile wallet rollout / 導線・スマホ接続（2026-11-03）
 
-2026-11-04 addendum: public login is wallet-only; email forms and existing-account explanations are removed without deleting Auth users or records. The operator-only direct route `?setup=job-stages` copies the exact existing `20261103_job_stages_archives.sql` migration and checks its version through the public read-only RPC. It cannot execute SQL or receive admin credentials. It is not linked from normal app navigation. Execute that migration once in the project's SQL Editor; the application rechecks capabilities on focus and every 15 seconds. Network failures are reported separately from a missing migration. Do not claim the live archive is enabled until the server reports version 2 and an authenticated archive/restore check succeeds.
+2026-11-04 addendum: public login is wallet-only; email forms and existing-account explanations are removed without deleting Auth users or records. The temporary operator SQL-copy page was removed after the user applied the migration; its former `?setup=job-stages` link now returns to the shared home. The canonical migration remains in the repository, not in the app bundle. The application rechecks capabilities on focus and every 15 seconds. Network failures are reported separately from a missing migration. Server configuration verification does not replace an authenticated archive/restore check.
 
-2026-11-04追記：公開ログインをウォレットのみに整理。運営者専用の直接URL `?setup=job-stages` で、用意済みSQLの一括コピーと読み取り専用の適用確認ができます。アプリから管理SQLを実行する機能・管理キー入力欄・通常メニューのリンクはありません。Supabaseで一度実行した後、タブ復帰時と15秒ごとに自動再確認します。サーバーの反映と本人によるアーカイブ・復元を確認するまで、公開版のアーカイブ完了とは扱いません。
+2026-11-04追記：公開ログインをウォレットのみに整理。追加SQL適用後、ユーザーの指示で一時的な設定ページを削除しました。以前の `?setup=job-stages` は通常ホームへ戻ります。設定SQLは開発記録として保存し、アプリには取り込みません。タブ復帰時と15秒ごとにサーバー設定を再確認します。反映確認と本人によるアーカイブ・復元の動作確認は別の検証です。
 
 ## Scope / 今回の変更
 

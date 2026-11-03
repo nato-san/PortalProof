@@ -4,7 +4,6 @@ import { UsageGuide } from "./UsageGuide.jsx";
 import { ClientPaymentReport } from "./PaymentReport.jsx";
 import { localWorkspaceUrl, navigate, resolveRoute } from "./navigation.js";
 import { usePageUrl } from "./usePageUrl.js";
-import StageSetup from "./StageSetup.jsx";
 
 function SavedLinkNotice({ url }) {
   const ja = url.searchParams.get("lang") !== "en";
@@ -23,7 +22,6 @@ export function AppRouter({ LocalApp, contractAddress }) {
   useEffect(() => {
     if (route.kind === "shared" && route.href !== location.href) navigate(route.href, { replace: true });
   }, [url.href]);
-  if (route.kind === "stage-setup") return <StageSetup />;
   if (route.kind === "guide") return <UsageGuide role={route.role} />;
   if (route.kind === "payment-report") return <ClientPaymentReport token={route.token} contractAddress={contractAddress} />;
   if (route.kind === "saved-link") return <SavedLinkNotice url={url} />;

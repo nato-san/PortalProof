@@ -24,7 +24,6 @@ globalThis.__portalproofTestClient = {
 };
 const bundle = await build({
   entryPoints: ["src/AppRouter.jsx"], bundle: true, write: false, platform: "node", format: "cjs", packages: "external",
-  loader: { ".sql": "text" },
   plugins: [{ name: "mock-shared-backend", setup(api) {
     api.onResolve({ filter: /\/shared\.js$/ }, () => ({ path: "shared", namespace: "test" }));
     api.onLoad({ filter: /.*/, namespace: "test" }, () => ({ contents: "export const shared = globalThis.__portalproofTestClient; export async function sharedRpc(name) { return (await shared.rpc(name)).data; }" }));
@@ -93,20 +92,13 @@ assert.doesNotMatch(text(), /既存アカウント|新規登録|下のメール�
 await visit("?view=shared&role=creator&lang=en");
 assert.match(text(), /Wallet sign-in/);
 assert.doesNotMatch(text(), /Email login|Sign up|email login below/);
-// Setup helper is not on normal navigation; it uses the exact migration file.
-workflowVersion = 1;
-await visit("?setup=job-stages");
-assert.match(text(), /追加設定は未適用/);
-const { readFile } = await import("node:fs/promises");
-const sql = await readFile(new URL("../supabase/migrations/20261103_job_stages_archives.sql", import.meta.url), "utf8");
-assert.equal(document.querySelector("textarea").value, sql);
-assert.equal([...document.querySelectorAll("button")].find(item => item.textContent === "SQL全文をコピー").disabled, false);
-workflowVersion = 2;
-await settle(() => window.dispatchEvent(new Event("focus")));
-assert.match(text(), /追加設定は反映済み/);
-assert.equal([...document.querySelectorAll("button")].find(item => item.textContent === "SQL全文をコピー").disabled, true);
+// The temporary setup page is retired, including visits through saved links.
+await visit("?setup=job-stages&lang=ja");
+assert.match(text(), /ウォレットでログイン/);
+assert.doesNotMatch(text(), /運営者向け|SQL全文をコピー|SQL Editor/);
+assert.equal(new URL(location.href).searchParams.has("setup"), false);
 sessionUser = user; workflowVersion = 1;
-await visit("?view=shared&creatorTab=requests&lang=ja");
+await visit("?view=shared&role=creator&creatorTab=requests&lang=ja");
 assert.match(text(), /段階別管理・アーカイブの追加設定待ち/);
 assert.equal([...document.querySelectorAll("button")].find(item => item.textContent === "アーカイブ").disabled, true);
 workflowFailure = true;
