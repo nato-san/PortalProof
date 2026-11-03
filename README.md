@@ -28,7 +28,18 @@ Ecosystem DApps
 
 [Watch the short demo video](https://youtube.com/watch?v=5DtARDfIMM0)
 
-The public root now opens the shared workspace with wallet-signature login. Mobile Safari and Chrome use the MetaMask app connection; a physical-device verification is still required. The browser-local MVP and its historical testnet evidence below are preserved, not automatically migrated. Shared delivery/payment/certificate integration is not yet complete. See [current navigation and mobile verification status](docs/NAVIGATION_MOBILE.md).
+The public root opens the shared workspace with wallet-signature login. Wallet sign-in has been confirmed from a phone, and mobile Safari and Chrome connect through the MetaMask app. The browser-local MVP and its historical testnet evidence below are preserved as an isolated recovery/demo flow and are not mixed into the normal public navigation. Shared delivery/payment/certificate integration is not yet complete. See [current navigation and mobile verification status](docs/NAVIGATION_MOBILE.md).
+
+### Current Public Workflow
+
+- Creators sign in by signing an authentication message with an EVM wallet. No email registration, payment, or gas fee is required for login.
+- Creators can create multiple offerings, publish a separate shareable URL for each service, and close or reopen intake.
+- The receiving wallet is taken automatically from the creator's verified wallet sign-in. It is no longer entered manually. Older wallet-owned offerings are corrected when their owner opens the creator workspace.
+- Clients open an offering link, sign in with a different wallet, and submit a request without an on-chain transaction or gas fee.
+- Offerings and requests are stored in Supabase so the creator and client can use separate devices and see records associated with their own authenticated wallet.
+- Creator jobs are separated into new, approved, agreed, delivered, cancelled, and archived views. Archiving is only an owner-side list preference and does not cancel or delete the job.
+- Before terms are agreed, the creator may decline with a reason. After agreement, cancellation requires approval from the other participant.
+- Japanese and English guides are available from both the creator and client flows.
 
 ### Why Portaldot
 
@@ -89,8 +100,11 @@ The completed test confirms that PortalProof can verify the native payment sende
 flowchart LR
   Creator[Creator] --> DApp[PortalProof Web DApp]
   Client[Client] --> DApp
-  DApp --> Hash[Terms and Delivery Hash]
-  DApp --> Contract[PortalProofOrder Solidity Contract]
+  DApp --> Shared[Supabase Auth and Shared Workflow DB]
+  Shared --> Jobs[Offering, Request, Agreement History]
+  DApp -. Shared-proof integration in progress .-> Contract[PortalProofOrder Solidity Contract]
+  Historical[Historical browser-local proof flow] --> Hash[Terms and Delivery Hash]
+  Hash --> Contract
   Contract --> V3[Portaldot V3 Testnet]
   V3 --> Evidence[Contract Address and Transaction Hash]
   Evidence --> Cert[QR Certificate]
@@ -98,15 +112,14 @@ flowchart LR
 
 ### User Flow
 
-1. From the creator-only home screen, the creator opens request setup, job management, or the public-page preview.
-2. In request setup, the creator enters service details and a wallet address, then publishes a dedicated request link.
-3. The client opens a fully separate public page with no link back to the creator home, reviews the service, and submits the request details and wallet address.
-4. Each submission appears as a separate item in the creator's request inbox.
-5. The creator opens the request's dedicated management workspace to review the agreement.
-6. PortalProof hashes the agreed terms and the connected wallet mints an order proof on Portaldot V3.
-7. The creator records a delivery URL hash in the delivery tab.
-8. A verified payment transaction hash is recorded in the payment tab only after the sender, recipient, amount, and success status are checked.
-9. The certificate tab shows the contract, order ID, terms hash, payment transaction hash, and QR code.
+1. The creator signs in with a wallet and creates an offering with a service name and description. The verified login wallet is set automatically as the receiving wallet.
+2. PortalProof creates a dedicated public request URL that can be shared on social media or sent directly to a client.
+3. The client opens the URL on another device, signs in with a different wallet, and submits a name, brief, proposed amount, and requested deadline. Submission itself is off-chain and costs no gas.
+4. The request is stored in the shared database with an immutable history entry and appears in both the creator's job list and the client's commission list.
+5. The creator starts negotiation, accepts the original terms, proposes changed terms, or declines with a reason. Changed terms require client approval.
+6. Before agreement the creator may decline; after agreement, a cancellation request must be approved by the other participant.
+7. The creator manages the job by stage and may archive or restore it without changing its actual status.
+8. The existing Portaldot V3 proof contract demonstrates order, delivery, and verified payment evidence. Connecting that full proof sequence to the new shared workflow is the current release gate.
 
 ### Local Setup
 
@@ -150,31 +163,34 @@ Open-source dependencies are listed in `package.json`.
 
 ### Known Limitations
 
-- Job-card archiving, reasoned cancellation/restoration, monthly income, wallet disconnect, and request-page opening in a new tab are available in the updated frontend.
-- Automatic client payment reporting and private request-status pages are currently local prototypes only. GitHub Pages has no relay API; public request intake keeps the original browser-local behavior and payment evidence remains manually entered. Public cross-device synchronization requires a separately hosted backend.
-
+- The shared request and negotiation records synchronize across devices through Supabase, but delivery, payment verification, and certificate issuance are not yet connected end-to-end to this new shared workflow.
+- The deployed Portaldot V3 contract and historical end-to-end evidence remain valid, but they must not be presented as proof that every newly submitted shared request is already recorded on-chain.
+- Offerings created by the earlier email-auth prototype remain preserved under that earlier account. They are not silently transferred to a wallet account; create a new wallet-owned offering if an old offering does not appear in the creator's offering list.
 - Payment verification currently supports native tPOTv3 transfers; token-contract payments are not supported yet.
 - The current MVP records payment evidence after delivery but does not escrow funds, so payment is not guaranteed.
-- The prototype request inbox is stored in the current browser and does not yet sync incoming requests across devices; accepted proofs are recorded separately on-chain.
 - The application must not claim payment success from an arbitrary transaction hash.
 - A public delivery URL can be copied. The on-chain hash proves the recorded URL, but does not restrict access to the delivered file.
 
 ### Roadmap
 
-#### Milestone 1 — Interim-report MVP (current)
+#### Milestone 1 — Testnet proof MVP (completed)
 
-- Complete and demonstrate the deployed order, delivery, and verified native-payment proof flow.
-- Keep the non-custodial model: PortalProof records evidence but does not hold user funds.
+- Completed and demonstrated the deployed order, delivery, and verified native-payment proof flow.
+- Kept the non-custodial model: PortalProof records evidence but does not hold user funds.
 
-#### Milestone 2 — Escrow deposit
+#### Milestone 2 — Shared workflow completion (current)
+
+- Complete the two-wallet, cross-device flow from offering publication through request, negotiation, agreement, delivery, and proof verification.
+- Connect agreed shared jobs to the hardened contract workflow, then expose delivery, verified payment, and certificate evidence to both participants.
+- Complete physical-device regression checks in mobile Safari and Chrome without losing navigation or wallet session state.
+
+#### Milestone 3 — Escrow deposit and production hardening
 
 - When the creator accepts a request, require the client to deposit the agreed native tPOTv3 amount into a dedicated escrow contract.
 - Lock the deposit to the proof ID and the client and creator wallets.
 - After delivery, let the client approve release to the creator.
 - Support cancellation and refund before acceptance, plus a deadline-based refund when delivery does not occur.
 - Do not reveal a protected delivery asset until the deposit is confirmed.
-
-#### Milestone 3 — Disputes and production hardening
 
 - Add revision and dispute states, timeout rules, and an explicit resolver or mutually agreed refund path.
 - Add reentrancy protection, checks-effects-interactions, access control, invariant tests, and an external security review before handling real-value funds.
@@ -206,7 +222,18 @@ PortalProofは、イラストレーターやアーティスト、クリエイタ
 
 [PortalProofを開く](https://nato-san.github.io/PortalProof/)
 
-公開ルートは、ウォレット署名ログインを使う共有ワークスペースへ統一しています。スマホのSafari・ChromeからMetaMaskアプリへ接続する方式を追加しましたが、実機確認は必要です。以下の端末保存MVPとテストネット証跡は保持しており、自動移行はしていません。共有フローの納品・支払い・証明書連携は未完了です。[現在の導線・スマホ検証状況](docs/NAVIGATION_MOBILE.md)を確認してください。
+公開ルートは、ウォレット署名ログインを使う共有ワークスペースへ統一しています。スマホからのウォレットログインを確認済みで、Safari・ChromeからMetaMaskアプリへ接続します。以下の端末保存MVPとテストネット証跡は、通常の公開導線と混ざらない独立した復旧・実演用フローとして保持しています。共有フローの納品・支払い・証明書連携は未完了です。[現在の導線・スマホ検証状況](docs/NAVIGATION_MOBILE.md)を確認してください。
+
+### 現在の公開フロー
+
+- クリエイターはEVMウォレットで認証メッセージに署名してログインします。メール登録、送金、ガス代は不要です。
+- クリエイターは複数の募集を作成し、サービスごとの共有URLを公開できます。募集の受付停止・再開にも対応しています。
+- 受取ウォレットは署名ログインで検証したウォレットを自動設定します。手入力は廃止しました。ウォレットアカウントが所有する既存募集も、所有者が管理画面を開くと自動補正します。
+- 依頼者は募集URLを開き、クリエイターとは別のウォレットでログインして依頼を送信します。依頼送信時にオンチェーン取引やガス代は発生しません。
+- 募集と依頼はSupabaseに保存され、クリエイターと依頼者が別端末から、それぞれ自分のウォレットに紐づく情報を確認できます。
+- 案件は未処理、承認済、交渉済、納品済、キャンセル済、アーカイブに分けて管理します。アーカイブはクリエイター側だけの一覧整理であり、案件のキャンセルや削除ではありません。
+- 条件合意前はクリエイターが理由を付けて辞退できます。条件合意後のキャンセルには、相手側の承認が必要です。
+- クリエイター側・依頼者側の双方に、日本語・英語の使い方ガイドがあります。
 
 ### Portaldotを採用する理由
 
@@ -267,8 +294,11 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 flowchart LR
   Creator[クリエイター] --> DApp[PortalProof Web DApp]
   Client[依頼者] --> DApp
-  DApp --> Hash[合意条件と納品のハッシュ]
-  DApp --> Contract[PortalProofOrder Solidityコントラクト]
+  DApp --> Shared[Supabase認証・共有ワークフローDB]
+  Shared --> Jobs[募集・依頼・合意履歴]
+  DApp -. 共有フローとの連携作業中 .-> Contract[PortalProofOrder Solidityコントラクト]
+  Historical[過去の端末保存テストネット証明フロー] --> Hash[合意条件と納品のハッシュ]
+  Hash --> Contract
   Contract --> V3[Portaldot V3テストネット]
   V3 --> Evidence[コントラクトアドレスとトランザクションハッシュ]
   Evidence --> Cert[QRコード付き証明書]
@@ -276,15 +306,14 @@ flowchart LR
 
 ### 利用の流れ
 
-1. クリエイター専用TOPから、受付作成・仕事管理・依頼ページ確認のいずれかを選びます。
-2. 受付設定でサービス内容とウォレットアドレスを入力し、専用の依頼受付リンクを発行します。
-3. 依頼者はクリエイターTOPへのリンクがない独立した公開ページを開き、サービスを確認して依頼内容とウォレットアドレスを送信します。
-4. 送信された依頼を、クリエイター側の依頼一覧へ別々の案件として追加します。
-5. クリエイターが依頼ごとの専用案件画面を開き、合意内容を確認します。
-6. PortalProofが合意条件をハッシュ化し、接続したウォレットでPortaldot V3上に発注証明を発行します。
-7. 納品タブで、クリエイターが納品URLのハッシュを記録します。
-8. 支払いタブで、送金元、送金先、金額、成功状態を確認した支払いトランザクションハッシュだけを記録します。
-9. 証明書タブに、コントラクト、注文ID、合意条件ハッシュ、支払いトランザクションハッシュ、QRコードを表示します。
+1. クリエイターがウォレットでログインし、サービス名と仕事内容を入力して募集を作成します。受取先には検証済みのログインウォレットを自動設定します。
+2. PortalProofがSNSや依頼者へ共有できる専用の公開受付URLを発行します。
+3. 依頼者は別端末でURLを開き、クリエイターとは別のウォレットでログインして、名前、依頼内容、希望金額、希望納期を送信します。送信はオフチェーンで、ガス代は不要です。
+4. 依頼は変更履歴とともに共有データベースへ保存され、クリエイターの案件一覧と依頼者の依頼一覧の双方に表示されます。
+5. クリエイターは商談を開始し、依頼者の条件を承認するか、変更条件を提案するか、理由を付けて辞退します。変更条件は依頼者の承認が必要です。
+6. 合意前はクリエイターが辞退できます。合意後のキャンセルは、相手側の承認を必要とします。
+7. クリエイターは案件を段階別に管理し、案件の状態を変えずにアーカイブ・復元できます。
+8. 既存のPortaldot V3証明コントラクトでは、発注、納品、検証済み支払いの証跡を実演済みです。この証明フローを新しい共有案件へ接続することが、現在のリリース上の重要課題です。
 
 ### ローカルでの起動
 
@@ -328,28 +357,34 @@ AI支援は、実装補助、ドキュメント作成、デバッグに使用し
 
 ### 現在の制限事項
 
+- 共有受付と商談記録はSupabaseを通じて別端末間で同期しますが、新しい共有フローと納品・支払い検証・証明書発行は、まだ一連の動作として接続できていません。
+- デプロイ済みPortaldot V3コントラクトと過去の一連のテスト証跡は有効ですが、新しく送信したすべての共有依頼がすでにオンチェーン記録されるという意味ではありません。
+- 以前のメール認証試作版で作成した募集は、その以前のアカウントに保持されています。ウォレットアカウントへ自動移管しないため、募集一覧に表示されない古い募集は、ウォレットログイン後に新しく作り直してください。
 - 支払い検証はネイティブtPOTv3送金に対応しています。トークンコントラクト経由の支払いにはまだ対応していません。
 - 現在のMVPは納品後の支払い証跡を記録しますが、資金をエスクローしないため、支払いそのものは保証されません。
-- 試作版の依頼一覧は現在のブラウザ内に保存されるため、受信依頼はまだ別端末と同期されません。受付後の証明記録は別途オンチェーンへ送信します。
 - 任意のトランザクションハッシュだけで支払い成功とは表示しません。
 - 公開された納品URLはコピーできます。オンチェーンのハッシュは記録したURLを証明しますが、納品ファイルへのアクセスは制限しません。
 
 ### ロードマップ
 
-#### マイルストーン1 — 中間報告向けMVP（現在）
+#### マイルストーン1 — テストネット証明MVP（完了）
 
-- デプロイ済みの発注・納品・検証済みネイティブ支払い証明フローを完成させて実演します。
-- 資金を預からない構成を維持し、PortalProofは証跡のみを記録します。
+- デプロイ済みの発注・納品・検証済みネイティブ支払い証明フローを完成させ、実演しました。
+- 資金を預からず、PortalProofは証跡のみを記録する構成を維持しました。
 
-#### マイルストーン2 — デポジット型エスクロー
+#### マイルストーン2 — 共有ワークフローの完成（現在）
+
+- 2つのウォレットと別端末を使い、募集公開、依頼、商談、合意、納品、証明確認までを一連の流れとして完成させます。
+- 合意済みの共有案件を強化版コントラクトへ接続し、納品・検証済み支払い・証明書の証跡を双方から確認できるようにします。
+- スマホのSafari・Chromeで、導線やウォレットセッションを失わない実機回帰テストを完了します。
+
+#### マイルストーン3 — デポジット型エスクローと本番向け強化
 
 - クリエイターが依頼を承諾した時点で、依頼者が合意額のネイティブtPOTv3を専用エスクローコントラクトへ預けます。
 - デポジットを証明ID、依頼者、クリエイターのウォレットに紐づけてロックします。
 - 納品後、依頼者の承認によりクリエイターへ支払います。
 - 承諾前のキャンセルと返金、未納品時の期限付き返金に対応します。
 - デポジット確認前は、保護された納品物を公開しません。
-
-#### マイルストーン3 — 紛争対応と本番向け強化
 
 - 手直し・異議申立て・期限・仲裁者または双方合意による返金フローを追加します。
 - 再入防止、Checks-Effects-Interactions、アクセス制御、不変条件テスト、外部セキュリティレビューを実施してから実価値資金を扱います。
