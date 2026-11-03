@@ -25,3 +25,19 @@ export async function setOfferingActive(client, ownerId, id, active) {
   if (!data) throw new Error("募集を更新できませんでした / Offering unavailable");
   return data;
 }
+
+export async function synchronizeOfferingWallets(client, ownerId, wallet) {
+  const normalizedWallet = String(wallet || "").toLowerCase();
+  if (!ownerId || !/^0x[0-9a-f]{40}$/.test(normalizedWallet)) {
+    throw new Error("ウォレット情報を確認できません / Unable to verify wallet");
+  }
+  const rows = await loadCreatorOfferings(client, ownerId);
+  const mismatched = rows.filter((row) => String(row.profile?.creatorWallet || "").toLowerCase() !== normalizedWallet);
+  await Promise.all(mismatched.map(async (row) => {
+    const profile = { ...(row.profile || {}), creatorWallet: normalizedWallet };
+    const { error } = await client.from("pp_offerings")
+      .update({ profile }).eq("owner_id", ownerId).eq("id", row.id);
+    if (error) throw error;
+  }));
+  return mismatched.length;
+}

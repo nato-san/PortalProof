@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { loadCreatorOfferings, offeringUrl, setOfferingActive } from "../src/offerings.js";
+import { loadCreatorOfferings, offeringUrl, setOfferingActive, synchronizeOfferingWallets } from "../src/offerings.js";
 assert.equal(offeringUrl("https://example.com/PortalProof/?access=secret#private", "one"), "https://example.com/PortalProof/?view=shared&offering=one");
 const rows = [{ id: "one", profile: { serviceName: "Icon" }, active: true }, { id: "two", profile: { serviceName: "Portrait" }, active: true }];
 const calls = [];
@@ -33,3 +33,26 @@ const deniedUpdate = { from() { return {
 }; } };
 await assert.rejects(setOfferingActive(deniedUpdate, "creator-b", "one", false), /permission denied/);
 console.log("Offering close/reopen tests passed (owner/id filters, active-only updates and rejection)");
+
+{
+  const sourceRows = [
+    { id: "one", profile: { serviceName: "A", creatorWallet: "0x0000000000000000000000000000000000000001" }, active: true },
+    { id: "two", profile: { serviceName: "B", creatorWallet: "0x2222222222222222222222222222222222222222" }, active: true },
+  ];
+  const updates = [];
+  const syncing = { from() { return {
+    select() { return this; },
+    eq(key, value) {
+      if (key === "owner_id" && this.patch) updates.push([this.patch, key, value]);
+      return this;
+    },
+    async order() { return { data: sourceRows, error: null }; },
+    update(patch) { this.patch = patch; return this; },
+    then(resolve) { resolve({ error: null }); },
+  }; } };
+  const count = await synchronizeOfferingWallets(syncing, "creator-a", "0x2222222222222222222222222222222222222222");
+  assert.equal(count, 1);
+  assert.deepEqual(updates[0], [{ profile: { serviceName: "A", creatorWallet: "0x2222222222222222222222222222222222222222" } }, "owner_id", "creator-a"]);
+}
+await assert.rejects(synchronizeOfferingWallets(client, "creator-a", "bad"), /ウォレット/);
+console.log("Offering wallet synchronization tests passed (verified wallet replaces stale manual value)");

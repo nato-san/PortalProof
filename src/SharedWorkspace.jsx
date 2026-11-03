@@ -10,6 +10,7 @@ import { GuideLink } from "./UsageGuide.jsx";
 import { usePageUrl } from "./usePageUrl.js";
 import { navigate, sharedUrl } from "./navigation.js";
 import { useWorkflowStatus } from "./useWorkflowStatus.js";
+import { synchronizeOfferingWallets } from "./offerings.js";
 
 export function SharedWorkspace() {
   const query = usePageUrl().searchParams;
@@ -48,6 +49,20 @@ export function SharedWorkspace() {
     const { data } = shared.auth.onAuthStateChange((_event, value) => setSession(value));
     return () => data.subscription.unsubscribe();
   }, []);
+  useEffect(() => {
+    if (!walletIdentity) return;
+    setProfile((current) => current.creatorWallet === walletIdentity ? current : { ...current, creatorWallet: walletIdentity });
+  }, [walletIdentity]);
+  useEffect(() => {
+    if (!shared || !session?.user?.id || !walletIdentity || clientContext) return;
+    let cancelled = false;
+    synchronizeOfferingWallets(shared, session.user.id, walletIdentity)
+      .then((count) => {
+        if (!cancelled && count > 0) setMessage(t("既存の募集を、現在のログインウォレットに合わせて更新しました。", "Existing offerings were updated to your signed-in wallet."));
+      })
+      .catch((error) => { if (!cancelled) setMessage(error.message); });
+    return () => { cancelled = true; };
+  }, [session?.user?.id, walletIdentity, clientContext]);
   useEffect(() => {
     if (!shared) return;
     let cancelled = false;
@@ -125,7 +140,14 @@ export function SharedWorkspace() {
           : !walletIdentity ? <WalletSignIn busy={busy} run={run} t={t} />
           : !workflowReady ? <p role="status">{t("新しい依頼ルールのサーバー設定待ちです。まだ依頼は送信できません。", "Awaiting server setup for the signed request workflow. Submission is not enabled yet.")}</p>
           : <form onSubmit={(event) => { event.preventDefault(); run(async () => {
-            const job = await sharedRpc("pp_submit_signed_request", { p_offering: offeringId, p_nonce: requestNonce, p_payload: draft });
+            let job;
+            try { job = await sharedRpc("pp_submit_signed_request", { p_offering: offeringId, p_nonce: requestNonce, p_payload: draft }); }
+            catch (error) {
+              if (String(error?.message || "").includes("Creator must verify the receiving wallet")) {
+                throw new Error(t("この募集の受取ウォレット確認が必要です。クリエイターが管理画面を一度開いてから、もう一度送信してください。", "This offering needs its receiving wallet verified. Ask the creator to open their workspace once, then submit again."));
+              }
+              throw error;
+            }
             setSavedUrl(`${base}?view=shared&role=client&clientRequest=${job.id}&lang=${language}`);
           }); }}>
             <label>{t("お名前", "Your name")}<input {...field("clientName")} required /></label><label>{t("依頼内容", "Request details")}<textarea {...field("requestBrief")} required maxLength={4000} /></label>
@@ -135,8 +157,10 @@ export function SharedWorkspace() {
       </section>
       : !session ? <WalletSignIn busy={busy} run={run} t={t} />
       : clientRole ? <section><header className="hero compactHero"><div><h1>{t("自分が依頼した仕事", "My commissions")}</h1><p>{t("このウォレットで送信した依頼です。", "Requests submitted with this wallet.")}</p></div></header>{!jobs.length && <p>{t("依頼はまだありません。", "No commissions yet.")}</p>}<div className="requestCards">{jobs.map(job => <article className="panel requestCard" key={job.id}><span className={`statusBadge ${job.status}`}>{sharedStatus(job.status, language)}</span><h2>{job.serviceName}</h2><p>{job.creatorName}</p><p className="sharedBriefPreview">{job.requestBrief}</p><p>{job.amount} tPOTv3 / {job.deadline}</p><a className="buttonLink primary wide" href={`${base}?view=shared&role=client&clientRequest=${job.id}&lang=${language}`}>{t("依頼の詳細", "Request details")}</a></article>)}</div></section>
-      : <CreatorDashboard tab={tab} onTabChange={changeTab} profile={profile} setProfile={setProfile} busy={busy} savedUrl={savedUrl} ownerId={session.user.id} base={base} jobs={jobs} language={language} t={t} onJobChange={jobChanged} workflowVersion={workflowVersion} onArchiveChange={(id, archivedAt) => setJobs(current => current.map(job => job.id === id ? { ...job, archivedAt } : job))} createOffering={() => run(async () => {
-        const { data, error } = await shared.from("pp_offerings").insert({ owner_id: session.user.id, profile }).select("id").single(); if (error) throw error;
+      : <CreatorDashboard tab={tab} onTabChange={changeTab} profile={profile} setProfile={setProfile} creatorWallet={walletIdentity} busy={busy} savedUrl={savedUrl} ownerId={session.user.id} base={base} jobs={jobs} language={language} t={t} onJobChange={jobChanged} workflowVersion={workflowVersion} onArchiveChange={(id, archivedAt) => setJobs(current => current.map(job => job.id === id ? { ...job, archivedAt } : job))} createOffering={() => run(async () => {
+        if (!walletIdentity) throw new Error(t("ログインウォレットを確認できません。再度ログインしてください。", "Unable to verify the signed-in wallet. Please sign in again."));
+        const offeringProfile = { ...profile, creatorWallet: walletIdentity };
+        const { data, error } = await shared.from("pp_offerings").insert({ owner_id: session.user.id, profile: offeringProfile }).select("id").single(); if (error) throw error;
         setSavedUrl(`${base}?view=shared&offering=${data.id}`); changeTab("open"); setMessage(t("募集を作成しました。一覧からURLをコピーできます。", "Offering created. Copy its URL from the list."));
       })} />}
   </main>;

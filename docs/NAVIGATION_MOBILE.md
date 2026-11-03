@@ -41,6 +41,13 @@ Official implementation references:
 - Automated Chromium and WebKit launch attempts abort under this host's restrictions. Those browser tests have NOT passed. No physical iPhone/Android or native MetaMask handoff has been performed by the agent.
 - 自動Chrome/WebKit起動は実行環境の制限で失敗しています。DOMテスト成功を実機のSafari・Chrome検証済みとは扱いません。
 - Release verification still requires **Safari and Chrome separately**: open public root → connect MetaMask → approve sign-in → return to original browser → create/view offering → reload → open client link with a separate wallet → verify Back/Forward and guide return. Never transfer funds for this test.
+
+## Receiving-wallet consistency
+
+- Offering creation no longer asks the creator to type a receiving wallet. The verified wallet from Web3 sign-in is displayed read-only and stored automatically.
+- When a creator opens the shared creator workspace, offerings owned by that account with a blank or stale `creatorWallet` are updated to the same verified wallet. Other profile fields and existing requests are preserved.
+- This keeps the server-side rule that a request can only be accepted for an offering whose receiving wallet belongs to the authenticated creator, while removing the error-prone duplicate manual entry.
+- An already-open creator tab must be refreshed once after this release before retrying a request against an older offering.
 - 公開後にSafariとChromeの両方で、MetaMask接続・署名・ブラウザ復帰・募集確認・再読み込み・別ウォレットの依頼確認を検証してください。送金は不要です。
 - SDK adds a moderate upstream `uuid` bounds-check advisory through MetaMask utilities; no patched compatible release is offered by the audit. Do not force-upgrade transitive packages across major versions. Existing Ganache development-tree advisories remain separate. No new critical/high advisory is attributed to the added SDK in the audit performed for this rollout.
 

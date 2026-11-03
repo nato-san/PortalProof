@@ -11,7 +11,7 @@ export function CreatorNavigation({ tab, onChange, t }) {
   </nav>;
 }
 
-export function CreatorDashboard({ tab, onTabChange, profile, setProfile, createOffering, busy, savedUrl, ownerId, base, jobs, language, t, onJobChange, onArchiveChange, workflowVersion }) {
+export function CreatorDashboard({ tab, onTabChange, profile, setProfile, creatorWallet, createOffering, busy, savedUrl, ownerId, base, jobs, language, t, onJobChange, onArchiveChange, workflowVersion }) {
   return <>
     {tab !== "home" && <CreatorNavigation tab={tab} onChange={onTabChange} t={t} />}
     {tab === "home" && <>
@@ -33,11 +33,13 @@ export function CreatorDashboard({ tab, onTabChange, profile, setProfile, create
     {tab === "create" && <section className="panel sharedForm">
       <h1>{t("募集を作成", "Create an offering")}</h1><p className="muted">{t("サービスごとに受付リンクを作成できます。", "Create a request link for each service.")}</p>
       <form onSubmit={event => { event.preventDefault(); createOffering(); }}>
-        {["creatorName", "creatorWallet", "serviceName", "serviceDescription"].map(key => <label key={key}>
-          {({ creatorName: t("クリエイター名", "Creator name"), creatorWallet: t("受取ウォレット", "Receiving wallet"), serviceName: t("サービス名", "Service name"), serviceDescription: t("仕事内容", "Service description") })[key]}
-          <input value={profile[key]} onChange={event => setProfile(old => ({ ...old, [key]: event.target.value }))} />
+        {["creatorName", "serviceName", "serviceDescription"].map(key => <label key={key}>
+          {({ creatorName: t("クリエイター名", "Creator name"), serviceName: t("サービス名", "Service name"), serviceDescription: t("仕事内容", "Service description") })[key]}
+          <input required value={profile[key]} onChange={event => setProfile(old => ({ ...old, [key]: event.target.value }))} />
         </label>)}
-        <button className="primary wide" disabled={busy}>{t("受付リンクを作成", "Create request link")}</button>
+        <label>{t("受取ウォレット（ログイン中）", "Receiving wallet (signed in)")}<input readOnly value={creatorWallet || ""} /></label>
+        <p className="muted">{t("手入力は不要です。署名ログインしたウォレットを安全に設定します。", "No manual entry is needed. Your signed-in wallet is used automatically.")}</p>
+        <button className="primary wide" disabled={busy || !creatorWallet}>{t("受付リンクを作成", "Create request link")}</button>
       </form>
     </section>}
     {(tab === "open" || tab === "closed") && <>
