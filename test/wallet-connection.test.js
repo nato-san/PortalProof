@@ -1,0 +1,36 @@
+import assert from "node:assert/strict";
+import { createWalletConnector, walletClientOptions, walletLoginError } from "../src/walletConnection.js";
+import { PORTALDOT_V3 } from "../src/domain.js";
+let loads = 0, connections = 0;
+const remote = { request() {} };
+const connect = createWalletConnector(async () => {
+  loads++;
+  return { async createEVMClient(options) {
+    assert.equal(options.dapp.url, "https://example.com/PortalProof/?view=shared");
+    assert.equal(options.mobile.useDeeplink, true);
+    assert.equal(options.ui.showInstallModal, false);
+    assert.equal(options.analytics.enabled, false);
+    assert.equal(options.skipAutoAnnounce, true);
+    assert.deepEqual(options.api.supportedNetworks, { [PORTALDOT_V3.chainId]: PORTALDOT_V3.rpcUrls[0] });
+    return { async connect(options) { connections++; assert.deepEqual(options.chainIds, [PORTALDOT_V3.chainId]); }, getProvider() { return remote; } };
+  } };
+});
+const injected = { request() {} };
+const page = "https://example.com/PortalProof/?offering=offer&access=private#auth-token";
+assert.equal(await connect(injected, page), injected);
+assert.equal(loads, 0);
+assert.equal(await connect(null, page), remote);
+assert.equal(await connect(undefined, page), remote);
+assert.equal(loads, 1);
+assert.equal(connections, 2);
+assert.equal(JSON.stringify(walletClientOptions(page)).includes("private"), false);
+let retries = 0;
+const retry = createWalletConnector(async () => { retries++; if (retries === 1) throw new Error("offline"); return { createEVMClient: async () => ({ connect: async () => {}, getProvider: () => remote }) }; });
+await assert.rejects(retry(null, page), /offline/);
+assert.equal(await retry(null, page), remote);
+const t = ja => ja;
+assert.match(walletLoginError({ rpcCode: 4001, code: 53 }, t).message, /キャンセル/);
+assert.match(walletLoginError({ code: -32002 }, t).message, /確認待ち/);
+const unchanged = new Error("server URI not allowed");
+assert.equal(walletLoginError(unchanged, t), unchanged);
+console.log("Wallet connector tests passed: injected preservation, mobile relay provider, privacy, retries, errors (mocked SDK)");

@@ -3,6 +3,8 @@ import { ArrowLeft, ArrowRight, Archive, RotateCcw } from "lucide-react";
 import { sharedRpc } from "./shared.js";
 import { RequestNegotiation } from "./RequestNegotiation.jsx";
 import { jobStages, jobMatches, jobStage, jobStageLabel } from "./sharedView.js";
+import { usePageUrl } from "./usePageUrl.js";
+import { navigate as navigatePage, sharedUrl } from "./navigation.js";
 
 export function JobStageNavigation({ stage, jobs, language, onChange }) {
   return <nav className="jobFilters" aria-label={language === "ja" ? "案件の段階" : "Job stages"}>
@@ -13,16 +15,14 @@ export function JobStageNavigation({ stage, jobs, language, onChange }) {
 }
 
 export function CreatorJobs({ jobs, ownerId, language, t, onJobChange, onArchiveChange, workflowVersion }) {
-  const initial = new URL(globalThis.location?.href || "https://example.com").searchParams;
-  const [stage, setStage] = useState(jobStages.includes(initial.get("jobStage")) ? initial.get("jobStage") : "unprocessed");
-  const [selectedId, setSelectedId] = useState(initial.get("sharedJob") || "");
+  const query = usePageUrl().searchParams;
+  const stage = jobStages.includes(query.get("jobStage")) ? query.get("jobStage") : "unprocessed";
+  const selectedId = query.get("sharedJob") || "";
   const [busyId, setBusyId] = useState(""), [error, setError] = useState("");
   const selected = jobs.find(job => job.id === selectedId);
   function navigate(nextStage, id = "") {
-    setStage(nextStage); setSelectedId(id); setError("");
-    const url = new URL(location.href); url.searchParams.set("jobStage", nextStage);
-    if (id) url.searchParams.set("sharedJob", id); else url.searchParams.delete("sharedJob");
-    history.replaceState(null, "", url);
+    setError("");
+    navigatePage(sharedUrl(location.href, { jobStage: nextStage, sharedJob: id || null }));
   }
   async function archive(job) {
     if (busyId) return;

@@ -2,7 +2,7 @@
   "name": "PortalProof",
   "short_name": "PortalProof",
   "description": "Creator agreement, delivery, and payment proof on Portaldot V3.",
-  "start_url": "./",
+  "start_url": "./?view=shared",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f8faf8",

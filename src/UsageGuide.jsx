@@ -1,8 +1,12 @@
 import React, { useState } from "react";
+import { guideReturnUrl } from "./navigation.js";
 
 export function GuideLink({ role, language, flow }) {
-  const href = `${location.pathname}?guide=${role}&lang=${language}${flow === "shared" ? "&flow=shared" : ""}`;
-  return <a className="buttonLink secondary" href={href} target="_blank" rel="noopener noreferrer">{language === "ja" ? "使い方ガイド" : "How to use"} ↗</a>;
+  const href = new URL(location.pathname, location.origin);
+  href.searchParams.set("guide", role); href.searchParams.set("lang", language);
+  href.searchParams.set("flow", flow === "local" ? "local" : "shared");
+  if (flow !== "local") href.searchParams.set("returnTo", `${location.pathname}${location.search}`);
+  return <a className="buttonLink secondary" href={href.href} target="_blank" rel="noopener noreferrer">{language === "ja" ? "使い方ガイド" : "How to use"} ↗</a>;
 }
 
 const legacySteps = {
@@ -47,7 +51,7 @@ const legacySteps = {
 export const sharedGuideSteps = {
   creator: {
     ja: [
-      ["ウォレットでログイン", "ブラウザのウォレット、またはスマホのMetaMaskなどのウォレット内ブラウザから署名ログインします。ログインに送金・ガス代は不要です。"],
+      ["ウォレットでログイン", "PCはブラウザのウォレットで署名します。スマホのSafari・ChromeではMetaMaskアプリへ接続し、接続とログイン署名を確認して元のブラウザへ戻ります。MetaMaskアプリが必要です。ログインに送金・ガス代は不要です。"],
       ["募集を作成・共有", "ホームの「募集を作成」で仕事内容と受取ウォレットを設定します。受取ウォレットはログインした本人確認済みウォレットを指定してください。「募集管理」で受付URLをコピーしてSNSなどへ掲載できます。募集は複数作成でき、受付停止・再開もできます。"],
       ["届いた依頼を確認", "「案件管理」の「未処理」から案件の詳細を開きます。「承認して商談を開始」で承認済へ進みます。この時点ではまだ条件確定・受注成立ではありません。"],
       ["条件を確定", "元の依頼内容・金額・納期でよければ「元の条件で交渉を確定」を選びます。変更を提案した場合は、依頼者が承認して交渉済（受注成立）になります。商談中は理由を送って辞退できますが、成立後はキャンセルを申請して相手の同意が必要です。"],
@@ -55,7 +59,7 @@ export const sharedGuideSteps = {
       ["現在の確認範囲", "共有フローの納品・支払い・オンチェーン証明書は接続準備中です。納品済タブがあることは、これらの操作が実装済みであることを意味しません。追加サーバー設定が未適用の場合は、承認・キャンセル・アーカイブ操作を無効にしています。現在は受付・商談のテストとして利用してください。"],
     ],
     en: [
-      ["Sign in with your wallet", "Use a browser wallet or an EVM wallet's in-app browser on mobile, such as MetaMask. Authentication signatures do not send funds or incur gas fees."],
+      ["Sign in with your wallet", "On desktop, use a browser wallet. On mobile Safari or Chrome, connect to the MetaMask app, approve the connection and sign-in message, then return to your browser. MetaMask must be installed. Authentication signatures do not send funds or incur gas fees."],
       ["Create and share an offering", "Use Create an offering on the home screen. The receiving wallet must match your authenticated wallet. Manage offerings to copy a public link for social media, create multiple offerings, and close or reopen them."],
       ["Review incoming requests", "Open a job from Manage jobs → Unprocessed. Approve and start negotiation moves it to Approved. This starts negotiation; it does not finalize terms."],
       ["Finalize terms", "Finalize the client's original terms if unchanged. If you propose a different brief, price or deadline, the client must approve. You may decline with a reason during negotiation. After terms are agreed, cancellation requires the other participant's consent."],
@@ -86,6 +90,8 @@ export const sharedGuideSteps = {
 export function UsageGuide({ role }) {
   const [language, setLanguage] = useState(() => new URL(location.href).searchParams.get("lang") === "en" ? "en" : "ja");
   const ja = language === "ja";
-  const steps = new URL(location.href).searchParams.get("flow") === "shared" ? sharedGuideSteps : legacySteps;
-  return <main className="shell clientRequestPage"><nav className="topBar"><strong>PortalProof</strong><div className="languageToggle"><button onClick={() => setLanguage("ja")} className={ja ? "active" : ""}>日本語</button><button onClick={() => setLanguage("en")} className={!ja ? "active" : ""}>English</button></div></nav><header className="hero compactHero"><h1>{role === "creator" ? (ja ? "クリエイター向けガイド" : "Creator guide") : (ja ? "依頼者向けガイド" : "Client guide")}</h1><p>{ja ? "元の画面は別タブに残っています。確認したら、そのタブへ戻って操作してください。" : "Your original page remains in its tab. Return there to continue."}</p></header><section className="panel"><ol>{steps[role][language].map(([title, body]) => <li key={title}><h2>{title}</h2><p>{body}</p></li>)}</ol></section><p className="localNote">{ja ? "テストネットのtPOTv3を使います。秘密鍵やシードフレーズの入力は不要です。同じブラウザのタブはウォレットを共有します。両者を試す場合は別プロフィールを使うと分かりやすくなります。" : "Use testnet tPOTv3. Never enter a private key or seed phrase. Browser tabs share the wallet; separate profiles help test creator and client roles."}</p></main>;
+  const local = new URL(location.href).searchParams.get("flow") === "local";
+  const steps = local ? legacySteps : sharedGuideSteps;
+  const back = guideReturnUrl(location.href, role, language);
+  return <main className="shell clientRequestPage"><nav className="topBar"><a className="brand" href={back}>PortalProof</a><div className="languageToggle"><button onClick={() => setLanguage("ja")} className={ja ? "active" : ""}>日本語</button><button onClick={() => setLanguage("en")} className={!ja ? "active" : ""}>English</button></div></nav><header className="hero compactHero"><h1>{role === "creator" ? (ja ? "クリエイター向けガイド" : "Creator guide") : (ja ? "依頼者向けガイド" : "Client guide")}</h1><p>{local ? (ja ? "このガイドは端末保存方式の確認用です。現在の共有案件とは操作が異なります。" : "This guide covers saved browser-local data, not shared commissions.") : (ja ? "元の画面は別タブに残っています。確認したら、そのタブへ戻って操作してください。" : "Your original page remains in its tab. Return there to continue.")}</p><a className="buttonLink secondary" href={back}>{ja ? "← アプリに戻る" : "← Return to app"}</a></header><section className="panel"><ol>{steps[role][language].map(([title, body]) => <li key={title}><h2>{title}</h2><p>{body}</p></li>)}</ol></section><p className="localNote">{ja ? "テストネットのtPOTv3を使います。秘密鍵やシードフレーズの入力は不要です。同じブラウザのタブはウォレットを共有します。両者を試す場合は別プロフィールを使うと分かりやすくなります。" : "Use testnet tPOTv3. Never enter a private key or seed phrase. Browser tabs share the wallet; separate profiles help test creator and client roles."}</p></main>;
 }

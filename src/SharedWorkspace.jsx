@@ -7,17 +7,21 @@ import { creatorTab, sharedLanguage, sharedStatus } from "./sharedView.js";
 import { verifiedSessionWallet } from "./negotiation.js";
 import { RequestNegotiation } from "./RequestNegotiation.jsx";
 import { GuideLink } from "./UsageGuide.jsx";
+import { usePageUrl } from "./usePageUrl.js";
+import { navigate, sharedUrl } from "./navigation.js";
 
 export function SharedWorkspace() {
-  const query = new URL(location.href).searchParams;
+  const query = usePageUrl().searchParams;
   const offeringId = query.get("offering"), requestId = query.get("clientRequest"), token = query.get("access");
   const clientRole = query.get("role") === "client";
-  const [language, setLanguage] = useState(() => {
+  const clientContext = clientRole || Boolean(offeringId || requestId);
+  const language = (() => {
     try { return sharedLanguage(query.get("lang") || localStorage.getItem("portalproof-language")); }
     catch { return sharedLanguage(query.get("lang")); }
-  });
+  })();
+  const setLanguage = value => navigate(sharedUrl(location.href, { lang: value }), { replace: true });
   const t = (ja, en) => language === "en" ? en : ja;
-  const [tab, setTab] = useState(() => creatorTab(query.get("creatorTab")));
+  const tab = creatorTab(query.get("creatorTab"));
   const [session, setSession] = useState(null), [message, setMessage] = useState(""), [busy, setBusy] = useState(false);
   const [email, setEmail] = useState(""), [password, setPassword] = useState("");
   const [profile, setProfile] = useState({ ...emptyDraft(), creatorWallet: "" });
@@ -31,13 +35,11 @@ export function SharedWorkspace() {
   const base = `${location.origin}${location.pathname}`;
   const run = async (operation) => { setBusy(true); setMessage(""); try { await operation(); } catch (error) { setMessage(error.message); } finally { setBusy(false); } };
   const changeTab = (value) => {
-    const next = creatorTab(value); setTab(next);
-    const url = new URL(location.href); url.searchParams.set("creatorTab", next); history.replaceState(null, "", url);
+    navigate(sharedUrl(location.href, { creatorTab: creatorTab(value), sharedJob: null }));
   };
   useEffect(() => {
     document.documentElement.lang = language;
     try { localStorage.setItem("portalproof-language", language); } catch { /* optional preference */ }
-    const url = new URL(location.href); url.searchParams.set("lang", language); history.replaceState(null, "", url);
     setMessage("");
   }, [language]);
   useEffect(() => {
@@ -82,10 +84,10 @@ export function SharedWorkspace() {
   const field = (key) => ({ value: draft[key], onChange: (event) => setDraft((old) => ({ ...old, [key]: event.target.value })) });
   return <main className="shell">
     <nav className="topBar">
-      <a className="brand" href={`${base}?view=shared&role=${clientRole ? "client" : "creator"}&lang=${language}`}><img className="brandLogo" src="./portalproof-icon-192.png" alt="" />PortalProof</a>
+      <a className="brand" href={`${base}?view=shared&role=${clientContext ? "client" : "creator"}&lang=${language}`}><img className="brandLogo" src="./portalproof-icon-192.png" alt="" />PortalProof</a>
       <div className="topActions">
-      <GuideLink role={clientRole || offeringId || requestId ? "client" : "creator"} language={language} flow="shared" />
-      {session && <a className="buttonLink secondary" href={`${base}?view=shared&role=${clientRole ? "creator" : "client"}&lang=${language}`}>{clientRole ? t("クリエイターの管理画面", "Creator workspace") : t("自分が依頼した仕事", "My commissions")}</a>}
+      <GuideLink role={clientContext ? "client" : "creator"} language={language} flow="shared" />
+      {session && <a className="buttonLink secondary" href={`${base}?view=shared&role=${clientContext ? "creator" : "client"}&lang=${language}`}>{clientContext ? t("クリエイターの管理画面", "Creator workspace") : t("自分が依頼した仕事", "My commissions")}</a>}
       <div className="languageToggle" aria-label={t("言語", "Language")}>
         <button type="button" className={language === "ja" ? "active" : ""} aria-pressed={language === "ja"} onClick={() => setLanguage("ja")}>日本語</button>
         <button type="button" className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => setLanguage("en")}>English</button>
@@ -103,6 +105,7 @@ export function SharedWorkspace() {
       </section>
       : requestId && !session && !token ? <WalletSignIn busy={busy} run={run} t={t} />
       : requestId ? <section className="panel">
+        <a className="backLink" href={`${base}?view=shared&role=client&lang=${language}`}>{t("← 自分が依頼した仕事へ", "← My commissions")}</a>
         <h1>{t("ご依頼の確認", "Your request")}</h1><p>{t("このページのURLを保存してください。", "Save this page's private URL.")}</p>
         {clientJob && <><h2>{clientJob.serviceName}</h2><p>{clientJob.clientName} → {clientJob.creatorName}</p><p>{clientJob.requestBrief}</p>
           <p>{t("金額：", "Amount: ")}{clientJob.amount} tPOTv3 ／ {t("納期：", "Deadline: ")}{clientJob.deadline}</p>

@@ -24,9 +24,9 @@ import {
 import "./styles.css";
 import { archiveJob, restoreJob, monthlyIncome } from "./income.js";
 import { ArchiveControls } from "./ArchiveControls.jsx";
-import { GuideLink, UsageGuide } from "./UsageGuide.jsx";
-import { SharedWorkspace } from "./SharedWorkspace.jsx";
-import { ClientPaymentReport, CreatorPaymentReport } from "./PaymentReport.jsx";
+import { GuideLink } from "./UsageGuide.jsx";
+import { CreatorPaymentReport } from "./PaymentReport.jsx";
+import { AppRouter } from "./AppRouter.jsx";
 
 const DEPLOYED_CONTRACT_ADDRESS = "0xBaE8933886e1520e5FCa3eDed119c08b29022D79";
 const DEPLOYMENT_TRANSACTION_HASH = "0x29b2c7b2b91bf6cc6804040fb0590c020a3b0a4bdae1f81864f1f9f227035365";
@@ -966,7 +966,7 @@ function App() {
       {page === "request" ? <span className="brand">{brandContent}</span> : <a className="brand" href={baseUrl}>{brandContent}</a>}
       <div className="topActions">
         {page !== "request" && <a className="buttonLink secondary" href={`${baseUrl}?view=shared`}>{language === "ja" ? "共有受付" : "Shared inbox"}</a>}
-        <GuideLink role={page === "request" ? "client" : "creator"} language={language} />
+        <GuideLink role={page === "request" ? "client" : "creator"} language={language} flow="local" />
         {page !== "request" && <div className="modeControl" aria-label={t("modeLabel")}>
           <span>{t("modeLabel")}</span>
           <div className="modeToggle">
@@ -1109,6 +1109,4 @@ function App() {
   </main>;
 }
 
-const reportToken = new URL(location.href).searchParams.get("paymentReport");
-const guideRole = new URL(location.href).searchParams.get("guide");
-createRoot(document.getElementById("root")).render(new URL(location.href).searchParams.get("view") === "shared" ? <SharedWorkspace /> : ["creator", "client"].includes(guideRole) ? <UsageGuide role={guideRole} /> : reportToken ? <ClientPaymentReport token={reportToken} contractAddress={contractAddress} /> : <App />);
+createRoot(document.getElementById("root")).render(<AppRouter LocalApp={App} contractAddress={contractAddress} />);

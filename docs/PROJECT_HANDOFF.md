@@ -2,6 +2,10 @@
 
 Last updated: 2026-10-22
 
+2026-11-03 routing/mobile addendum: the public root now enters the shared workspace, not the historical browser-local App. Read `docs/NAVIGATION_MOBILE.md` for current navigation, mobile transport, test limits and outstanding shared-workflow integration. The completed state below describes the October MVP, not completion of the current cross-device flow.
+
+2026-11-03追記：公開ルートを共有画面へ統一。現在の導線・スマホ接続・未確認事項は`docs/NAVIGATION_MOBILE.md`を参照。以下は10月時点のMVP記録であり、現在の別端末フローの全機能完了を意味しません。
+
 This file is the starting point for continuing PortalProof in a new ChatGPT or Codex version.
 
 このファイルは、新しいChatGPT／CodexバージョンでPortalProofの開発を継続する際の最初の参照先です。

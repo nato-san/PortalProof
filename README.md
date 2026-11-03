@@ -28,13 +28,13 @@ Ecosystem DApps
 
 [Watch the short demo video](https://youtube.com/watch?v=5DtARDfIMM0)
 
-The public demo starts in local-demo mode so reviewers can explore the creator and client flows without a wallet or test tokens. Portaldot V3 mode remains available from the header for the on-chain flow.
+The public root now opens the shared workspace with wallet-signature login. Mobile Safari and Chrome use the MetaMask app connection; a physical-device verification is still required. The browser-local MVP and its historical testnet evidence below are preserved, not automatically migrated. Shared delivery/payment/certificate integration is not yet complete. See [current navigation and mobile verification status](docs/NAVIGATION_MOBILE.md).
 
 ### Why Portaldot
 
 Portaldot V3 supports EVM and Solidity contracts as well as ERC-style application development. PortalProof uses that capability to create verifiable creator work-order records on the Portaldot V3 testnet.
 
-### Current MVP Scope
+### Browser-local MVP Scope (historical testnet flow)
 
 - Creator request and client brief input
 - Shareable creator request URL with service details and reference price
@@ -206,13 +206,13 @@ PortalProofは、イラストレーターやアーティスト、クリエイタ
 
 [PortalProofを開く](https://nato-san.github.io/PortalProof/)
 
-公開デモはローカル実演モードで始まるため、ウォレットやテストトークンがなくても、クリエイター側と依頼者側の流れを確認できます。オンチェーン処理用のPortaldot V3モードには、画面上部から切り替えられます。
+公開ルートは、ウォレット署名ログインを使う共有ワークスペースへ統一しています。スマホのSafari・ChromeからMetaMaskアプリへ接続する方式を追加しましたが、実機確認は必要です。以下の端末保存MVPとテストネット証跡は保持しており、自動移行はしていません。共有フローの納品・支払い・証明書連携は未完了です。[現在の導線・スマホ検証状況](docs/NAVIGATION_MOBILE.md)を確認してください。
 
 ### Portaldotを採用する理由
 
 Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーション開発に対応しています。PortalProofはその機能を使い、クリエイターの仕事依頼記録をPortaldot V3テストネット上に検証可能な形で残します。
 
-### 現在のMVP範囲
+### 端末保存MVPの範囲（過去のテストネット実演）
 
 - クリエイター受付情報と依頼内容の入力
 - サービス内容と参考価格を含む共有可能なクリエイター専用依頼受付URL
