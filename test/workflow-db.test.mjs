@@ -23,6 +23,7 @@ await db.exec(`
 `);
 await db.exec(await readFile(new URL('../supabase/migrations/20261102_signed_negotiation.sql', import.meta.url),'utf8'));
 await db.exec(await readFile(new URL('../supabase/migrations/20261103_job_stages_archives.sql', import.meta.url),'utf8'));
+await db.exec(await readFile(new URL('../supabase/migrations/20261104_shared_proof_workflow.sql', import.meta.url),'utf8'));
 const creator='10000000-0000-4000-8000-000000000001', client='10000000-0000-4000-8000-000000000002', stranger='10000000-0000-4000-8000-000000000003';
 const offering='20000000-0000-4000-8000-000000000001';
 for (const [i,id] of [creator,client,stranger].entries()) {
@@ -41,6 +42,9 @@ async function submit(nonce='30000000-0000-4000-8000-000000000001') {
 }
 async function act(job,action,details={}) {
  return (await db.query('select public.pp_signed_request_action($1,$2,$3,$4) as value',[job.id,job.version,action,details])).rows[0].value;
+}
+async function proof(job,action,details={}) {
+ return (await db.query('select public.pp_signed_proof_action($1,$2,$3,$4) as value',[job.id,job.version,action,details])).rows[0].value;
 }
 await actor(null,'anon'); await assert.rejects(submit(),/permission denied/);
 await actor(client); let job=await submit();
@@ -104,5 +108,20 @@ await actor(creator); fourth=await act(fourth,'reject_cancel'); assert.equal(fou
 fourth=await act(fourth,'decline',{reason:'Artist declines before final terms'});
 assert.equal(fourth.workflowPhase,'cancelled');
 await actor(null,'anon'); await assert.rejects(db.query('select pp_set_request_archive($1,true)',[second.id]),/permission denied/);
+await actor(client); let fifth=await submit('30000000-0000-4000-8000-000000000005');
+await assert.rejects(proof(fifth,'record_order',{}),/Terms must be agreed/);
+await actor(creator); fifth=await act(fifth,'start_negotiation'); fifth=await act(fifth,'accept');
+const termsHash=`0x${'a'.repeat(64)}`, orderTxHash=`0x${'b'.repeat(64)}`, deliveryHash=`0x${'c'.repeat(64)}`;
+const deliveryTxHash=`0x${'d'.repeat(64)}`, paymentTxHash=`0x${'e'.repeat(64)}`, paymentRecordTxHash=`0x${'f'.repeat(64)}`;
+await actor(client); await assert.rejects(proof(fifth,'record_order',{proofId:termsHash,termsHash,orderTxHash}),/Only creator/);
+await actor(creator); fifth=await proof(fifth,'record_order',{proofId:termsHash,termsHash,orderTxHash}); assert.equal(fifth.orderId,termsHash);
+fifth=await proof(fifth,'record_delivery',{deliveryUrl:'https://example.com/file.png',deliveryHash,deliveryTxHash}); assert.equal(fifth.status,'delivered');
+await assert.rejects(proof(fifth,'report_payment',{paymentTxHash}),/Only client/);
+await actor(client); fifth=await proof(fifth,'report_payment',{paymentTxHash}); assert.equal(fifth.paymentTxHash,paymentTxHash);
+await actor(stranger); await assert.rejects(proof(fifth,'record_payment',{paymentTxHash,paymentRecordTxHash}),/Not authorized/);
+await actor(creator); fifth=await proof(fifth,'record_payment',{paymentTxHash,paymentRecordTxHash});
+assert.equal(fifth.status,'paid'); assert.equal(fifth.paymentRecordTxHash,paymentRecordTxHash);
+await assert.rejects(act(fifth,'request_cancel',{reason:'too late'}),/closed/);
+assert.deepEqual((await db.query("select action from pp_request_history where request_id=$1 order by sequence",[fifth.id])).rows.map(row=>row.action),['submitted','start_negotiation','accept','record_order','record_delivery','report_payment','record_payment']);
 await db.close();
-console.log('Signed workflow DB tests passed: wallet identity, retry, RLS, immutable journal, acceptance, counterproposal, unilateral decline before agreement, bilateral cancellation after agreement, stale versions and legacy bypass rejection.');
+console.log('Signed workflow DB tests passed: wallet identity, retry, RLS, immutable journal, agreement, cancellation, archive, order proof, delivery, client payment report and creator payment proof.');

@@ -163,7 +163,7 @@ Open-source dependencies are listed in `package.json`.
 
 ### Known Limitations
 
-- The shared request and negotiation records synchronize across devices through Supabase, but delivery, payment verification, and certificate issuance are not yet connected end-to-end to this new shared workflow.
+- Order proof, delivery URL/hash, verified native-payment evidence, and QR certificate UI are implemented for signed shared jobs. The public Supabase migration and a fresh two-wallet testnet run must be completed before this new flow is claimed as end-to-end verified.
 - The deployed Portaldot V3 contract and historical end-to-end evidence remain valid, but they must not be presented as proof that every newly submitted shared request is already recorded on-chain.
 - Offerings created by the earlier email-auth prototype remain preserved under that earlier account. They are not silently transferred to a wallet account; create a new wallet-owned offering if an old offering does not appear in the creator's offering list.
 - Payment verification currently supports native tPOTv3 transfers; token-contract payments are not supported yet.
@@ -357,7 +357,7 @@ AI支援は、実装補助、ドキュメント作成、デバッグに使用し
 
 ### 現在の制限事項
 
-- 共有受付と商談記録はSupabaseを通じて別端末間で同期しますが、新しい共有フローと納品・支払い検証・証明書発行は、まだ一連の動作として接続できていません。
+- 署名付き共有案件に、発注証明、納品URL・ハッシュ、検証済みネイティブ支払い証跡、QR証明書画面を実装しました。公開Supabaseへのマイグレーション適用と2つの実ウォレットでのテストネット完走が終わるまでは、新しいフローを一連の動作確認済みとは表現しません。
 - デプロイ済みPortaldot V3コントラクトと過去の一連のテスト証跡は有効ですが、新しく送信したすべての共有依頼がすでにオンチェーン記録されるという意味ではありません。
 - 以前のメール認証試作版で作成した募集は、その以前のアカウントに保持されています。ウォレットアカウントへ自動移管しないため、募集一覧に表示されない古い募集は、ウォレットログイン後に新しく作り直してください。
 - 支払い検証はネイティブtPOTv3送金に対応しています。トークンコントラクト経由の支払いにはまだ対応していません。

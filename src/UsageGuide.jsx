@@ -56,7 +56,7 @@ export const sharedGuideSteps = {
       ["届いた依頼を確認", "「案件管理」の「未処理」から案件の詳細を開きます。「承認して商談を開始」で承認済へ進みます。この時点ではまだ条件確定・受注成立ではありません。"],
       ["条件を確定", "元の依頼内容・金額・納期でよければ「元の条件で交渉を確定」を選びます。変更を提案した場合は、依頼者が承認して交渉済（受注成立）になります。商談中は理由を送って辞退できますが、成立後はキャンセルを申請して相手の同意が必要です。"],
       ["案件を整理", "案件は未処理・承認済・交渉済・納品済・キャンセル済に分かれます。アーカイブは自分の一覧を整理するだけで、取引の状態や依頼者側の記録は変えません。アーカイブから元の一覧へ戻せます。"],
-      ["現在の確認範囲", "共有フローの納品・支払い・オンチェーン証明書は接続準備中です。納品済タブがあることは、これらの操作が実装済みであることを意味しません。追加サーバー設定が未適用の場合は、承認・キャンセル・アーカイブ操作を無効にしています。現在は受付・商談のテストとして利用してください。"],
+      ["納品・支払い・証明書", "受注成立後に、発注証明をPortaldot V3へ記録し、納品URLのハッシュを記録します。依頼者が支払いTxHashを送ると、送金元・送金先・金額・成功状態を検証できます。クリエイターが検証済み支払い証跡を記録すると、双方にオンチェーン記録を開くQR付き証明書が表示されます。オンチェーン操作には少額のテストネットガス代が必要です。"],
     ],
     en: [
       ["Sign in with your wallet", "On desktop, use a browser wallet. On mobile Safari or Chrome, connect to the MetaMask app, approve the connection and sign-in message, then return to your browser. MetaMask must be installed. Authentication signatures do not send funds or incur gas fees."],
@@ -64,7 +64,7 @@ export const sharedGuideSteps = {
       ["Review incoming requests", "Open a job from Manage jobs → Unprocessed. Approve and start negotiation moves it to Approved. This starts negotiation; it does not finalize terms."],
       ["Finalize terms", "Finalize the client's original terms if unchanged. If you propose a different brief, price or deadline, the client must approve. You may decline with a reason during negotiation. After terms are agreed, cancellation requires the other participant's consent."],
       ["Organize jobs", "Browse Unprocessed, Approved, Terms agreed, Delivered and Cancelled. Archiving only organizes your own list; it does not cancel a commission or change client records. Restore archived jobs to their existing stage."],
-      ["Current test scope", "The shared delivery, payment and on-chain certificate workflow is still being integrated. A Delivered tab does not mean those operations are available. Agreement and archive actions are disabled until the additional server setup is applied. Use this release to test intake and negotiation, not completed payments."],
+      ["Delivery, payment and certificate", "After agreement, record the order proof and delivery URL hash on Portaldot V3. The client submits the payment transaction hash; PortalProof verifies its sender, recipient, amount and successful receipt. After the creator records the verified evidence, both participants can open a QR certificate linked to the on-chain record. On-chain actions require a small testnet gas fee."],
     ],
   },
   client: {
@@ -74,7 +74,8 @@ export const sharedGuideSteps = {
       ["自分の依頼を確認", "送信後の「自分の依頼を確認する」または上部の「自分が依頼した仕事」から管理できます。同じウォレットでログインすれば、別端末からも自分の新方式の依頼を確認できます。以前の未ログインのテスト依頼は自動では紐づきません。"],
       ["条件を確認", "クリエイターが依頼を確認して商談を開始します。元の条件のままならクリエイターの条件確定で成立し、変更提案があればあなたの承認で成立します。商談中はクリエイターが理由付きで辞退できます。成立後のキャンセルには相手の同意が必要です。"],
       ["キャンセルに回答", "キャンセル申請と理由が届いたら、依頼の詳細で同意・不同意を選べます。自分の申請を自分で承認することはできません。キャンセルされても依頼と理由の記録は残ります。"],
-      ["まだ支払わない", "この共有フローは納品・支払い・証明書の接続準備中です。現在のテストでは送金せず、受付と商談の確認までにしてください。"],
+      ["納品を確認して支払いを報告", "受注成立後、クリエイターが発注証明と納品URLのハッシュを記録するまで支払わないでください。納品を確認して合意額を指定ウォレットへ送金したら、取引履歴のTxHashを案件画面から送信します。送金元・送金先・金額・成功状態が一致した支払いだけが証明へ進みます。"],
+      ["QR証明書を確認", "クリエイターが検証済み支払い証跡を記録すると証明書タブが開きます。QRコードからPortaldot V3の最終記録を確認できます。これはQR付き取引証明書であり、ウォレットへミントされるSBTではありません。"],
     ],
     en: [
       ["Open an offering", "Open the creator's public request link from social media and review the service."],
@@ -82,7 +83,8 @@ export const sharedGuideSteps = {
       ["Find your commissions", "After submitting, select View my request or My commissions in the header. The same wallet can access its new authenticated requests on another device. Earlier unsigned test requests are not automatically linked."],
       ["Review terms", "The creator reviews and starts negotiation. The creator can finalize unchanged original terms; proposed changes require your approval. The creator may decline with a reason before agreement. Cancellation after agreement needs the other participant's consent."],
       ["Respond to cancellation", "Open request details to agree to or decline a cancellation request. You cannot approve your own cancellation request. Original requests and cancellation reasons remain recorded."],
-      ["Do not pay yet", "Shared delivery, payment and certificate integration are still pending. Do not transfer funds in this test; verify intake and negotiation only."],
+      ["Review delivery and report payment", "After agreement, wait until the creator records the order proof and delivery URL hash. Review the delivery, transfer the agreed amount to the designated wallet, then submit the transaction hash from your wallet history. Only a transfer whose sender, recipient, amount and success status match can proceed to proof."],
+      ["View the QR certificate", "After the creator records the verified payment evidence, open the Certificate stage. Its QR code opens the final Portaldot V3 record. This is a QR transaction certificate, not an SBT minted into a wallet."],
     ],
   },
 };

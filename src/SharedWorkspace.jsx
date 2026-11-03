@@ -11,6 +11,7 @@ import { usePageUrl } from "./usePageUrl.js";
 import { navigate, sharedUrl } from "./navigation.js";
 import { useWorkflowStatus } from "./useWorkflowStatus.js";
 import { synchronizeOfferingWallets } from "./offerings.js";
+import { SharedProofWorkflow } from "./SharedProofWorkflow.jsx";
 
 export function SharedWorkspace() {
   const query = usePageUrl().searchParams;
@@ -127,7 +128,8 @@ export function SharedWorkspace() {
           <p>{t("金額：", "Amount: ")}{clientJob.amount} tPOTv3 ／ {t("納期：", "Deadline: ")}{clientJob.deadline}</p>
           <p>{t("状態：", "Status: ")}{sharedStatus(clientJob.status, language)}</p>
           {clientJob.requestVersion === 3 && session && <RequestNegotiation key={`${clientJob.id}-${clientJob.version}`} job={clientJob} kind="client" userId={session.user.id} t={t} onChange={jobChanged} workflowVersion={workflowVersion} />}
-          {clientJob.requestVersion === 3 ? <p>{clientJob.workflowPhase === "cancelled" ? t("この依頼はキャンセル済みです。送金しないでください。", "This request is cancelled. Do not pay.") : t("商談・受注の確認ができます。新方式の納品・オンチェーン証明との接続は準備中です。まだ送金しないでください。", "Review negotiation and agreement here. Delivery and on-chain proof integration are still pending. Do not pay yet.")}</p>
+          {clientJob.requestVersion === 3 && session && <SharedProofWorkflow job={clientJob} kind="client" t={t} onChange={jobChanged} workflowVersion={workflowVersion} />}
+          {clientJob.requestVersion === 3 ? <p>{clientJob.workflowPhase === "cancelled" ? t("この依頼はキャンセル済みです。送金しないでください。", "This request is cancelled. Do not pay.") : clientJob.workflowPhase !== "agreed" ? t("条件が確定するまで支払いをしないでください。", "Do not pay until the terms are agreed.") : !clientJob.deliveryTxHash ? t("オンチェーン納品証明が記録されるまで支払いをしないでください。", "Do not pay until the on-chain delivery proof is recorded.") : t("納品内容を確認してから支払い、取引ハッシュを支払い画面から送信してください。", "Review the delivery before paying, then submit the transaction hash from the Payment step.")}</p>
             : clientJob.reported ? <p>{t("支払い報告を受信しました。照合待ちです。再送金は不要です。", "Payment report received, awaiting verification. Do not pay again.")}<code>{clientJob.paymentTxHash}</code></p>
             : clientJob.orderId ? <form onSubmit={(event) => { event.preventDefault(); run(async () => setClientJob(await sharedRpc("pp_client_report", { p_id: requestId, p_token: token, p_hash: hash.trim() }))); }}>
               <label>{t("支払いトランザクションハッシュ", "Payment transaction hash")}<input value={hash} onChange={(event) => setHash(event.target.value)} pattern="0x[a-fA-F0-9]{64}" required /></label><button disabled={busy}>{t("支払いを報告", "Report payment")}</button>

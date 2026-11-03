@@ -51,8 +51,8 @@ Official implementation references:
 - 公開後にSafariとChromeの両方で、MetaMask接続・署名・ブラウザ復帰・募集確認・再読み込み・別ウォレットの依頼確認を検証してください。送金は不要です。
 - SDK adds a moderate upstream `uuid` bounds-check advisory through MetaMask utilities; no patched compatible release is offered by the audit. Do not force-upgrade transitive packages across major versions. Existing Ganache development-tree advisories remain separate. No new critical/high advisory is attributed to the added SDK in the audit performed for this rollout.
 
-## Not completed by this change / 今回未完了の範囲
+## Proof-workflow follow-up / 証明フローの後続対応
 
-This fixes entry/navigation and adds the mobile connection transport. It does **not** finish the shared delivery/payment/certificate integration, deploy a replacement contract, apply administrative SQL, migrate local records, or complete the hackathon's end-to-end release gate. The stage/archive server migration remains a separate prerequisite; existing disabled-state guards are retained.
+The signed shared workflow now has order proof, delivery URL/hash, independently checked native-payment evidence, a final on-chain payment record, and a QR certificate in code. `20261104_shared_proof_workflow.sql` must be applied to the public Supabase project, followed by a fresh two-wallet testnet run, before this release is described as end-to-end verified. It reuses the existing deployed event-log contract and does not deploy a replacement contract or migrate/delete historical local records.
 
-入口とモバイル接続の変更であり、共有フローの納品・支払い・証明書連携、コントラクト再デプロイ、管理SQL適用、保存済み案件の移行は実施していません。最終提出用の全機能完走が完了したとは扱いません。
+署名付き共有フローに、発注証明、納品URL・ハッシュ、送金元・送金先・金額・成功状態を独立確認する支払い証跡、最終オンチェーン記録、QR証明書をコード上で接続しました。公開Supabaseへ `20261104_shared_proof_workflow.sql` を適用し、2つの実ウォレットでテストネット完走するまでは、一連の動作確認済みとは表現しません。既存のイベントログ用コントラクトを再利用し、置換デプロイや端末保存データの削除・移行は行いません。

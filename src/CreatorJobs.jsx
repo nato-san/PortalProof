@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ArrowLeft, ArrowRight, Archive, RotateCcw } from "lucide-react";
 import { sharedRpc } from "./shared.js";
 import { RequestNegotiation } from "./RequestNegotiation.jsx";
+import { SharedProofWorkflow } from "./SharedProofWorkflow.jsx";
 import { jobStages, jobMatches, jobStage, jobStageLabel } from "./sharedView.js";
 import { usePageUrl } from "./usePageUrl.js";
 import { navigate as navigatePage, sharedUrl } from "./navigation.js";
@@ -49,7 +50,7 @@ export function CreatorJobs({ jobs, ownerId, language, t, onJobChange, onArchive
         <div className="panel">
           {selected.requestVersion === 3 ? <RequestNegotiation key={`${selected.id}-${selected.version}`} job={selected} kind="creator" userId={ownerId} t={t} onChange={onJobChange} workflowVersion={workflowVersion} />
             : <p>{t("以前のテスト依頼です。新しい商談ルールの対象には自動変換していません。", "This earlier test request has not been automatically converted to the new agreement rules.")}</p>}
-          <p className="muted">{t("納品・支払い・証明書の共有フローは接続準備中です。", "The shared delivery, payment and certificate workflow is still being integrated.")}</p>
+          {selected.requestVersion === 3 && <SharedProofWorkflow job={selected} kind="creator" t={t} onChange={onJobChange} workflowVersion={workflowVersion} />}
         </div>
       </div>}
     </> : visible.length ? <div className="requestCards sharedJobCards">{visible.map(job => <article className="panel requestCard" key={job.id}>

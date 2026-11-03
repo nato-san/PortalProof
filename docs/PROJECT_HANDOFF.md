@@ -6,6 +6,10 @@ Last updated: 2026-10-22
 
 2026-11-03追記：公開ルートを共有画面へ統一。現在の導線・スマホ接続・未確認事項は`docs/NAVIGATION_MOBILE.md`を参照。以下は10月時点のMVP記録であり、現在の別端末フローの全機能完了を意味しません。
 
+2026-11-04 shared-proof addendum: order, delivery URL/hash, independently verified native-payment evidence, and QR certificate UI are now connected to signed shared jobs in code. Apply `supabase/migrations/20261104_shared_proof_workflow.sql` once, then perform a real two-wallet testnet run before claiming the new shared flow complete. See `docs/SHARED_PROOF_WORKFLOW.md`. The QR certificate is not a minted SBT.
+
+2026-11-04共有証明追記：署名付き共有案件に、発注証明、納品URL・ハッシュ、独立検証するネイティブ支払い証跡、QR証明書をコード上で接続しました。`supabase/migrations/20261104_shared_proof_workflow.sql`を1回適用し、2つの実ウォレットでテストネット確認を行うまでは、新しい共有フローを完了済みと表現しないでください。詳細は`docs/SHARED_PROOF_WORKFLOW.md`を参照。QR証明書はミントされたSBTではありません。
+
 This file is the starting point for continuing PortalProof in a new ChatGPT or Codex version.
 
 このファイルは、新しいChatGPT／CodexバージョンでPortalProofの開発を継続する際の最初の参照先です。

@@ -17,6 +17,8 @@
 
 ## Final Submission / 最終提出
 
+- [ ] Complete a fresh shared two-wallet order, delivery, verified payment, and QR certificate run / 新しい共有フローで2ウォレットの発注・納品・検証済み支払い・QR証明書を完走
+
 - [x] Project name / プロジェクト名
 - [ ] Team members / チームメンバー
 - [x] One-sentence project overview / 1文概要

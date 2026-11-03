@@ -2,6 +2,15 @@
 
 ## Active Work / 現在の作業
 
+- [x] Connect signed shared jobs to order, delivery, verified native-payment, and QR certificate UI with participant authorization and append-only history.
+- 日本語訳: 署名付き共有案件に、参加者権限と追記専用履歴を備えた発注・納品・検証済みネイティブ支払い・QR証明書画面を接続する。
+
+- [ ] Apply shared-proof migration version 3 to the public Supabase project and confirm the capability check.
+- 日本語訳: 共有証明マイグレーションのバージョン3を公開Supabaseへ適用し、機能判定を確認する。
+
+- [ ] Run a new two-wallet, cross-device Portaldot V3 order → delivery → payment → QR certificate test and record its transaction evidence.
+- 日本語訳: 2つの実ウォレットと別端末で、Portaldot V3の発注→納品→支払い→QR証明書を一通り確認し、トランザクション証跡を残す。
+
 - [x] Confirm the hackathon test-token distribution and fund the mapped EVM account.
 - 日本語訳: ハッカソン用テストトークンの配布を確認し、対応するEVM口座へ入金する。
 
