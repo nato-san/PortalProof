@@ -5,7 +5,7 @@
 - [x] Connect signed shared jobs to order, delivery, verified native-payment, and QR certificate UI with participant authorization and append-only history.
 - 日本語訳: 署名付き共有案件に、参加者権限と追記専用履歴を備えた発注・納品・検証済みネイティブ支払い・QR証明書画面を接続する。
 
-- [ ] Apply shared-proof migration version 3 to the public Supabase project and confirm the capability check.
+- [x] Apply shared-proof migration version 3 to the public Supabase project and confirm the capability check (confirmed 2026-11-04).
 - 日本語訳: 共有証明マイグレーションのバージョン3を公開Supabaseへ適用し、機能判定を確認する。
 
 - [ ] Run a new two-wallet, cross-device Portaldot V3 order → delivery → payment → QR certificate test and record its transaction evidence.

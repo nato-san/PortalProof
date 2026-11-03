@@ -1,8 +1,8 @@
 # Shared proof workflow / 共有案件の証明フロー
 
-Status: implemented and tested locally on 2026-11-04. The Supabase migration `20261104_shared_proof_workflow.sql` must be applied once before the public UI reports workflow version 3. A real two-wallet Portaldot V3 end-to-end run is still required; local and isolated tests do not create testnet evidence.
+Status: implemented and tested locally on 2026-11-04. The public Supabase migration `20261104_shared_proof_workflow.sql` was applied and its workflow-version-3 RPC was confirmed on 2026-11-04. A real two-wallet Portaldot V3 end-to-end run is still required; local and isolated tests do not create testnet evidence.
 
-状態：2026年11月4日に実装し、ローカル・分離環境でテスト済みです。公開画面でワークフローバージョン3を利用するには、Supabaseへ`20261104_shared_proof_workflow.sql`を1回だけ適用します。ローカルテストはテストネット証跡を作らないため、2つの実ウォレットを使ったPortaldot V3での一連の確認は別途必要です。
+状態：2026年11月4日に実装し、ローカル・分離環境でテスト済みです。同日、公開Supabaseへ`20261104_shared_proof_workflow.sql`を適用し、RPCがワークフローバージョン3を返すことを確認しました。ローカルテストはテストネット証跡を作らないため、2つの実ウォレットを使ったPortaldot V3での一連の確認は別途必要です。
 
 ## Sequence / 手順
 
