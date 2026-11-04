@@ -10,7 +10,7 @@ function SavedLinkNotice({ url }) {
   const ja = url.searchParams.get("lang") !== "en";
   return <main className="shell"><section className="panel">
     <h1>{ja ? "このリンクは以前の端末保存方式のものです" : "This link uses browser-local storage"}</h1>
-    <p>{ja ? "現在の募集・案件とは別の保存方式です。別端末で使うには、クリエイターから現在の募集リンクを受け取ってください。保存済みのデータは削除していません。" : "It cannot be treated as a shared commission. Ask the creator for their current offering link to use another device. Saved data has not been deleted."}</p>
+    <p>{ja ? "現在の募集・案件とは別の保存方式です。別端末で使うには、受注者から現在の募集リンクを受け取ってください。保存済みのデータは削除していません。" : "It cannot be treated as a shared commission. Ask the provider for their current offering link to use another device. Saved data has not been deleted."}</p>
     <a className="buttonLink primary" href={`${url.pathname}?view=shared&lang=${ja ? "ja" : "en"}`}>{ja ? "PortalProofのホームへ" : "PortalProof home"}</a>
     <details><summary>{ja ? "この端末の保存済みデータを確認する" : "Access existing data on this device"}</summary><p>{ja ? "保存した端末・ブラウザでのみ確認できます。現在の共有案件へは自動移行されません。" : "Use the original browser and device. Data is not automatically migrated to shared commissions."}</p><a className="buttonLink secondary" href={localWorkspaceUrl(url.href)}>{ja ? "保存済み画面を開く" : "Open saved workspace"}</a></details>
   </section></main>;

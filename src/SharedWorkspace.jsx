@@ -102,7 +102,7 @@ export function SharedWorkspace() {
       <a className="brand" href={`${base}?view=shared&role=${clientContext ? "client" : "creator"}&lang=${language}`}><img className="brandLogo" src="./portalproof-icon-192.png" alt="" />PortalProof</a>
       <div className="topActions">
       <GuideLink role={clientContext ? "client" : "creator"} language={language} flow="shared" />
-      {session && <a className="buttonLink secondary" href={`${base}?view=shared&role=${clientContext ? "creator" : "client"}&lang=${language}`}>{clientContext ? t("クリエイターの管理画面", "Creator workspace") : t("自分が依頼した仕事", "My commissions")}</a>}
+      {session && <a className="buttonLink secondary" href={`${base}?view=shared&role=${clientContext ? "creator" : "client"}&lang=${language}`}>{clientContext ? t("仕事を受ける", "Provide services") : t("仕事を依頼する", "Request work")}</a>}
       <div className="languageToggle" aria-label={t("言語", "Language")}>
         <button type="button" className={language === "ja" ? "active" : ""} aria-pressed={language === "ja"} onClick={() => setLanguage("ja")}>日本語</button>
         <button type="button" className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => setLanguage("en")}>English</button>
@@ -133,7 +133,7 @@ export function SharedWorkspace() {
             : clientJob.reported ? <p>{t("支払い報告を受信しました。照合待ちです。再送金は不要です。", "Payment report received, awaiting verification. Do not pay again.")}<code>{clientJob.paymentTxHash}</code></p>
             : clientJob.orderId ? <form onSubmit={(event) => { event.preventDefault(); run(async () => setClientJob(await sharedRpc("pp_client_report", { p_id: requestId, p_token: token, p_hash: hash.trim() }))); }}>
               <label>{t("支払いトランザクションハッシュ", "Payment transaction hash")}<input value={hash} onChange={(event) => setHash(event.target.value)} pattern="0x[a-fA-F0-9]{64}" required /></label><button disabled={busy}>{t("支払いを報告", "Report payment")}</button>
-            </form> : <p>{t("クリエイターの確認をお待ちください。まだ支払いをしないでください。", "Wait for the creator to review your request. Do not pay yet.")}</p>}
+            </form> : <p>{t("受注者の確認をお待ちください。まだ支払いをしないでください。", "Wait for the provider to review your request. Do not pay yet.")}</p>}
         </>}
       </section>
       : offeringId ? <section className="panel">
@@ -146,7 +146,7 @@ export function SharedWorkspace() {
             try { job = await sharedRpc("pp_submit_signed_request", { p_offering: offeringId, p_nonce: requestNonce, p_payload: draft }); }
             catch (error) {
               if (String(error?.message || "").includes("Creator must verify the receiving wallet")) {
-                throw new Error(t("この募集の受取ウォレット確認が必要です。クリエイターが管理画面を一度開いてから、もう一度送信してください。", "This offering needs its receiving wallet verified. Ask the creator to open their workspace once, then submit again."));
+                throw new Error(t("この募集の受取ウォレット確認が必要です。受注者が管理画面を一度開いてから、もう一度送信してください。", "This offering needs its receiving wallet verified. Ask the provider to open their workspace once, then submit again."));
               }
               throw error;
             }

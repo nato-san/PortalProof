@@ -6,7 +6,7 @@ import { CreatorJobs } from "./CreatorJobs.jsx";
 export function CreatorNavigation({ tab, onChange, t }) {
   const selected = tab === "closed" ? "open" : tab;
   const labels = { home: t("ホーム", "Home"), create: t("募集作成", "Create offering"), open: t("募集管理", "Manage offerings"), requests: t("案件管理", "Manage jobs") };
-  return <nav className="sharedMainNav" aria-label={t("クリエイターメニュー", "Creator navigation")}>
+  return <nav className="sharedMainNav" aria-label={t("受注者メニュー", "Provider navigation")}>
     {Object.entries(labels).map(([key, label]) => <button type="button" key={key} className={selected === key ? "active" : ""} aria-current={selected === key ? "page" : undefined} onClick={() => onChange(key)}>{label}</button>)}
   </nav>;
 }
@@ -15,9 +15,9 @@ export function CreatorDashboard({ tab, onTabChange, profile, setProfile, creato
   return <>
     {tab !== "home" && <CreatorNavigation tab={tab} onChange={onTabChange} t={t} />}
     {tab === "home" && <>
-      <header className="hero compactHero"><div><p className="eyebrow">PORTALDOT HACKER HOUSE 2026 / ECOSYSTEM DAPPS</p><h1>{t("クリエイターホーム", "Creator home")}</h1><p>{t("やりたいことを選んで、制作の仕事を進めましょう。", "Choose what you want to do as the creator.")}</p></div></header>
+      <header className="hero compactHero"><div><p className="eyebrow">PORTALDOT HACKER HOUSE 2026 / ECOSYSTEM DAPPS</p><h1>{t("仕事を受ける", "Provide services")}</h1><p>{t("やりたいことを選んで、受注した仕事を進めましょう。", "Choose what you want to do as the provider.")}</p></div></header>
       <section className="creatorHome">
-        <div className="creatorOnlyNote"><Home size={20} /><div><strong>{t("クリエイター専用エリア", "Creator-only area")}</strong><span>{t("このウォレットで管理する募集と依頼を確認できます。", "Manage this wallet's offerings and incoming requests.")}</span></div></div>
+        <div className="creatorOnlyNote"><Home size={20} /><div><strong>{t("受注者専用エリア", "Provider-only area")}</strong><span>{t("このウォレットで管理する募集と依頼を確認できます。", "Manage this wallet's offerings and incoming requests.")}</span></div></div>
         <div className="homeCards">
           {[
             { tab: "create", icon: <Settings2 size={24} />, title: t("募集を作成", "Create an offering"), help: t("仕事内容と受付ページを設定し、募集を公開します。", "Set up a service and create its public request page.") },
@@ -34,7 +34,7 @@ export function CreatorDashboard({ tab, onTabChange, profile, setProfile, creato
       <h1>{t("募集を作成", "Create an offering")}</h1><p className="muted">{t("サービスごとに受付リンクを作成できます。", "Create a request link for each service.")}</p>
       <form onSubmit={event => { event.preventDefault(); createOffering(); }}>
         {["creatorName", "serviceName", "serviceDescription"].map(key => <label key={key}>
-          {({ creatorName: t("クリエイター名", "Creator name"), serviceName: t("サービス名", "Service name"), serviceDescription: t("仕事内容", "Service description") })[key]}
+          {({ creatorName: t("受注者名・事業者名", "Provider or business name"), serviceName: t("サービス名", "Service name"), serviceDescription: t("仕事内容", "Service description") })[key]}
           <input required value={profile[key]} onChange={event => setProfile(old => ({ ...old, [key]: event.target.value }))} />
         </label>)}
         <label>{t("受取ウォレット（ログイン中）", "Receiving wallet (signed in)")}<input readOnly value={creatorWallet || ""} /></label>

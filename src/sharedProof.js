@@ -52,7 +52,7 @@ export async function creatorProofContract(wallet, expectedCreator) {
   const signer = await provider.getSigner();
   const address = (await signer.getAddress()).toLowerCase();
   if (address !== String(expectedCreator || "").toLowerCase()) {
-    throw new Error("クリエイターとしてログインしたウォレットを選択してください / Select the creator wallet used for this job");
+    throw new Error("受注者としてログインしたウォレットを選択してください / Select the provider wallet used for this job");
   }
   return { provider, signer, contract: new ethers.Contract(PORTALPROOF_CONTRACT_ADDRESS, PORTALPROOF_ABI, signer), address };
 }

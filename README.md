@@ -10,11 +10,11 @@
 
 ### One-sentence Overview
 
-PortalProof is a creator workflow DApp that lets creators publish a request flow, record agreed work terms on the Portaldot V3 testnet, and generate a delivery and payment proof certificate.
+PortalProof is a work-order proof DApp that lets providers publish a request flow, record agreed work terms on the Portaldot V3 testnet, and generate a delivery and payment proof certificate.
 
 ### Who PortalProof Is For
 
-PortalProof is not limited to illustrators, artists, or people who identify as creators. Its intended scope includes anyone offering commissioned work, making something, or providing skills and services—for example, design, video production, software development, translation, handmade goods, consulting, and instruction. The interface continues to use “creator” as a familiar label for the person taking on the work.
+PortalProof is not limited to illustrators, artists, or people who identify as creators. Its intended scope includes anyone offering commissioned work, making something, or providing skills and services—for example, design, video production, software development, translation, handmade goods, consulting, and instruction. The formal interface roles are “Provider” for the party accepting the work and “Client” for the party commissioning it. Primary navigation uses the action labels “Provide services” and “Request work.”
 
 These examples describe the product's intended audience, not a claim that every service-specific workflow is already implemented. The current delivery-proof flow uses a delivery URL; completion evidence for services without a deliverable file still needs to be defined and implemented.
 
@@ -32,26 +32,26 @@ The public root opens the shared workspace with wallet-signature login. Wallet s
 
 ### Current Public Workflow
 
-- Creators sign in by signing an authentication message with an EVM wallet. No email registration, payment, or gas fee is required for login.
-- Creators can create multiple offerings, publish a separate shareable URL for each service, and close or reopen intake.
-- The receiving wallet is taken automatically from the creator's verified wallet sign-in. It is no longer entered manually. Older wallet-owned offerings are corrected when their owner opens the creator workspace.
+- Providers sign in by signing an authentication message with an EVM wallet. No email registration, payment, or gas fee is required for login.
+- Providers can create multiple offerings, publish a separate shareable URL for each service, and close or reopen intake.
+- The receiving wallet is taken automatically from the provider's verified wallet sign-in. It is no longer entered manually. Older wallet-owned offerings are corrected when their owner opens the provider workspace.
 - Clients open an offering link, sign in with a different wallet, and submit a request without an on-chain transaction or gas fee.
-- Offerings and requests are stored in Supabase so the creator and client can use separate devices and see records associated with their own authenticated wallet.
-- Creator jobs are separated into new, approved, agreed, delivered, cancelled, and archived views. Archiving is only an owner-side list preference and does not cancel or delete the job.
-- Before terms are agreed, the creator may decline with a reason. After agreement, cancellation requires approval from the other participant.
-- Japanese and English guides are available from both the creator and client flows.
+- Offerings and requests are stored in Supabase so the provider and client can use separate devices and see records associated with their own authenticated wallet.
+- Provider jobs are separated into new, approved, agreed, delivered, cancelled, and archived views. Archiving is only an owner-side list preference and does not cancel or delete the job.
+- Before terms are agreed, the provider may decline with a reason. After agreement, cancellation requires approval from the other participant.
+- Japanese and English guides are available from both the provider and client flows.
 
 ### Why Portaldot
 
-Portaldot V3 supports EVM and Solidity contracts as well as ERC-style application development. PortalProof uses that capability to create verifiable creator work-order records on the Portaldot V3 testnet.
+Portaldot V3 supports EVM and Solidity contracts as well as ERC-style application development. PortalProof uses that capability to create verifiable work-order records on the Portaldot V3 testnet.
 
 ### Browser-local MVP Scope (historical testnet flow)
 
-- Creator request and client brief input
-- Shareable creator request URL with service details and reference price
-- Dedicated client form opened from the creator's link
-- A creator dashboard with request-page settings and a multi-request inbox
-- A creator-only home screen linking to request setup, job management, and the public-page preview
+- Provider request and client brief input
+- Shareable provider request URL with service details and reference price
+- Dedicated client form opened from the provider's link
+- A provider dashboard with request-page settings and a multi-request inbox
+- A provider-only home screen linking to request setup, job management, and the public-page preview
 - A visible local-demo / Portaldot V3 mode switch that prevents accidental on-chain writes while working locally
 - A fully separate public request-submission page for clients
 - A dedicated management workspace for each individual request
@@ -99,7 +99,7 @@ The completed test confirms that PortalProof can verify the native payment sende
 
 ```mermaid
 flowchart LR
-  Creator[Creator] --> DApp[PortalProof Web DApp]
+  Creator[Provider] --> DApp[PortalProof Web DApp]
   Client[Client] --> DApp
   DApp --> Shared[Supabase Auth and Shared Workflow DB]
   Shared --> Jobs[Offering, Request, Agreement History]
@@ -113,13 +113,13 @@ flowchart LR
 
 ### User Flow
 
-1. The creator signs in with a wallet and creates an offering with a service name and description. The verified login wallet is set automatically as the receiving wallet.
+1. The provider signs in with a wallet and creates an offering with a service name and description. The verified login wallet is set automatically as the receiving wallet.
 2. PortalProof creates a dedicated public request URL that can be shared on social media or sent directly to a client.
 3. The client opens the URL on another device, signs in with a different wallet, and submits a name, brief, proposed amount, and requested deadline. Submission itself is off-chain and costs no gas.
-4. The request is stored in the shared database with an immutable history entry and appears in both the creator's job list and the client's commission list.
-5. The creator starts negotiation, accepts the original terms, proposes changed terms, or declines with a reason. Changed terms require client approval.
-6. Before agreement the creator may decline; after agreement, a cancellation request must be approved by the other participant.
-7. The creator manages the job by stage and may archive or restore it without changing its actual status.
+4. The request is stored in the shared database with an immutable history entry and appears in both the provider's job list and the client's commission list.
+5. The provider starts negotiation, accepts the original terms, proposes changed terms, or declines with a reason. Changed terms require client approval.
+6. Before agreement the provider may decline; after agreement, a cancellation request must be approved by the other participant.
+7. The provider manages the job by stage and may archive or restore it without changing its actual status.
 8. The existing Portaldot V3 proof contract demonstrates order, delivery, and verified payment evidence. Connecting that full proof sequence to the new shared workflow is the current release gate.
 
 ### Local Setup
@@ -139,7 +139,7 @@ npm run compile:contract
 
 ### Deploy to Portaldot V3
 
-The production testnet contract has already been deployed once for the whole PortalProof application. Creators and clients reuse this shared contract and must not deploy their own copies.
+The production testnet contract has already been deployed once for the whole PortalProof application. Providers and clients reuse this shared contract and must not deploy their own copies.
 
 For a future replacement deployment:
 
@@ -166,7 +166,7 @@ Open-source dependencies are listed in `package.json`.
 
 - Order proof, delivery URL/hash, verified native-payment evidence, and QR certificate UI are implemented for signed shared jobs. The public Supabase workflow-version-3 migration is applied. A fresh two-wallet testnet run must still be completed before this new flow is claimed as end-to-end verified.
 - The deployed Portaldot V3 contract and historical end-to-end evidence remain valid, but they must not be presented as proof that every newly submitted shared request is already recorded on-chain.
-- Offerings created by the earlier email-auth prototype remain preserved under that earlier account. They are not silently transferred to a wallet account; create a new wallet-owned offering if an old offering does not appear in the creator's offering list.
+- Offerings created by the earlier email-auth prototype remain preserved under that earlier account. They are not silently transferred to a wallet account; create a new wallet-owned offering if an old offering does not appear in the provider's offering list.
 - Payment verification currently supports native tPOTv3 transfers; token-contract payments are not supported yet.
 - The current MVP records payment evidence after delivery but does not escrow funds, so payment is not guaranteed.
 - The application must not claim payment success from an arbitrary transaction hash.
@@ -187,8 +187,8 @@ Open-source dependencies are listed in `package.json`.
 
 #### Milestone 3 — Escrow deposit and production hardening
 
-- When the creator accepts a request, require the client to deposit the agreed native tPOTv3 amount into a dedicated escrow contract.
-- Lock the deposit to the proof ID and the client and creator wallets.
+- When the provider accepts a request, require the client to deposit the agreed native tPOTv3 amount into a dedicated escrow contract.
+- Lock the deposit to the proof ID and the client and provider wallets.
 - After delivery, let the client approve release to the creator.
 - Support cancellation and refund before acceptance, plus a deadline-based refund when delivery does not occur.
 - Do not reveal a protected delivery asset until the deposit is confirmed.
@@ -207,11 +207,11 @@ Open-source dependencies are listed in `package.json`.
 
 ### 1文概要
 
-PortalProofは、クリエイターが依頼受付フローを公開し、合意した仕事内容をPortaldot V3テストネットに記録して、納品・支払い証明書を生成するDAppです。
+PortalProofは、受注者が依頼受付フローを公開し、合意した仕事内容をPortaldot V3テストネットに記録して、納品・支払い証明書を生成するDAppです。
 
 ### 対象となる利用者
 
-PortalProofは、イラストレーターやアーティスト、クリエイターと呼ばれる人だけに限定したアプリではありません。何かを制作する人、スキルやサービスを提供する人など、幅広い仕事の受発注を対象としています。例えば、デザイン、動画制作、開発、翻訳、ハンドメイド制作、相談・指導などを想定しています。画面上では親しみやすい呼び方として、仕事を受ける側を引き続き「クリエイター」と表記します。
+PortalProofは、イラストレーターやアーティスト、クリエイターと呼ばれる人だけに限定したアプリではありません。何かを制作する人、スキルやサービスを提供する人など、幅広い仕事の受発注を対象としています。例えば、デザイン、動画制作、開発、翻訳、ハンドメイド制作、相談・指導などを想定しています。画面上の正式な役割名は、仕事を受ける側を「受注者」、依頼する側を「発注者」と表記します。主要な導線では「仕事を受ける」「仕事を依頼する」と行動で案内します。
 
 これらは想定する利用対象であり、すべてのサービス固有の業務フローが実装済みという意味ではありません。現在の納品証明は納品URLを使う方式です。納品ファイルのないサービスの完了証跡については、今後の仕様検討・実装が必要です。
 
@@ -227,28 +227,28 @@ PortalProofは、イラストレーターやアーティスト、クリエイタ
 
 ### 現在の公開フロー
 
-- クリエイターはEVMウォレットで認証メッセージに署名してログインします。メール登録、送金、ガス代は不要です。
-- クリエイターは複数の募集を作成し、サービスごとの共有URLを公開できます。募集の受付停止・再開にも対応しています。
+- 受注者はEVMウォレットで認証メッセージに署名してログインします。メール登録、送金、ガス代は不要です。
+- 受注者は複数の募集を作成し、サービスごとの共有URLを公開できます。募集の受付停止・再開にも対応しています。
 - 受取ウォレットは署名ログインで検証したウォレットを自動設定します。手入力は廃止しました。ウォレットアカウントが所有する既存募集も、所有者が管理画面を開くと自動補正します。
-- 依頼者は募集URLを開き、クリエイターとは別のウォレットでログインして依頼を送信します。依頼送信時にオンチェーン取引やガス代は発生しません。
-- 募集と依頼はSupabaseに保存され、クリエイターと依頼者が別端末から、それぞれ自分のウォレットに紐づく情報を確認できます。
-- 案件は未処理、承認済、交渉済、納品済、キャンセル済、アーカイブに分けて管理します。アーカイブはクリエイター側だけの一覧整理であり、案件のキャンセルや削除ではありません。
-- 条件合意前はクリエイターが理由を付けて辞退できます。条件合意後のキャンセルには、相手側の承認が必要です。
-- クリエイター側・依頼者側の双方に、日本語・英語の使い方ガイドがあります。
+- 発注者は募集URLを開き、受注者とは別のウォレットでログインして依頼を送信します。依頼送信時にオンチェーン取引やガス代は発生しません。
+- 募集と依頼はSupabaseに保存され、受注者と発注者が別端末から、それぞれ自分のウォレットに紐づく情報を確認できます。
+- 案件は未処理、承認済、交渉済、納品済、キャンセル済、アーカイブに分けて管理します。アーカイブは受注者側だけの一覧整理であり、案件のキャンセルや削除ではありません。
+- 条件合意前は受注者が理由を付けて辞退できます。条件合意後のキャンセルには、相手側の承認が必要です。
+- 受注者側・発注者側の双方に、日本語・英語の使い方ガイドがあります。
 
 ### Portaldotを採用する理由
 
-Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーション開発に対応しています。PortalProofはその機能を使い、クリエイターの仕事依頼記録をPortaldot V3テストネット上に検証可能な形で残します。
+Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーション開発に対応しています。PortalProofはその機能を使い、受発注の仕事記録をPortaldot V3テストネット上に検証可能な形で残します。
 
 ### 端末保存MVPの範囲（過去のテストネット実演）
 
-- クリエイター受付情報と依頼内容の入力
-- サービス内容と参考価格を含む共有可能なクリエイター専用依頼受付URL
-- クリエイターのリンクから開く依頼者専用フォーム
-- 受付設定と複数の依頼一覧を備えたクリエイター管理画面
-- 受付作成・仕事管理・依頼ページ確認へ移動するクリエイター専用TOP
+- 受注者の受付情報と依頼内容の入力
+- サービス内容と参考価格を含む共有可能な受注者専用依頼受付URL
+- 受注者のリンクから開く発注者専用フォーム
+- 受付設定と複数の依頼一覧を備えた受注者管理画面
+- 受付作成・仕事管理・依頼ページ確認へ移動する受注者専用TOP
 - ローカル作業中の誤送信を防ぐ、ローカル実演／Portaldot V3モード切り替え
-- 管理画面から完全に分離した依頼者専用の公開送信ページ
+- 管理画面から完全に分離した発注者専用の公開送信ページ
 - 依頼ごとに独立した案件管理画面
 - 長いフォームを避けるため、合意・納品・支払い・証明書を切り替える案件管理画面
 - 合意条件ハッシュの生成
@@ -294,8 +294,8 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 
 ```mermaid
 flowchart LR
-  Creator[クリエイター] --> DApp[PortalProof Web DApp]
-  Client[依頼者] --> DApp
+  Creator[受注者] --> DApp[PortalProof Web DApp]
+  Client[発注者] --> DApp
   DApp --> Shared[Supabase認証・共有ワークフローDB]
   Shared --> Jobs[募集・依頼・合意履歴]
   DApp -. 共有フローとの連携作業中 .-> Contract[PortalProofOrder Solidityコントラクト]
@@ -308,13 +308,13 @@ flowchart LR
 
 ### 利用の流れ
 
-1. クリエイターがウォレットでログインし、サービス名と仕事内容を入力して募集を作成します。受取先には検証済みのログインウォレットを自動設定します。
-2. PortalProofがSNSや依頼者へ共有できる専用の公開受付URLを発行します。
-3. 依頼者は別端末でURLを開き、クリエイターとは別のウォレットでログインして、名前、依頼内容、希望金額、希望納期を送信します。送信はオフチェーンで、ガス代は不要です。
-4. 依頼は変更履歴とともに共有データベースへ保存され、クリエイターの案件一覧と依頼者の依頼一覧の双方に表示されます。
-5. クリエイターは商談を開始し、依頼者の条件を承認するか、変更条件を提案するか、理由を付けて辞退します。変更条件は依頼者の承認が必要です。
-6. 合意前はクリエイターが辞退できます。合意後のキャンセルは、相手側の承認を必要とします。
-7. クリエイターは案件を段階別に管理し、案件の状態を変えずにアーカイブ・復元できます。
+1. 受注者がウォレットでログインし、サービス名と仕事内容を入力して募集を作成します。受取先には検証済みのログインウォレットを自動設定します。
+2. PortalProofがSNSや発注者へ共有できる専用の公開受付URLを発行します。
+3. 発注者は別端末でURLを開き、受注者とは別のウォレットでログインして、名前、依頼内容、希望金額、希望納期を送信します。送信はオフチェーンで、ガス代は不要です。
+4. 依頼は変更履歴とともに共有データベースへ保存され、受注者の案件一覧と発注者の依頼一覧の双方に表示されます。
+5. 受注者は商談を開始し、発注者の条件を承認するか、変更条件を提案するか、理由を付けて辞退します。変更条件は発注者の承認が必要です。
+6. 合意前は受注者が辞退できます。合意後のキャンセルは、相手側の承認を必要とします。
+7. 受注者は案件を段階別に管理し、案件の状態を変えずにアーカイブ・復元できます。
 8. 既存のPortaldot V3証明コントラクトでは、発注、納品、検証済み支払いの証跡を実演済みです。この証明フローを新しい共有案件へ接続することが、現在のリリース上の重要課題です。
 
 ### ローカルでの起動
@@ -334,7 +334,7 @@ npm run compile:contract
 
 ### Portaldot V3へのデプロイ
 
-本番用テストネットコントラクトは、PortalProof全体で共有するものとしてすでに1回デプロイ済みです。クリエイターや依頼者が個別にデプロイする必要はありません。
+本番用テストネットコントラクトは、PortalProof全体で共有するものとしてすでに1回デプロイ済みです。受注者や発注者が個別にデプロイする必要はありません。
 
 将来、新しいコントラクトへ置き換える場合は次の手順を使います。
 
@@ -382,9 +382,9 @@ AI支援は、実装補助、ドキュメント作成、デバッグに使用し
 
 #### マイルストーン3 — デポジット型エスクローと本番向け強化
 
-- クリエイターが依頼を承諾した時点で、依頼者が合意額のネイティブtPOTv3を専用エスクローコントラクトへ預けます。
-- デポジットを証明ID、依頼者、クリエイターのウォレットに紐づけてロックします。
-- 納品後、依頼者の承認によりクリエイターへ支払います。
+- 受注者が依頼を承諾した時点で、発注者が合意額のネイティブtPOTv3を専用エスクローコントラクトへ預けます。
+- デポジットを証明ID、発注者、受注者のウォレットに紐づけてロックします。
+- 納品後、発注者の承認により受注者へ支払います。
 - 承諾前のキャンセルと返金、未納品時の期限付き返金に対応します。
 - デポジット確認前は、保護された納品物を公開しません。
 

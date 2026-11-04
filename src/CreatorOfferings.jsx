@@ -14,7 +14,7 @@ export function OfferingCards({ rows, base, onCopy, onToggle, disabled = false, 
       <p>{profile.creatorName}</p>
       <p style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{profile.serviceDescription}</p>
       <label>{t("受付URL", "Request URL")}<input readOnly value={url} onFocus={(event) => event.target.select()} /></label>
-      {row.active && <a className="buttonLink primary" href={url} target="_blank" rel="noopener noreferrer">{t("依頼者ページを開く", "Open request page")}</a>}
+      {row.active && <a className="buttonLink primary" href={url} target="_blank" rel="noopener noreferrer">{t("発注者ページを開く", "Open request page")}</a>}
       <button type="button" className="secondary" onClick={() => onCopy(url)}>{t("URLをコピー", "Copy URL")}</button>
       <button type="button" className="secondary" disabled={disabled} onClick={() => onToggle(row)}>{row.active ? t("受付を停止", "Close offering") : t("受付を再開", "Reopen offering")}</button>
     </article>;

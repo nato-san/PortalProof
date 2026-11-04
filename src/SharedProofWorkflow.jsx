@@ -19,8 +19,8 @@ import {
 const checkLabels = {
   hasHash: ["トランザクションハッシュの形式", "Transaction hash format"],
   transactionFound: ["Portaldot V3上の取引", "Transaction found on Portaldot V3"],
-  hasExpectedFrom: ["依頼者ウォレットからの送金", "Sender is the client wallet"],
-  hasExpectedTo: ["クリエイターの受取ウォレット", "Recipient is the creator wallet"],
+  hasExpectedFrom: ["発注者ウォレットからの送金", "Sender is the client wallet"],
+  hasExpectedTo: ["受注者の受取ウォレット", "Recipient is the provider wallet"],
   hasExpectedAmount: ["合意した金額", "Amount matches the agreement"],
   hasSuccess: ["取引の成功状態", "Transaction succeeded"],
 };
@@ -106,7 +106,7 @@ export function SharedProofWorkflow({ job, kind, t, onChange, workflowVersion = 
     await perform(async () => {
       const value = await save("report_payment", { paymentTxHash: paymentTxHash.trim() });
       setPaymentEvidence(await verifySharedPayment(value, paymentTxHash.trim()));
-      setMessage(t("支払い情報をクリエイターへ送りました。これはまだ支払い確認完了ではありません。", "Payment information sent to the creator. This is not yet verified payment proof."));
+      setMessage(t("支払い情報を受注者へ送りました。これはまだ支払い確認完了ではありません。", "Payment information sent to the provider. This is not yet verified payment proof."));
     });
   }
 
@@ -142,10 +142,10 @@ export function SharedProofWorkflow({ job, kind, t, onChange, workflowVersion = 
 
     {stage === "delivery" && <div className="stagePanel"><h4>{t("納品証明", "Delivery proof")}</h4>{creator && !job.deliveryTxHash ? <><label>{t("納品URL", "Delivery URL")}<input value={deliveryUrl} onChange={(event) => setDeliveryUrl(event.target.value)} placeholder="https://... or ipfs://..." /></label><button className="primary wide" disabled={busy || !deliveryUrl.trim()} onClick={recordDelivery}><Link2 size={18} />{t("納品URLのハッシュを記録", "Record delivery URL hash")}</button></> : <><p><a href={job.deliveryUrl} target="_blank" rel="noreferrer">{t("納品URLを開く", "Open delivery URL")}</a></p><code>{job.deliveryHash}</code><p><a href={explorerUrl(job.deliveryTxHash)} target="_blank" rel="noreferrer">{t("納品証明を確認", "View delivery proof")}</a></p></>}</div>}
 
-    {stage === "payment" && <div className="stagePanel"><h4>{t("支払い証明", "Payment proof")}</h4>{!creator && !job.paymentRecordTxHash && <><p>{t("合意額をクリエイターへ送金後、そのPortaldot V3トランザクションハッシュを入力してください。", "After transferring the agreed amount to the creator, enter the Portaldot V3 transaction hash.")}</p><label>{t("支払いトランザクションハッシュ", "Payment transaction hash")}<input value={paymentTxHash} onChange={(event) => setPaymentTxHash(event.target.value)} placeholder="0x..." /></label><button className="primary wide" disabled={busy || !/^0x[a-fA-F0-9]{64}$/.test(paymentTxHash.trim())} onClick={reportPayment}>{t("支払い情報を送信", "Submit payment information")}</button></>}
+    {stage === "payment" && <div className="stagePanel"><h4>{t("支払い証明", "Payment proof")}</h4>{!creator && !job.paymentRecordTxHash && <><p>{t("合意額を受注者へ送金後、そのPortaldot V3トランザクションハッシュを入力してください。", "After transferring the agreed amount to the provider, enter the Portaldot V3 transaction hash.")}</p><label>{t("支払いトランザクションハッシュ", "Payment transaction hash")}<input value={paymentTxHash} onChange={(event) => setPaymentTxHash(event.target.value)} placeholder="0x..." /></label><button className="primary wide" disabled={busy || !/^0x[a-fA-F0-9]{64}$/.test(paymentTxHash.trim())} onClick={reportPayment}>{t("支払い情報を送信", "Submit payment information")}</button></>}
       {job.paymentTxHash && <><ul className="checks">{Object.entries(paymentEvidence.checks).map(([key, value]) => <li key={key} className={value ? "ok" : ""}><CheckCircle2 size={15} />{t(...checkLabels[key])}</li>)}</ul><a href={explorerUrl(job.paymentTxHash)} target="_blank" rel="noreferrer">{t("支払い取引を確認", "View payment transaction")}</a>{creator && !job.paymentRecordTxHash && <button className="primary wide" disabled={busy || !paymentEvidence.ok} onClick={recordPayment}>{t("検証済み支払い証跡を記録", "Record verified payment evidence")}</button>}</>}
       {job.paymentRecordTxHash && <p><a href={explorerUrl(job.paymentRecordTxHash)} target="_blank" rel="noreferrer">{t("オンチェーン支払い証明を確認", "View on-chain payment proof")}</a></p>}</div>}
 
-    {stage === "certificate" && job.paymentRecordTxHash && <div className="stagePanel certificatePanel"><h4>{t("QR付き証明書", "QR proof certificate")}</h4><p>{t("QRコードはPortaldot V3上の最終支払い証明を開きます。", "The QR code opens the final payment-proof record on Portaldot V3.")}</p><div className="certificateBody"><dl><dt>{t("クリエイター", "Creator")}</dt><dd>{job.creatorName}</dd><dt>{t("依頼者", "Client")}</dt><dd>{job.clientName}</dd><dt>{t("コントラクト", "Contract")}</dt><dd>{PORTALPROOF_CONTRACT_ADDRESS}</dd><dt>{t("発注ID", "Order ID")}</dt><dd><code>{job.orderId}</code></dd><dt>{t("合意条件", "Terms")}</dt><dd><code>{job.termsHash}</code></dd><dt>{t("納品証明", "Delivery proof")}</dt><dd><code>{job.deliveryTxHash}</code></dd><dt>{t("支払い取引", "Payment")}</dt><dd><code>{job.paymentTxHash}</code></dd><dt>{t("支払い証明", "Payment proof")}</dt><dd><code>{job.paymentRecordTxHash}</code></dd></dl>{qr && <img src={qr} alt={t("支払い証明QRコード", "Payment proof QR code")} />}</div><p className="muted">{t("これは検証可能なQR証明書です。譲渡不能トークン（SBT）のミントではありません。", "This is a verifiable QR certificate, not a minted soulbound token (SBT).")}</p></div>}
+    {stage === "certificate" && job.paymentRecordTxHash && <div className="stagePanel certificatePanel"><h4>{t("QR付き証明書", "QR proof certificate")}</h4><p>{t("QRコードはPortaldot V3上の最終支払い証明を開きます。", "The QR code opens the final payment-proof record on Portaldot V3.")}</p><div className="certificateBody"><dl><dt>{t("受注者", "Provider")}</dt><dd>{job.creatorName}</dd><dt>{t("発注者", "Client")}</dt><dd>{job.clientName}</dd><dt>{t("コントラクト", "Contract")}</dt><dd>{PORTALPROOF_CONTRACT_ADDRESS}</dd><dt>{t("発注ID", "Order ID")}</dt><dd><code>{job.orderId}</code></dd><dt>{t("合意条件", "Terms")}</dt><dd><code>{job.termsHash}</code></dd><dt>{t("納品証明", "Delivery proof")}</dt><dd><code>{job.deliveryTxHash}</code></dd><dt>{t("支払い取引", "Payment")}</dt><dd><code>{job.paymentTxHash}</code></dd><dt>{t("支払い証明", "Payment proof")}</dt><dd><code>{job.paymentRecordTxHash}</code></dd></dl>{qr && <img src={qr} alt={t("支払い証明QRコード", "Payment proof QR code")} />}</div><p className="muted">{t("これは検証可能なQR証明書です。譲渡不能トークン（SBT）のミントではありません。", "This is a verifiable QR certificate, not a minted soulbound token (SBT).")}</p></div>}
   </section>;
 }

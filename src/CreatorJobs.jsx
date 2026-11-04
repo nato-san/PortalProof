@@ -27,7 +27,7 @@ export function CreatorJobs({ jobs, ownerId, language, t, onJobChange, onArchive
   }
   async function archive(job) {
     if (busyId) return;
-    if (!job.archivedAt && !window.confirm(t("一覧を整理するため、この案件をアーカイブしますか？取引の状態や依頼者側の表示は変わりません。", "Archive this job for your own organization? Its transaction state and client view will not change."))) return;
+    if (!job.archivedAt && !window.confirm(t("一覧を整理するため、この案件をアーカイブしますか？取引の状態や発注者側の表示は変わりません。", "Archive this job for your own organization? Its transaction state and client view will not change."))) return;
     setBusyId(job.id); setError("");
     try {
       const value = await sharedRpc("pp_set_request_archive", { p_id: job.id, p_archived: !job.archivedAt });

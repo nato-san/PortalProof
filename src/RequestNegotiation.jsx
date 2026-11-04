@@ -30,8 +30,8 @@ export function RequestNegotiation({ job, kind, userId, t, onChange, workflowVer
   if (workflowVersion < 2) return <p className="notice">{t("段階別管理のサーバー設定待ちです。更新が完了するまで承認・交渉の操作はできません。", "Awaiting the stage-management server update. Agreement actions are disabled until setup is complete.")}</p>;
   return <section>
     <h3>{t("受注・商談状況", "Agreement status")}</h3>
-    <p>{({ negotiating: t("未処理：アーティストの確認待ちです。", "Unprocessed: awaiting the artist's review."), approved: t("承認済：商談中です。条件はまだ確定していません。", "Approved: negotiating; terms are not final yet."), proposed: t("変更条件への依頼者の承認待ちです。", "Awaiting client approval of changed terms."), agreed: t("交渉済・受注成立：キャンセルには双方の合意が必要です。", "Terms agreed: cancellation requires both parties."), cancelled: t("キャンセル済み：依頼と理由の記録は残ります。", "Cancelled: the request and reason remain recorded.") })[job.workflowPhase]}</p>
-    {job.termsProposal && <div className="notice"><strong>{t("アーティストの変更提案", "Artist's proposed terms")}</strong><p>{job.termsProposal.amount} tPOTv3 / {job.termsProposal.deadline}</p><p>{job.termsProposal.requestBrief}</p></div>}
+    <p>{({ negotiating: t("未処理：受注者の確認待ちです。", "Unprocessed: awaiting the provider's review."), approved: t("承認済：商談中です。条件はまだ確定していません。", "Approved: negotiating; terms are not final yet."), proposed: t("変更条件への発注者の承認待ちです。", "Awaiting client approval of changed terms."), agreed: t("交渉済・受注成立：キャンセルには双方の合意が必要です。", "Terms agreed: cancellation requires both parties."), cancelled: t("キャンセル済み：依頼と理由の記録は残ります。", "Cancelled: the request and reason remain recorded.") })[job.workflowPhase]}</p>
+    {job.termsProposal && <div className="notice"><strong>{t("受注者の変更提案", "Provider's proposed terms")}</strong><p>{job.termsProposal.amount} tPOTv3 / {job.termsProposal.deadline}</p><p>{job.termsProposal.requestBrief}</p></div>}
     {job.cancellationReason && <p>{t("キャンセル理由：", "Cancellation reason: ")}{job.cancellationReason}</p>}
     {job.cancellationRequest && <div className="notice"><p>{t("キャンセル申請：", "Cancellation requested: ")}{job.cancellationRequest.reason}</p><p>{job.cancellationRequest.by === userId ? t("相手の回答を待っています。", "Waiting for the other participant's response.") : t("同意するか選んでください。", "Choose whether you agree.")}</p></div>}
     {message && <p role="alert">{message}</p>}
@@ -46,6 +46,6 @@ export function RequestNegotiation({ job, kind, userId, t, onChange, workflowVer
       <label>{t("キャンセル理由（相手に表示されます）", "Cancellation reason (shown to the other participant)")}<textarea value={reason} onChange={e => setReason(e.target.value)} required maxLength={1000} /></label>
       <button className="secondary" disabled={busy || !reason.trim()}>{actions.includes("decline") ? t("理由を送って商談をキャンセル", "Decline with reason") : t("キャンセルを申請", "Request cancellation")}</button>
     </form>}
-    <details><summary>{t("依頼番号・本人確認ウォレット", "Request ID and authenticated wallets")}</summary><p>{job.id}</p><p>{t("アーティスト：", "Artist: ")}{job.creatorWallet}</p><p>{t("依頼者：", "Client: ")}{job.clientWallet}</p></details>
+    <details><summary>{t("依頼番号・本人確認ウォレット", "Request ID and authenticated wallets")}</summary><p>{job.id}</p><p>{t("受注者：", "Provider: ")}{job.creatorWallet}</p><p>{t("発注者：", "Client: ")}{job.clientWallet}</p></details>
   </section>;
 }

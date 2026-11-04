@@ -9,11 +9,11 @@ const labels = {
   paymentEventFound: ["支払い証明イベント", "Payment-proof event found"],
   orderEventFound: ["同じ発注IDの発注証明", "Order proof with the same ID"],
   deliveryEventFound: ["同じ発注IDの納品証明", "Delivery proof with the same ID"],
-  creatorRecordedProof: ["クリエイターによる最終記録", "Final record submitted by the creator"],
+  creatorRecordedProof: ["受注者による最終記録", "Final record submitted by the provider"],
   paymentFound: ["参照された支払い取引", "Referenced payment transaction found"],
   paymentSucceeded: ["支払い取引が成功", "Payment transaction succeeded"],
-  paymentSenderMatchesClient: ["送金元が依頼者ウォレット", "Payment sender matches the client"],
-  paymentRecipientMatchesCreator: ["送金先がクリエイターウォレット", "Payment recipient matches the creator"],
+  paymentSenderMatchesClient: ["送金元が発注者ウォレット", "Payment sender matches the client"],
+  paymentRecipientMatchesCreator: ["送金先が受注者ウォレット", "Payment recipient matches the provider"],
 };
 
 const short = (value) => value ? `${value.slice(0, 10)}…${value.slice(-8)}` : "—";
@@ -48,8 +48,8 @@ export function PublicProof({ hash }) {
         <dt>{text("送信元", "From")}</dt><dd><code>{proof.transaction.from}</code></dd>
         <dt>{text("送信先", "To")}</dt><dd><code>{proof.transaction.to || "—"}</code></dd>
         <dt>{text("発注ID・条件ハッシュ", "Order ID / terms hash")}</dt><dd><code>{proof.paymentEvent?.args.proofId || "—"}</code></dd>
-        <dt>{text("依頼者ウォレット", "Client wallet")}</dt><dd><code>{proof.orderEvent?.args.client || "—"}</code></dd>
-        <dt>{text("クリエイターウォレット", "Creator wallet")}</dt><dd><code>{proof.orderEvent?.args.creator || "—"}</code></dd>
+        <dt>{text("発注者ウォレット", "Client wallet")}</dt><dd><code>{proof.orderEvent?.args.client || "—"}</code></dd>
+        <dt>{text("受注者ウォレット", "Provider wallet")}</dt><dd><code>{proof.orderEvent?.args.creator || "—"}</code></dd>
         <dt>{text("納品ハッシュ", "Delivery hash")}</dt><dd><code>{proof.deliveryEvent?.args.deliveryHash || "—"}</code></dd>
         <dt>{text("支払いTx", "Payment transaction")}</dt><dd><code>{proof.paymentEvent?.args.paymentTxHash || "—"}</code></dd>
         <dt>{text("支払い額", "Payment amount")}</dt><dd>{proof.paymentTransaction ? `${ethers.formatEther(proof.paymentTransaction.value)} tPOTv3` : `${ethers.formatEther(proof.transaction.value)} tPOTv3`}</dd>
