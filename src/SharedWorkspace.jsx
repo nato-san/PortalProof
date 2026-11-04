@@ -3,7 +3,7 @@ import { shared, sharedRpc } from "./shared.js";
 import { emptyDraft, walletFreeRequestReady } from "./domain.js";
 import { WalletSignIn } from "./WalletSignIn.jsx";
 import { CreatorDashboard } from "./CreatorDashboard.jsx";
-import { creatorTab, sharedLanguage, sharedStatus } from "./sharedView.js";
+import { creatorTab, sharedLanguage, sharedStatus, workspaceNavigation } from "./sharedView.js";
 import { verifiedSessionWallet } from "./negotiation.js";
 import { RequestNegotiation } from "./RequestNegotiation.jsx";
 import { GuideLink } from "./UsageGuide.jsx";
@@ -18,6 +18,7 @@ export function SharedWorkspace() {
   const offeringId = query.get("offering"), requestId = query.get("clientRequest"), token = query.get("access");
   const clientRole = query.get("role") === "client";
   const clientContext = clientRole || Boolean(offeringId || requestId);
+  const workspaceNav = workspaceNavigation({ clientContext, clientRole, offeringId, requestId });
   const language = (() => {
     try { return sharedLanguage(query.get("lang") || localStorage.getItem("portalproof-language")); }
     catch { return sharedLanguage(query.get("lang")); }
@@ -102,7 +103,8 @@ export function SharedWorkspace() {
       <a className="brand" href={`${base}?view=shared&role=${clientContext ? "client" : "creator"}&lang=${language}`}><img className="brandLogo" src="./portalproof-icon-192.png" alt="" />PortalProof</a>
       <div className="topActions">
       <GuideLink role={clientContext ? "client" : "creator"} language={language} flow="shared" />
-      {session && <a className="buttonLink secondary" href={`${base}?view=shared&role=${clientContext ? "creator" : "client"}&lang=${language}`}>{clientContext ? t("仕事を受ける", "Provide services") : t("仕事を依頼する", "Request work")}</a>}
+      {workspaceNav.showClientList && <a className="buttonLink secondary" href={`${base}?view=shared&role=client&lang=${language}`}>{t("依頼した仕事", "My requests")}</a>}
+      <a className="buttonLink secondary" href={`${base}?view=shared&role=${workspaceNav.switchRole}&lang=${language}`}>{clientContext ? t("仕事を受ける", "Provide services") : t("仕事を依頼する", "Request work")}</a>
       <div className="languageToggle" aria-label={t("言語", "Language")}>
         <button type="button" className={language === "ja" ? "active" : ""} aria-pressed={language === "ja"} onClick={() => setLanguage("ja")}>日本語</button>
         <button type="button" className={language === "en" ? "active" : ""} aria-pressed={language === "en"} onClick={() => setLanguage("en")}>English</button>
@@ -122,7 +124,7 @@ export function SharedWorkspace() {
       </section>
       : requestId && !session && !token ? <WalletSignIn busy={busy} run={run} t={t} />
       : requestId ? <section className="panel">
-        <a className="backLink" href={`${base}?view=shared&role=client&lang=${language}`}>{t("← 自分が依頼した仕事へ", "← My commissions")}</a>
+        <a className="backLink" href={`${base}?view=shared&role=client&lang=${language}`}>{t("← 依頼した仕事へ", "← My requests")}</a>
         <h1>{t("ご依頼の確認", "Your request")}</h1><p>{t("このページのURLを保存してください。", "Save this page's private URL.")}</p>
         {clientJob && <><h2>{clientJob.serviceName}</h2><p>{clientJob.clientName} → {clientJob.creatorName}</p><p>{clientJob.requestBrief}</p>
           <p>{t("金額：", "Amount: ")}{clientJob.amount} tPOTv3 ／ {t("納期：", "Deadline: ")}{clientJob.deadline}</p>
@@ -158,7 +160,7 @@ export function SharedWorkspace() {
           </form>}
       </section>
       : !session ? <WalletSignIn busy={busy} run={run} t={t} />
-      : clientRole ? <section><header className="hero compactHero"><div><h1>{t("自分が依頼した仕事", "My commissions")}</h1><p>{t("このウォレットで送信した依頼です。", "Requests submitted with this wallet.")}</p></div></header>{!jobs.length && <p>{t("依頼はまだありません。", "No commissions yet.")}</p>}<div className="requestCards">{jobs.map(job => <article className="panel requestCard" key={job.id}><span className={`statusBadge ${job.status}`}>{sharedStatus(job.status, language)}</span><h2>{job.serviceName}</h2><p>{job.creatorName}</p><p className="sharedBriefPreview">{job.requestBrief}</p><p>{job.amount} tPOTv3 / {job.deadline}</p><a className="buttonLink primary wide" href={`${base}?view=shared&role=client&clientRequest=${job.id}&lang=${language}`}>{t("依頼の詳細", "Request details")}</a></article>)}</div></section>
+      : clientRole ? <section><header className="hero compactHero"><div><h1>{t("依頼した仕事", "My requests")}</h1><p>{t("このウォレットで送信した依頼です。", "Requests submitted with this wallet.")}</p></div></header>{!jobs.length && <p>{t("依頼はまだありません。", "No requests yet.")}</p>}<div className="requestCards">{jobs.map(job => <article className="panel requestCard" key={job.id}><span className={`statusBadge ${job.status}`}>{sharedStatus(job.status, language)}</span><h2>{job.serviceName}</h2><p>{job.creatorName}</p><p className="sharedBriefPreview">{job.requestBrief}</p><p>{job.amount} tPOTv3 / {job.deadline}</p><a className="buttonLink primary wide" href={`${base}?view=shared&role=client&clientRequest=${job.id}&lang=${language}`}>{t("依頼の詳細", "Request details")}</a></article>)}</div></section>
       : <CreatorDashboard tab={tab} onTabChange={changeTab} profile={profile} setProfile={setProfile} creatorWallet={walletIdentity} busy={busy} savedUrl={savedUrl} ownerId={session.user.id} base={base} jobs={jobs} language={language} t={t} onJobChange={jobChanged} workflowVersion={workflowVersion} onArchiveChange={(id, archivedAt) => setJobs(current => current.map(job => job.id === id ? { ...job, archivedAt } : job))} createOffering={() => run(async () => {
         if (!walletIdentity) throw new Error(t("ログインウォレットを確認できません。再度ログインしてください。", "Unable to verify the signed-in wallet. Please sign in again."));
         const offeringProfile = { ...profile, creatorWallet: walletIdentity };

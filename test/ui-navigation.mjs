@@ -43,7 +43,7 @@ async function click(label) {
 }
 async function visit(href) { await settle(() => { history.pushState(null, "", href); window.dispatchEvent(new Event("popstate")); }); }
 await settle(() => root.render(React.createElement(AppRouter, { LocalApp: () => React.createElement("h1", null, "ISOLATED LOCAL APP") })));
-assert.match(text(), /クリエイターホーム/);
+assert.match(text(), /仕事を受ける/);
 assert.equal(new URL(location.href).searchParams.get("view"), "shared");
 assert.doesNotMatch(text(), /ISOLATED LOCAL APP/);
 await click("案件を管理");
@@ -53,7 +53,7 @@ assert.match(text(), /一覧に戻る/);
 await settle(() => history.back());
 assert.ok([...document.querySelectorAll("button")].some(button => button.textContent === "詳細を開く"));
 await settle(() => history.back());
-assert.match(text(), /クリエイターホーム/);
+assert.match(text(), /仕事を受ける/);
 await settle(() => history.forward());
 assert.match(text(), /案件管理/);
 await click("承認済");
@@ -62,15 +62,15 @@ await settle(() => history.back());
 assert.match(text(), /Test client/);
 const guideHref = [...document.querySelectorAll("a")].find(item => item.textContent.includes("使い方ガイド")).href;
 await visit(guideHref);
-assert.match(text(), /クリエイター向けガイド/);
+assert.match(text(), /仕事を受ける方のガイド/);
 const backHref = [...document.querySelectorAll("a")].find(item => item.textContent.includes("アプリに戻る")).href;
 await visit(backHref);
 assert.match(text(), /案件管理/);
 await visit("?view=shared&role=client");
-assert.match(text(), /自分が依頼した仕事/);
+assert.match(text(), /依頼した仕事/);
 await visit("?view=shared&role=client&clientRequest=test-job");
 assert.match(text(), /ご依頼の確認/);
-assert.ok([...document.querySelectorAll("a")].some(item => item.textContent === "← 自分が依頼した仕事へ"));
+assert.ok([...document.querySelectorAll("a")].some(item => item.textContent === "← 依頼した仕事へ"));
 await visit("?view=jobs");
 assert.match(text(), /案件管理/);
 assert.equal(new URL(location.href).searchParams.get("view"), "shared");
@@ -81,7 +81,7 @@ assert.doesNotMatch(text(), /ISOLATED LOCAL APP/);
 await visit("?workspace=local&mode=job&v=1&id=old");
 assert.match(text(), /ISOLATED LOCAL APP/);
 await visit("/");
-assert.match(text(), /クリエイターホーム/);
+assert.match(text(), /仕事を受ける/);
 assert.equal(localStorage.getItem("portalproof-requests-v1"), "preserve-test-only");
 // Logged-out reviewer entry has one wallet-only login in either language.
 sessionUser = null;

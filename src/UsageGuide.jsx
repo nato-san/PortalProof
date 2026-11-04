@@ -71,7 +71,7 @@ export const sharedGuideSteps = {
     ja: [
       ["募集ページを開く", "受注者がSNSなどで共有した受付URLを開き、仕事内容を確認します。"],
       ["ログインして依頼を送る", "送信前に自分のウォレットで署名ログインし、名前・依頼内容・希望金額・納期を入力します。ログインや依頼送信で送金・ガス代は発生しません。受注者とは別のご自身のウォレットを使ってください。"],
-      ["自分の依頼を確認", "送信後の「自分の依頼を確認する」または上部の「自分が依頼した仕事」から管理できます。同じウォレットでログインすれば、別端末からも自分の新方式の依頼を確認できます。以前の未ログインのテスト依頼は自動では紐づきません。"],
+      ["自分の依頼を確認", "送信後の「自分の依頼を確認する」または上部の「依頼した仕事」から一覧を開けます。同じウォレットでログインすれば、別端末からも自分の新方式の依頼を確認できます。以前の未ログインのテスト依頼は自動では紐づきません。"],
       ["条件を確認", "受注者が依頼を確認して商談を開始します。元の条件のままなら受注者の条件確定で成立し、変更提案があればあなたの承認で成立します。商談中は受注者が理由付きで辞退できます。成立後のキャンセルには相手の同意が必要です。"],
       ["キャンセルに回答", "キャンセル申請と理由が届いたら、依頼の詳細で同意・不同意を選べます。自分の申請を自分で承認することはできません。キャンセルされても依頼と理由の記録は残ります。"],
       ["納品を確認して支払いを報告", "受注成立後、受注者が発注証明と納品URLのハッシュを記録するまで支払わないでください。納品を確認して合意額を指定ウォレットへ送金したら、取引履歴のTxHashを案件画面から送信します。送金元・送金先・金額・成功状態が一致した支払いだけが証明へ進みます。"],
@@ -80,7 +80,7 @@ export const sharedGuideSteps = {
     en: [
       ["Open an offering", "Open the provider's public request link from social media and review the service."],
       ["Sign in and submit", "Sign in with your own wallet before submitting your name, brief, proposed amount and deadline. Neither sign-in nor request submission sends funds or charges gas. Use a wallet separate from the provider's."],
-      ["Find your commissions", "After submitting, select View my request or My commissions in the header. The same wallet can access its new authenticated requests on another device. Earlier unsigned test requests are not automatically linked."],
+      ["Find your requests", "After submitting, select View my request or My requests in the header. The same wallet can access its new authenticated requests on another device. Earlier unsigned test requests are not automatically linked."],
       ["Review terms", "The provider reviews and starts negotiation. The provider can finalize unchanged original terms; proposed changes require your approval. The provider may decline with a reason before agreement. Cancellation after agreement needs the other participant's consent."],
       ["Respond to cancellation", "Open request details to agree to or decline a cancellation request. You cannot approve your own cancellation request. Original requests and cancellation reasons remain recorded."],
       ["Review delivery and report payment", "After agreement, wait until the provider records the order proof and delivery URL hash. Review the delivery, transfer the agreed amount to the designated wallet, then submit the transaction hash from your wallet history. Only a transfer whose sender, recipient, amount and success status match can proceed to proof."],

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { creatorTab, creatorTabs, offeringMatches, sharedLanguage, sharedStatus, jobStage, jobMatches, jobStageLabel, jobStages } from "../src/sharedView.js";
+import { creatorTab, creatorTabs, offeringMatches, sharedLanguage, sharedStatus, jobStage, jobMatches, jobStageLabel, jobStages, workspaceNavigation } from "../src/sharedView.js";
 for (const tab of creatorTabs) assert.equal(creatorTab(tab), tab);
 assert.equal(creatorTab("bad"), "home");
 assert.equal(sharedLanguage("en"), "en");
@@ -10,6 +10,9 @@ assert.deepEqual(rows.filter(row => offeringMatches(row, "open")).map(row => row
 assert.deepEqual(rows.filter(row => offeringMatches(row, "closed")).map(row => row.id), ["closed"]);
 assert.equal(sharedStatus("new", "ja"), "新着");
 assert.equal(sharedStatus("new", "en"), "New");
+assert.deepEqual(workspaceNavigation({ clientContext: true, clientRole: false, offeringId: "offer", requestId: null }), { showClientList: true, switchRole: "creator" });
+assert.deepEqual(workspaceNavigation({ clientContext: true, clientRole: true, offeringId: null, requestId: null }), { showClientList: false, switchRole: "creator" });
+assert.deepEqual(workspaceNavigation({ clientContext: false, clientRole: false, offeringId: null, requestId: null }), { showClientList: false, switchRole: "client" });
 console.log("Shared view tests passed (tab selection, language and open/closed separation)");
 const jobs = [
   { id: "new", workflowPhase: "negotiating" },

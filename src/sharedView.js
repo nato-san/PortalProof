@@ -16,6 +16,13 @@ export function jobStageLabel(stage, language) {
   return labels[stage]?.[language === "en" ? 1 : 0] || stage;
 }
 export function sharedLanguage(value) { return value === "en" ? "en" : "ja"; }
+export function workspaceNavigation({ clientContext, clientRole, offeringId, requestId }) {
+  const onClientList = clientRole && !offeringId && !requestId;
+  return {
+    showClientList: clientContext && !onClientList,
+    switchRole: clientContext ? "creator" : "client",
+  };
+}
 export function offeringMatches(row, filter) {
   return filter === "open" ? row.active === true : filter === "closed" ? row.active === false : true;
 }
