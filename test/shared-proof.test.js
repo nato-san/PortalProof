@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   emptySharedPaymentEvidence,
   ensurePortaldotV3,
+  explorerUrl,
   sharedDeliveryHash,
   sharedTermsHash,
   sharedTermsPayload,
@@ -19,6 +20,7 @@ assert.notEqual(await sharedTermsHash(job), await sharedTermsHash({ ...job, id: 
 assert.match(await sharedDeliveryHash("https://example.com/delivery.png"), /^0x[0-9a-f]{64}$/);
 await assert.rejects(sharedDeliveryHash("delivery.png"), /納品URL/);
 assert.equal(emptySharedPaymentEvidence(job, `0x${"a".repeat(64)}`).checks.hasHash, true);
+assert.equal(explorerUrl(`0x${"a".repeat(64)}`), `?proofTx=0x${"a".repeat(64)}`);
 
 {
   const calls = [];

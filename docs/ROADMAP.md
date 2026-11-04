@@ -51,8 +51,11 @@
 - DeliverySubmitted: `0x9f8e365d727c2c4cd5cbabd323f505313ea8d6fabcf25c1986d2acf801b76db9`
 - 日本語訳: 納品記録: `0x9f8e365d727c2c4cd5cbabd323f505313ea8d6fabcf25c1986d2acf801b76db9`
 
-- PaymentRecorded: `0x632700e4ca21e59e47b0f9fa60beefd460b1c176695ab33438548cdcc7d8a3a0`
-- 日本語訳: 支払い記録: `0x632700e4ca21e59e47b0f9fa60beefd460b1c176695ab33438548cdcc7d8a3a0`
+- Native payment: `0x632700e4ca21e59e47b0f9fa60beefd460b1c176695ab33438548cdcc7d8a3a0`
+- 日本語訳: ネイティブ支払い: `0x632700e4ca21e59e47b0f9fa60beefd460b1c176695ab33438548cdcc7d8a3a0`
+
+- PaymentRecorded: `0xed7830c50ad616b4fa9e1218f38f6604bb893f45691e13662f593ca8c1ec9a72`
+- 日本語訳: 支払い記録: `0xed7830c50ad616b4fa9e1218f38f6604bb893f45691e13662f593ca8c1ec9a72`
 
 ## Check-in Target / 中間提出目標
 

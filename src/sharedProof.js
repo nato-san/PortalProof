@@ -98,5 +98,67 @@ export async function verifySharedPayment(job, paymentTxHash = job.paymentTxHash
 }
 
 export function explorerUrl(hash) {
-  return `https://node-console.portaldot.dev/#/explorer/query/${hash}`;
+  if (typeof location === "undefined") return `?proofTx=${encodeURIComponent(hash)}`;
+  const url = new URL(location.pathname, location.origin);
+  url.searchParams.set("proofTx", hash);
+  url.searchParams.set("lang", new URL(location.href).searchParams.get("lang") === "en" ? "en" : "ja");
+  return url.href;
+}
+
+export async function loadPublicProof(hash) {
+  if (!/^0x[a-fA-F0-9]{64}$/.test(String(hash || ""))) throw new Error("Invalid transaction hash");
+  const normalized = hash.toLowerCase();
+  const provider = new ethers.JsonRpcProvider(PORTALDOT_V3.rpcUrls[0], Number(BigInt(PORTALDOT_V3.chainId)), { staticNetwork: true });
+  const [transaction, receipt] = await Promise.all([provider.getTransaction(normalized), provider.getTransactionReceipt(normalized)]);
+  if (!transaction || !receipt) throw new Error("Transaction was not found on Portaldot V3");
+  const contract = new ethers.Contract(PORTALPROOF_CONTRACT_ADDRESS, PORTALPROOF_ABI, provider);
+  const parsed = receipt.logs
+    .filter((log) => log.address.toLowerCase() === PORTALPROOF_CONTRACT_ADDRESS.toLowerCase())
+    .map((log) => { try { return contract.interface.parseLog(log); } catch { return null; } })
+    .filter(Boolean);
+  const paymentEvent = parsed.find((event) => event.name === "PaymentRecorded");
+  let orderEvent = null, deliveryEvent = null, paymentTransaction = null, paymentReceipt = null;
+  if (paymentEvent) {
+    const proofId = paymentEvent.args.proofId;
+    const [orders, deliveries, paidTx, paidReceipt] = await Promise.all([
+      contract.queryFilter(contract.filters.OrderCreated(proofId), PORTALPROOF_DEPLOYMENT_BLOCK, "latest"),
+      contract.queryFilter(contract.filters.DeliverySubmitted(proofId), PORTALPROOF_DEPLOYMENT_BLOCK, "latest"),
+      provider.getTransaction(paymentEvent.args.paymentTxHash),
+      provider.getTransactionReceipt(paymentEvent.args.paymentTxHash),
+    ]);
+    orderEvent = orders.find((event) => event.args.creator.toLowerCase() === paymentEvent.args.submitter.toLowerCase()) || null;
+    deliveryEvent = deliveries.find((event) => event.args.submitter.toLowerCase() === paymentEvent.args.submitter.toLowerCase()) || null;
+    paymentTransaction = paidTx;
+    paymentReceipt = paidReceipt;
+  }
+  const checks = {
+    recordSucceeded: Number(receipt.status) === 1,
+    recordUsesContract: transaction.to?.toLowerCase() === PORTALPROOF_CONTRACT_ADDRESS.toLowerCase(),
+    paymentEventFound: Boolean(paymentEvent),
+    orderEventFound: Boolean(orderEvent),
+    deliveryEventFound: Boolean(deliveryEvent),
+    creatorRecordedProof: Boolean(paymentEvent && transaction.from?.toLowerCase() === paymentEvent.args.submitter.toLowerCase()),
+    paymentFound: Boolean(paymentTransaction && paymentReceipt),
+    paymentSucceeded: Number(paymentReceipt?.status) === 1,
+    paymentSenderMatchesClient: Boolean(orderEvent && paymentTransaction?.from?.toLowerCase() === orderEvent.args.client.toLowerCase()),
+    paymentRecipientMatchesCreator: Boolean(orderEvent && paymentTransaction?.to?.toLowerCase() === orderEvent.args.creator.toLowerCase()),
+  };
+  const isFinalProof = Boolean(paymentEvent);
+  const verified = isFinalProof
+    ? Object.values(checks).every(Boolean)
+    : checks.recordSucceeded && (!parsed.length || checks.recordUsesContract);
+  return {
+    hash: normalized,
+    transaction,
+    receipt,
+    parsed,
+    paymentEvent,
+    orderEvent,
+    deliveryEvent,
+    paymentTransaction,
+    paymentReceipt,
+    checks,
+    isFinalProof,
+    verified,
+  };
 }

@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { SharedWorkspace } from "./SharedWorkspace.jsx";
 import { UsageGuide } from "./UsageGuide.jsx";
 import { ClientPaymentReport } from "./PaymentReport.jsx";
+import { PublicProof } from "./PublicProof.jsx";
 import { localWorkspaceUrl, navigate, resolveRoute } from "./navigation.js";
 import { usePageUrl } from "./usePageUrl.js";
 
@@ -22,6 +23,7 @@ export function AppRouter({ LocalApp, contractAddress }) {
   useEffect(() => {
     if (route.kind === "shared" && route.href !== location.href) navigate(route.href, { replace: true });
   }, [url.href]);
+  if (route.kind === "proof") return <PublicProof hash={route.hash} />;
   if (route.kind === "guide") return <UsageGuide role={route.role} />;
   if (route.kind === "payment-report") return <ClientPaymentReport token={route.token} contractAddress={contractAddress} />;
   if (route.kind === "saved-link") return <SavedLinkNotice url={url} />;

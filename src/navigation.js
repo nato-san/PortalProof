@@ -5,6 +5,7 @@ export function resolveRoute(value) {
   const q = url.searchParams;
   // The temporary operator setup page has been removed; old links return home.
   if (q.get("setup") === "job-stages") q.delete("setup");
+  if (q.get("proofTx")) return { kind: "proof", hash: q.get("proofTx") };
   if (["creator", "client"].includes(q.get("guide"))) return { kind: "guide", role: q.get("guide") };
   if (q.get("paymentReport")) return { kind: "payment-report", token: q.get("paymentReport") };
   if (q.get("workspace") === "local" || q.get("view") === "deploy") return { kind: "local" };

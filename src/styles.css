@@ -238,7 +238,8 @@ button:disabled {
   background: var(--surface);
 }
 
-.languageToggle button {
+.languageToggle button,
+.languageToggle a {
   min-height: 36px;
   border: 0;
   border-radius: 0;
@@ -246,11 +247,13 @@ button:disabled {
   color: var(--muted);
 }
 
-.languageToggle button + button {
+.languageToggle button + button,
+.languageToggle a + a {
   border-left: 1px solid var(--line);
 }
 
-.languageToggle button.active {
+.languageToggle button.active,
+.languageToggle a.active {
   background: var(--accent);
   color: #fff;
 }

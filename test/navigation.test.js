@@ -13,6 +13,7 @@ for (const mode of ["job", "request"]) assert.equal(resolveRoute(base + `?mode=$
 assert.equal(resolveRoute(localWorkspaceUrl(base + "?mode=job&id=old")).kind, "local");
 assert.equal(resolveRoute(base + "?view=deploy").kind, "local");
 assert.equal(resolveRoute(base + "?guide=creator").kind, "guide");
+assert.deepEqual(resolveRoute(base + `?proofTx=0x${"a".repeat(64)}&lang=ja`), { kind: "proof", hash: `0x${"a".repeat(64)}` });
 assert.deepEqual(resolveRoute(base + "?setup=job-stages"), { kind: "shared", href: base + "?view=shared" });
 assert.equal(resolveRoute(base + "?paymentReport=private").kind, "payment-report");
 const detail = sharedUrl(base + "?lang=en&view=shared&creatorTab=requests&sharedJob=job&jobStage=approved", { sharedJob: null });
