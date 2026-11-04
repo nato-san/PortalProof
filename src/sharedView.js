@@ -11,6 +11,10 @@ export function jobStage(job) {
 export function jobMatches(job, stage) {
   return stage === "archive" ? Boolean(job.archivedAt) : !job.archivedAt && jobStage(job) === stage;
 }
+export function clientRequestTab(value) { return value === "archive" ? "archive" : "active"; }
+export function clientRequestMatches(job, tab) {
+  return Boolean(job.archivedAt) === (clientRequestTab(tab) === "archive");
+}
 export function jobStageLabel(stage, language) {
   const labels = { unprocessed: ["未処理", "Unprocessed"], approved: ["承認済", "Approved"], agreed: ["交渉済", "Terms agreed"], delivered: ["納品済", "Delivered"], cancelled: ["キャンセル済", "Cancelled"], archive: ["アーカイブ", "Archive"] };
   return labels[stage]?.[language === "en" ? 1 : 0] || stage;

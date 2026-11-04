@@ -37,7 +37,7 @@ The public root opens the shared workspace with wallet-signature login. Wallet s
 - The receiving wallet is taken automatically from the provider's verified wallet sign-in. It is no longer entered manually. Older wallet-owned offerings are corrected when their owner opens the provider workspace.
 - Clients open an offering link, sign in with a different wallet, and submit a request without an on-chain transaction or gas fee.
 - Offerings and requests are stored in Supabase so the provider and client can use separate devices and see records associated with their own authenticated wallet.
-- Provider jobs are separated into new, approved, agreed, delivered, cancelled, and archived views. Archiving is only an owner-side list preference and does not cancel or delete the job.
+- Provider jobs are separated into new, approved, agreed, delivered, cancelled, and archived views. Providers and clients can independently archive or restore items in their own lists. This does not change the job status, delete its history, or hide it from the other participant.
 - Before terms are agreed, the provider may decline with a reason. After agreement, cancellation requires approval from the other participant.
 - Japanese and English guides are available from both the provider and client flows.
 
@@ -103,7 +103,7 @@ flowchart LR
   Client[Client] --> DApp
   DApp --> Shared[Supabase Auth and Shared Workflow DB]
   Shared --> Jobs[Offering, Request, Agreement History]
-  DApp -. Shared-proof integration in progress .-> Contract[PortalProofOrder Solidity Contract]
+  DApp --> Contract[PortalProofOrder Solidity Contract]
   Historical[Historical browser-local proof flow] --> Hash[Terms and Delivery Hash]
   Hash --> Contract
   Contract --> V3[Portaldot V3 Testnet]
@@ -119,8 +119,8 @@ flowchart LR
 4. The request is stored in the shared database with an immutable history entry and appears in both the provider's job list and the client's commission list.
 5. The provider starts negotiation, accepts the original terms, proposes changed terms, or declines with a reason. Changed terms require client approval.
 6. Before agreement the provider may decline; after agreement, a cancellation request must be approved by the other participant.
-7. The provider manages the job by stage and may archive or restore it without changing its actual status.
-8. The existing Portaldot V3 proof contract demonstrates order, delivery, and verified payment evidence. Connecting that full proof sequence to the new shared workflow is the current release gate.
+7. The provider manages the job by stage. Both participants can independently archive or restore the job in their own list without changing its actual status or the other participant's view.
+8. After agreement, the provider records the order proof and delivery URL hash on Portaldot V3. The client submits the payment transaction hash, PortalProof verifies the transfer, and the provider records the verified payment evidence. Both participants can then view a QR proof certificate.
 
 ### Local Setup
 
@@ -164,7 +164,7 @@ Open-source dependencies are listed in `package.json`.
 
 ### Known Limitations
 
-- Order proof, delivery URL/hash, verified native-payment evidence, and QR certificate UI are implemented for signed shared jobs. The public Supabase workflow-version-3 migration is applied. A fresh two-wallet testnet run must still be completed before this new flow is claimed as end-to-end verified.
+- Order proof, delivery URL/hash, verified native-payment evidence, and QR certificate UI are implemented for signed shared jobs. The public Supabase workflow-version-3 migration is applied. Workflow version 4 adds independent client-side archives and is included in `supabase/migrations/20261105_client_request_archives.sql`; its controls remain disabled until that migration is applied. A fresh two-wallet testnet run must still be completed before the proof flow is claimed as end-to-end verified.
 - The deployed Portaldot V3 contract and historical end-to-end evidence remain valid, but they must not be presented as proof that every newly submitted shared request is already recorded on-chain.
 - Offerings created by the earlier email-auth prototype remain preserved under that earlier account. They are not silently transferred to a wallet account; create a new wallet-owned offering if an old offering does not appear in the provider's offering list.
 - Payment verification currently supports native tPOTv3 transfers; token-contract payments are not supported yet.
@@ -182,7 +182,7 @@ Open-source dependencies are listed in `package.json`.
 #### Milestone 2 — Shared workflow completion (current)
 
 - Complete the two-wallet, cross-device flow from offering publication through request, negotiation, agreement, delivery, and proof verification.
-- Connect agreed shared jobs to the hardened contract workflow, then expose delivery, verified payment, and certificate evidence to both participants.
+- Complete final two-wallet verification of the connected order, delivery, verified-payment and QR-certificate flow for both participants.
 - Complete physical-device regression checks in mobile Safari and Chrome without losing navigation or wallet session state.
 
 #### Milestone 3 — Escrow deposit and production hardening
@@ -223,7 +223,7 @@ PortalProofは、イラストレーターやアーティスト、クリエイタ
 
 [PortalProofを開く](https://nato-san.github.io/PortalProof/)
 
-公開ルートは、ウォレット署名ログインを使う共有ワークスペースへ統一しています。スマホからのウォレットログインを確認済みで、Safari・ChromeからMetaMaskアプリへ接続します。以下の端末保存MVPとテストネット証跡は、通常の公開導線と混ざらない独立した復旧・実演用フローとして保持しています。共有フローの納品・支払い・証明書連携は未完了です。[現在の導線・スマホ検証状況](docs/NAVIGATION_MOBILE.md)を確認してください。
+公開ルートは、ウォレット署名ログインを使う共有ワークスペースへ統一しています。スマホからのウォレットログインを確認済みで、Safari・ChromeからMetaMaskアプリへ接続します。以下の端末保存MVPとテストネット証跡は、通常の公開導線と混ざらない独立した復旧・実演用フローとして保持しています。共有案件にも発注証明、納品URL・ハッシュ、支払い検証、QR証明書を接続済みです。[現在の導線・スマホ検証状況](docs/NAVIGATION_MOBILE.md)を確認してください。
 
 ### 現在の公開フロー
 
@@ -232,7 +232,7 @@ PortalProofは、イラストレーターやアーティスト、クリエイタ
 - 受取ウォレットは署名ログインで検証したウォレットを自動設定します。手入力は廃止しました。ウォレットアカウントが所有する既存募集も、所有者が管理画面を開くと自動補正します。
 - 発注者は募集URLを開き、受注者とは別のウォレットでログインして依頼を送信します。依頼送信時にオンチェーン取引やガス代は発生しません。
 - 募集と依頼はSupabaseに保存され、受注者と発注者が別端末から、それぞれ自分のウォレットに紐づく情報を確認できます。
-- 案件は未処理、承認済、交渉済、納品済、キャンセル済、アーカイブに分けて管理します。アーカイブは受注者側だけの一覧整理であり、案件のキャンセルや削除ではありません。
+- 案件は未処理、承認済、交渉済、納品済、キャンセル済、アーカイブに分けて管理します。受注者と発注者は、それぞれ自分の一覧で独立してアーカイブ・復元できます。案件状態・履歴・相手側の表示は変わりません。
 - 条件合意前は受注者が理由を付けて辞退できます。条件合意後のキャンセルには、相手側の承認が必要です。
 - 受注者側・発注者側の双方に、日本語・英語の使い方ガイドがあります。
 
@@ -298,7 +298,7 @@ flowchart LR
   Client[発注者] --> DApp
   DApp --> Shared[Supabase認証・共有ワークフローDB]
   Shared --> Jobs[募集・依頼・合意履歴]
-  DApp -. 共有フローとの連携作業中 .-> Contract[PortalProofOrder Solidityコントラクト]
+  DApp --> Contract[PortalProofOrder Solidityコントラクト]
   Historical[過去の端末保存テストネット証明フロー] --> Hash[合意条件と納品のハッシュ]
   Hash --> Contract
   Contract --> V3[Portaldot V3テストネット]
@@ -314,8 +314,8 @@ flowchart LR
 4. 依頼は変更履歴とともに共有データベースへ保存され、受注者の案件一覧と発注者の依頼一覧の双方に表示されます。
 5. 受注者は商談を開始し、発注者の条件を承認するか、変更条件を提案するか、理由を付けて辞退します。変更条件は発注者の承認が必要です。
 6. 合意前は受注者が辞退できます。合意後のキャンセルは、相手側の承認を必要とします。
-7. 受注者は案件を段階別に管理し、案件の状態を変えずにアーカイブ・復元できます。
-8. 既存のPortaldot V3証明コントラクトでは、発注、納品、検証済み支払いの証跡を実演済みです。この証明フローを新しい共有案件へ接続することが、現在のリリース上の重要課題です。
+7. 受注者は案件を段階別に管理します。受注者と発注者は、それぞれ自分の一覧で案件をアーカイブ・復元でき、案件状態や相手側の表示は変わりません。
+8. 合意後、受注者がPortaldot V3へ発注証明と納品URLのハッシュを記録します。発注者が支払いTxHashを送信すると、PortalProofが送金内容を検証し、受注者が検証済み支払い証跡を記録します。完了後は双方がQR付き証明書を確認できます。
 
 ### ローカルでの起動
 
@@ -359,7 +359,7 @@ AI支援は、実装補助、ドキュメント作成、デバッグに使用し
 
 ### 現在の制限事項
 
-- 署名付き共有案件に、発注証明、納品URL・ハッシュ、検証済みネイティブ支払い証跡、QR証明書画面を実装し、公開Supabaseのワークフローバージョン3も適用済みです。2つの実ウォレットでのテストネット完走が終わるまでは、新しいフローを一連の動作確認済みとは表現しません。
+- 署名付き共有案件に、発注証明、納品URL・ハッシュ、検証済みネイティブ支払い証跡、QR証明書画面を実装し、公開Supabaseのワークフローバージョン3も適用済みです。発注者側の独立アーカイブを追加するワークフローバージョン4は`supabase/migrations/20261105_client_request_archives.sql`に収録しており、適用されるまで操作ボタンを無効化します。証明フローは2つの実ウォレットで完走確認するまで、一連の動作確認済みとは表現しません。
 - デプロイ済みPortaldot V3コントラクトと過去の一連のテスト証跡は有効ですが、新しく送信したすべての共有依頼がすでにオンチェーン記録されるという意味ではありません。
 - 以前のメール認証試作版で作成した募集は、その以前のアカウントに保持されています。ウォレットアカウントへ自動移管しないため、募集一覧に表示されない古い募集は、ウォレットログイン後に新しく作り直してください。
 - 支払い検証はネイティブtPOTv3送金に対応しています。トークンコントラクト経由の支払いにはまだ対応していません。
@@ -377,7 +377,7 @@ AI支援は、実装補助、ドキュメント作成、デバッグに使用し
 #### マイルストーン2 — 共有ワークフローの完成（現在）
 
 - 2つのウォレットと別端末を使い、募集公開、依頼、商談、合意、納品、証明確認までを一連の流れとして完成させます。
-- 合意済みの共有案件を強化版コントラクトへ接続し、納品・検証済み支払い・証明書の証跡を双方から確認できるようにします。
+- 接続済みの発注・納品・検証済み支払い・QR証明書フローを、2つの実ウォレットと別端末で最終確認します。
 - スマホのSafari・Chromeで、導線やウォレットセッションを失わない実機回帰テストを完了します。
 
 #### マイルストーン3 — デポジット型エスクローと本番向け強化

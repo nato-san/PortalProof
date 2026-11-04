@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { creatorTab, creatorTabs, offeringMatches, sharedLanguage, sharedStatus, jobStage, jobMatches, jobStageLabel, jobStages, workspaceNavigation } from "../src/sharedView.js";
+import { clientRequestMatches, clientRequestTab, creatorTab, creatorTabs, offeringMatches, sharedLanguage, sharedStatus, jobStage, jobMatches, jobStageLabel, jobStages, workspaceNavigation } from "../src/sharedView.js";
 for (const tab of creatorTabs) assert.equal(creatorTab(tab), tab);
 assert.equal(creatorTab("bad"), "home");
 assert.equal(sharedLanguage("en"), "en");
@@ -31,4 +31,9 @@ assert.equal(jobStage(jobs[5]), "cancelled");
 assert.equal(jobStageLabel("agreed", "ja"), "交渉済");
 assert.equal(jobStageLabel("archive", "en"), "Archive");
 assert.ok(jobMatches({ ...jobs[6], archivedAt: null }, "agreed"));
+assert.equal(clientRequestTab("unexpected"), "active");
+assert.equal(clientRequestTab("archive"), "archive");
+assert.equal(clientRequestMatches({ archivedAt: null }, "active"), true);
+assert.equal(clientRequestMatches({ archivedAt: "2026-11-05" }, "active"), false);
+assert.equal(clientRequestMatches({ archivedAt: "2026-11-05" }, "archive"), true);
 console.log("Job stage tests passed: six disjoint lists, cancellation precedence and archive restoration");

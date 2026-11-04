@@ -55,7 +55,7 @@ export const sharedGuideSteps = {
       ["募集を作成・共有", "ホームの「募集を作成」で仕事内容と受取ウォレットを設定します。受取ウォレットはログインした本人確認済みウォレットを指定してください。「募集管理」で受付URLをコピーしてSNSなどへ掲載できます。募集は複数作成でき、受付停止・再開もできます。"],
       ["届いた依頼を確認", "「案件管理」の「未処理」から案件の詳細を開きます。「承認して商談を開始」で承認済へ進みます。この時点ではまだ条件確定・受注成立ではありません。"],
       ["条件を確定", "元の依頼内容・金額・納期でよければ「元の条件で交渉を確定」を選びます。変更を提案した場合は、発注者が承認して交渉済（受注成立）になります。商談中は理由を送って辞退できますが、成立後はキャンセルを申請して相手の同意が必要です。"],
-      ["案件を整理", "案件は未処理・承認済・交渉済・納品済・キャンセル済に分かれます。アーカイブは自分の一覧を整理するだけで、取引の状態や発注者側の記録は変えません。アーカイブから元の一覧へ戻せます。"],
+      ["案件を整理", "案件は未処理・承認済・交渉済・納品済・キャンセル済に分かれます。アーカイブは自分の一覧を整理するだけで、取引の状態や相手側の表示は変えません。アーカイブから元の一覧へ戻せます。"],
       ["納品・支払い・証明書", "受注成立後に、発注証明をPortaldot V3へ記録し、納品URLのハッシュを記録します。発注者が支払いTxHashを送ると、送金元・送金先・金額・成功状態を検証できます。受注者が検証済み支払い証跡を記録すると、双方にオンチェーン記録を開くQR付き証明書が表示されます。オンチェーン操作には少額のテストネットガス代が必要です。"],
     ],
     en: [
@@ -63,7 +63,7 @@ export const sharedGuideSteps = {
       ["Create and share an offering", "Use Create an offering on the home screen. The receiving wallet must match your authenticated wallet. Manage offerings to copy a public link for social media, create multiple offerings, and close or reopen them."],
       ["Review incoming requests", "Open a job from Manage jobs → Unprocessed. Approve and start negotiation moves it to Approved. This starts negotiation; it does not finalize terms."],
       ["Finalize terms", "Finalize the client's original terms if unchanged. If you propose a different brief, price or deadline, the client must approve. You may decline with a reason during negotiation. After terms are agreed, cancellation requires the other participant's consent."],
-      ["Organize jobs", "Browse Unprocessed, Approved, Terms agreed, Delivered and Cancelled. Archiving only organizes your own list; it does not cancel a commission or change client records. Restore archived jobs to their existing stage."],
+      ["Organize jobs", "Browse Unprocessed, Approved, Terms agreed, Delivered and Cancelled. Archiving only organizes your own list; it does not cancel a job or change the other participant's view. Restore archived jobs to their existing stage."],
       ["Delivery, payment and certificate", "After agreement, record the order proof and delivery URL hash on Portaldot V3. The client submits the payment transaction hash; PortalProof verifies its sender, recipient, amount and successful receipt. After the provider records the verified evidence, both participants can open a QR certificate linked to the on-chain record. On-chain actions require a small testnet gas fee."],
     ],
   },
@@ -71,7 +71,7 @@ export const sharedGuideSteps = {
     ja: [
       ["募集ページを開く", "受注者がSNSなどで共有した受付URLを開き、仕事内容を確認します。"],
       ["ログインして依頼を送る", "送信前に自分のウォレットで署名ログインし、名前・依頼内容・希望金額・納期を入力します。ログインや依頼送信で送金・ガス代は発生しません。受注者とは別のご自身のウォレットを使ってください。"],
-      ["自分の依頼を確認", "送信後の「自分の依頼を確認する」または上部の「依頼した仕事」から一覧を開けます。同じウォレットでログインすれば、別端末からも自分の新方式の依頼を確認できます。以前の未ログインのテスト依頼は自動では紐づきません。"],
+      ["自分の依頼を確認・整理", "送信後の「自分の依頼を確認する」または上部の「依頼した仕事」から一覧を開けます。同じウォレットでログインすれば、別端末からも確認できます。不要になった表示はアーカイブへ移し、後から進行中の依頼へ戻せます。これは自分の一覧だけの整理で、案件状態や受注者側の表示は変わりません。"],
       ["条件を確認", "受注者が依頼を確認して商談を開始します。元の条件のままなら受注者の条件確定で成立し、変更提案があればあなたの承認で成立します。商談中は受注者が理由付きで辞退できます。成立後のキャンセルには相手の同意が必要です。"],
       ["キャンセルに回答", "キャンセル申請と理由が届いたら、依頼の詳細で同意・不同意を選べます。自分の申請を自分で承認することはできません。キャンセルされても依頼と理由の記録は残ります。"],
       ["納品を確認して支払いを報告", "受注成立後、受注者が発注証明と納品URLのハッシュを記録するまで支払わないでください。納品を確認して合意額を指定ウォレットへ送金したら、取引履歴のTxHashを案件画面から送信します。送金元・送金先・金額・成功状態が一致した支払いだけが証明へ進みます。"],
@@ -80,7 +80,7 @@ export const sharedGuideSteps = {
     en: [
       ["Open an offering", "Open the provider's public request link from social media and review the service."],
       ["Sign in and submit", "Sign in with your own wallet before submitting your name, brief, proposed amount and deadline. Neither sign-in nor request submission sends funds or charges gas. Use a wallet separate from the provider's."],
-      ["Find your requests", "After submitting, select View my request or My requests in the header. The same wallet can access its new authenticated requests on another device. Earlier unsigned test requests are not automatically linked."],
+      ["Find and organize your requests", "After submitting, select View my request or My requests in the header. The same wallet can access its authenticated requests on another device. Move an item to Archive and restore it later without changing the job status or the provider's view."],
       ["Review terms", "The provider reviews and starts negotiation. The provider can finalize unchanged original terms; proposed changes require your approval. The provider may decline with a reason before agreement. Cancellation after agreement needs the other participant's consent."],
       ["Respond to cancellation", "Open request details to agree to or decline a cancellation request. You cannot approve your own cancellation request. Original requests and cancellation reasons remain recorded."],
       ["Review delivery and report payment", "After agreement, wait until the provider records the order proof and delivery URL hash. Review the delivery, transfer the agreed amount to the designated wallet, then submit the transaction hash from your wallet history. Only a transfer whose sender, recipient, amount and success status match can proceed to proof."],

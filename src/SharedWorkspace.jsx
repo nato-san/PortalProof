@@ -3,7 +3,7 @@ import { shared, sharedRpc } from "./shared.js";
 import { emptyDraft, walletFreeRequestReady } from "./domain.js";
 import { WalletSignIn } from "./WalletSignIn.jsx";
 import { CreatorDashboard } from "./CreatorDashboard.jsx";
-import { creatorTab, sharedLanguage, sharedStatus, workspaceNavigation } from "./sharedView.js";
+import { clientRequestMatches, clientRequestTab, creatorTab, sharedLanguage, sharedStatus, workspaceNavigation } from "./sharedView.js";
 import { verifiedSessionWallet } from "./negotiation.js";
 import { RequestNegotiation } from "./RequestNegotiation.jsx";
 import { GuideLink } from "./UsageGuide.jsx";
@@ -26,13 +26,16 @@ export function SharedWorkspace() {
   const setLanguage = value => navigate(sharedUrl(location.href, { lang: value }), { replace: true });
   const t = (ja, en) => language === "en" ? en : ja;
   const tab = creatorTab(query.get("creatorTab"));
+  const clientTab = clientRequestTab(query.get("clientTab"));
   const [session, setSession] = useState(null), [message, setMessage] = useState(""), [busy, setBusy] = useState(false);
   const [profile, setProfile] = useState({ ...emptyDraft(), creatorWallet: "" });
   const [offering, setOffering] = useState(null), [draft, setDraft] = useState({ clientName: "", requestBrief: "", amount: "10", deadline: "" });
   const [jobs, setJobs] = useState([]), [clientJob, setClientJob] = useState(null), [savedUrl, setSavedUrl] = useState(""), [hash, setHash] = useState("");
   const [offeringState, setOfferingState] = useState("loading");
+  const [archiveBusyId, setArchiveBusyId] = useState("");
   const { version: workflowVersion, error: workflowError } = useWorkflowStatus();
   const workflowReady = workflowVersion >= 1;
+  const clientArchiveReady = workflowVersion >= 4;
   const [requestNonce] = useState(() => crypto.randomUUID());
   const walletIdentity = verifiedSessionWallet(session?.user);
   const base = `${location.origin}${location.pathname}`;
@@ -81,7 +84,7 @@ export function SharedWorkspace() {
           const { data, error } = await shared.from("pp_requests").select("id,data,version").eq(clientRole ? "client_user_id" : "owner_id", session.user.id).order("created_at", { ascending: false });
           if (error) throw error;
           let archives = [];
-          if (!clientRole && workflowVersion >= 2) {
+          if (workflowVersion >= 2) {
             const result = await shared.from("pp_request_archives").select("request_id,archived_at").eq("user_id", session.user.id);
             if (result.error) throw result.error;
             archives = result.data;
@@ -97,7 +100,18 @@ export function SharedWorkspace() {
     setJobs(current => current.map(item => item.id === job.id ? { ...item, ...job } : item));
     if (requestId === job.id) setClientJob(job);
   };
+  const updateClientArchive = async (job) => {
+    if (archiveBusyId || !clientArchiveReady) return;
+    if (!job.archivedAt && !window.confirm(t("この依頼をアーカイブしますか？依頼の状態・履歴・受注者側の表示は変わりません。", "Archive this request? Its status, history and the provider's view will not change."))) return;
+    setArchiveBusyId(job.id); setMessage("");
+    try {
+      const value = await sharedRpc("pp_set_request_archive", { p_id: job.id, p_archived: !job.archivedAt });
+      setJobs(current => current.map(item => item.id === job.id ? { ...item, archivedAt: value.archivedAt } : item));
+    } catch (error) { setMessage(error.message); }
+    finally { setArchiveBusyId(""); }
+  };
   const field = (key) => ({ value: draft[key], onChange: (event) => setDraft((old) => ({ ...old, [key]: event.target.value })) });
+  const visibleClientJobs = jobs.filter(job => clientRequestMatches(job, clientTab));
   return <main className="shell">
     <nav className="topBar">
       <a className="brand" href={`${base}?view=shared&role=${clientContext ? "client" : "creator"}&lang=${language}`}><img className="brandLogo" src="./portalproof-icon-192.png" alt="" />PortalProof</a>
@@ -116,6 +130,7 @@ export function SharedWorkspace() {
     {session && workflowError && <p className="notice" role="alert">{t("利用設定を確認できません。接続を確認してください。自動で再確認します。", "Unable to check server setup. Check your connection; we will retry automatically.")}</p>}
     {session && !workflowError && workflowVersion === null && <p className="notice" role="status">{t("利用設定を確認しています。", "Checking server setup…")}</p>}
     {session && workflowVersion !== null && workflowVersion < 2 && <p className="notice">{t("段階別管理・アーカイブの追加設定待ちです。募集一覧と案件の閲覧は引き続き利用できます。", "The stage/archive server update is pending. Offerings and existing requests remain viewable.")}</p>}
+    {session && clientRole && workflowVersion !== null && workflowVersion >= 2 && !clientArchiveReady && <p className="notice">{t("発注者側アーカイブのサーバー更新が必要です。依頼の閲覧と操作は引き続き利用できます。", "The client archive server update is required. Request viewing and workflow actions remain available.")}</p>}
     {!shared ? <section className="panel"><h1>{t("共有受付の設定が必要です", "Shared workspace setup required")}</h1><p>{t("Supabaseの接続情報とデータベースを設定してください。", "Configure the Supabase connection and database first.")}</p></section>
       : offeringId && !requestId && !savedUrl && !offering ? <section className="panel" role="status">
         {offeringState === "unavailable" ? <><h1>{t("この募集は現在受け付けていません", "Not accepting requests")}</h1><p>{t("受付が停止されているか、募集が見つかりません。送信済みの依頼は、ご自身の依頼確認URLから確認できます。", "This offering is closed or unavailable. Existing requests remain accessible through their private URLs.")}</p></>
@@ -160,7 +175,12 @@ export function SharedWorkspace() {
           </form>}
       </section>
       : !session ? <WalletSignIn busy={busy} run={run} t={t} />
-      : clientRole ? <section><header className="hero compactHero"><div><h1>{t("依頼した仕事", "My requests")}</h1><p>{t("このウォレットで送信した依頼です。", "Requests submitted with this wallet.")}</p></div></header>{!jobs.length && <p>{t("依頼はまだありません。", "No requests yet.")}</p>}<div className="requestCards">{jobs.map(job => <article className="panel requestCard" key={job.id}><span className={`statusBadge ${job.status}`}>{sharedStatus(job.status, language)}</span><h2>{job.serviceName}</h2><p>{job.creatorName}</p><p className="sharedBriefPreview">{job.requestBrief}</p><p>{job.amount} tPOTv3 / {job.deadline}</p><a className="buttonLink primary wide" href={`${base}?view=shared&role=client&clientRequest=${job.id}&lang=${language}`}>{t("依頼の詳細", "Request details")}</a></article>)}</div></section>
+      : clientRole ? <section><header className="hero compactHero"><div><h1>{t("依頼した仕事", "My requests")}</h1><p>{t("このウォレットで送信した依頼です。アーカイブは自分の一覧だけを整理し、案件や相手側の表示を変更しません。", "Requests submitted with this wallet. Archiving only organizes your list; it does not change the job or the other participant's view.")}</p></div></header>
+        <nav className="jobFilters" aria-label={t("依頼一覧", "Request lists")}>
+          {["active", "archive"].map(value => <button type="button" key={value} className={clientTab === value ? "active" : ""} aria-current={clientTab === value ? "page" : undefined} onClick={() => navigate(sharedUrl(location.href, { clientTab: value === "archive" ? value : null }))}>{value === "archive" ? t("アーカイブ", "Archive") : t("進行中の依頼", "Active requests")}<span>{jobs.filter(job => clientRequestMatches(job, value)).length}</span></button>)}
+        </nav>
+        {!visibleClientJobs.length && <p>{clientTab === "archive" ? t("アーカイブした依頼はありません。", "No archived requests.") : t("進行中の依頼はありません。", "No active requests.")}</p>}
+        <div className="requestCards">{visibleClientJobs.map(job => <article className="panel requestCard" key={job.id}><span className={`statusBadge ${job.status}`}>{sharedStatus(job.status, language)}</span><h2>{job.serviceName}</h2><p>{job.creatorName}</p><p className="sharedBriefPreview">{job.requestBrief}</p><p>{job.amount} tPOTv3 / {job.deadline}</p><a className="buttonLink primary wide" href={`${base}?view=shared&role=client&clientRequest=${job.id}&lang=${language}`}>{t("依頼の詳細", "Request details")}</a><button type="button" className="secondary wide archiveActions" disabled={Boolean(archiveBusyId) || !clientArchiveReady} onClick={() => updateClientArchive(job)}>{job.archivedAt ? t("進行中の依頼へ戻す", "Restore to active requests") : t("アーカイブ", "Archive")}</button></article>)}</div></section>
       : <CreatorDashboard tab={tab} onTabChange={changeTab} profile={profile} setProfile={setProfile} creatorWallet={walletIdentity} busy={busy} savedUrl={savedUrl} ownerId={session.user.id} base={base} jobs={jobs} language={language} t={t} onJobChange={jobChanged} workflowVersion={workflowVersion} onArchiveChange={(id, archivedAt) => setJobs(current => current.map(job => job.id === id ? { ...job, archivedAt } : job))} createOffering={() => run(async () => {
         if (!walletIdentity) throw new Error(t("ログインウォレットを確認できません。再度ログインしてください。", "Unable to verify the signed-in wallet. Please sign in again."));
         const offeringProfile = { ...profile, creatorWallet: walletIdentity };
