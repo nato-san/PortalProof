@@ -164,7 +164,7 @@ Open-source dependencies are listed in `package.json`.
 
 ### Known Limitations
 
-- Order proof, delivery URL/hash, verified native-payment evidence, and QR certificate UI are implemented for signed shared jobs. The public Supabase workflow-version-3 migration is applied. Workflow version 4 adds independent client-side archives and is included in `supabase/migrations/20261105_client_request_archives.sql`; its controls remain disabled until that migration is applied. A fresh two-wallet testnet run must still be completed before the proof flow is claimed as end-to-end verified.
+- Order proof, delivery URL/hash, verified native-payment evidence, and QR certificate UI are implemented for signed shared jobs. Public Supabase workflow version 4 is applied, including independent provider/client archives. A fresh two-wallet testnet run must still be completed before the proof flow is claimed as end-to-end verified.
 - The deployed Portaldot V3 contract and historical end-to-end evidence remain valid, but they must not be presented as proof that every newly submitted shared request is already recorded on-chain.
 - Offerings created by the earlier email-auth prototype remain preserved under that earlier account. They are not silently transferred to a wallet account; create a new wallet-owned offering if an old offering does not appear in the provider's offering list.
 - Payment verification currently supports native tPOTv3 transfers; token-contract payments are not supported yet.
@@ -359,7 +359,7 @@ AI支援は、実装補助、ドキュメント作成、デバッグに使用し
 
 ### 現在の制限事項
 
-- 署名付き共有案件に、発注証明、納品URL・ハッシュ、検証済みネイティブ支払い証跡、QR証明書画面を実装し、公開Supabaseのワークフローバージョン3も適用済みです。発注者側の独立アーカイブを追加するワークフローバージョン4は`supabase/migrations/20261105_client_request_archives.sql`に収録しており、適用されるまで操作ボタンを無効化します。証明フローは2つの実ウォレットで完走確認するまで、一連の動作確認済みとは表現しません。
+- 署名付き共有案件に、発注証明、納品URL・ハッシュ、検証済みネイティブ支払い証跡、QR証明書画面を実装し、受注者・発注者それぞれの独立アーカイブを含む公開Supabaseワークフローバージョン4を適用済みです。証明フローは2つの実ウォレットで完走確認するまで、一連の動作確認済みとは表現しません。
 - デプロイ済みPortaldot V3コントラクトと過去の一連のテスト証跡は有効ですが、新しく送信したすべての共有依頼がすでにオンチェーン記録されるという意味ではありません。
 - 以前のメール認証試作版で作成した募集は、その以前のアカウントに保持されています。ウォレットアカウントへ自動移管しないため、募集一覧に表示されない古い募集は、ウォレットログイン後に新しく作り直してください。
 - 支払い検証はネイティブtPOTv3送金に対応しています。トークンコントラクト経由の支払いにはまだ対応していません。
