@@ -10,11 +10,11 @@
 
 ### One-sentence Overview
 
-PortalProof is a work-order proof DApp that lets providers publish a request flow, record agreed work terms on the Portaldot V3 testnet, and generate a delivery and payment proof certificate.
+PortalProof is a non-custodial work-order proof DApp that lets contractors publish a request flow, manage work with clients across devices, record agreed terms on the Portaldot V3 testnet, and generate a delivery and verified-payment proof certificate.
 
 ### Who PortalProof Is For
 
-PortalProof is not limited to illustrators, artists, or people who identify as creators. Its intended scope includes anyone offering commissioned work, making something, or providing skills and services—for example, design, video production, software development, translation, handmade goods, consulting, and instruction. The formal interface roles are “Provider” for the party accepting the work and “Client” for the party commissioning it. Primary navigation uses the action labels “Provide services” and “Request work.”
+PortalProof is not limited to illustrators, artists, or people who identify as creators. Its intended scope includes anyone offering commissioned work, making something, or providing skills and services—for example, design, video production, software development, translation, handmade goods, consulting, and instruction. The formal interface roles are “Contractor” for the party accepting the work and “Client” for the party commissioning it. Primary navigation uses the action labels “Provide services” and “Request work.”
 
 These examples describe the product's intended audience, not a claim that every service-specific workflow is already implemented. The current delivery-proof flow uses a delivery URL; completion evidence for services without a deliverable file still needs to be defined and implemented.
 
@@ -28,18 +28,19 @@ Ecosystem DApps
 
 [Watch the short demo video](https://youtube.com/watch?v=5DtARDfIMM0)
 
-The public root opens the shared workspace with wallet-signature login. Wallet sign-in has been confirmed from a phone, and mobile Safari and Chrome connect through the MetaMask app. The browser-local MVP and its historical testnet evidence below are preserved as an isolated recovery/demo flow and are not mixed into the normal public navigation. Shared delivery/payment/certificate integration is not yet complete. See [current navigation and mobile verification status](docs/NAVIGATION_MOBILE.md).
+The public root opens the shared workspace with wallet-signature login. Wallet sign-in has been confirmed from a phone, and mobile Safari and Chrome connect through the MetaMask app. The browser-local MVP and its historical testnet evidence below are preserved as an isolated recovery/demo flow and are not mixed into the normal public navigation. Signed shared jobs include order proof, delivery URL/hash, native-payment verification, and a QR-linked public proof page. See [current navigation and mobile verification status](docs/NAVIGATION_MOBILE.md).
 
 ### Current Public Workflow
 
-- Providers sign in by signing an authentication message with an EVM wallet. No email registration, payment, or gas fee is required for login.
-- Providers can create multiple offerings, publish a separate shareable URL for each service, and close or reopen intake.
-- The receiving wallet is taken automatically from the provider's verified wallet sign-in. It is no longer entered manually. Older wallet-owned offerings are corrected when their owner opens the provider workspace.
+- Contractors sign in by signing an authentication message with an EVM wallet. No email registration, payment, or gas fee is required for login.
+- Contractors can create multiple offerings, publish a separate shareable URL for each service, and close or reopen intake.
+- The receiving wallet is taken automatically from the contractor's verified wallet sign-in. It is no longer entered manually. Older wallet-owned offerings are corrected when their owner opens the contractor workspace.
 - Clients open an offering link, sign in with a different wallet, and submit a request without an on-chain transaction or gas fee.
-- Offerings and requests are stored in Supabase so the provider and client can use separate devices and see records associated with their own authenticated wallet.
-- Provider jobs are separated into new, approved, agreed, delivered, cancelled, and archived views. Providers and clients can independently archive or restore items in their own lists. This does not change the job status, delete its history, or hide it from the other participant.
-- Before terms are agreed, the provider may decline with a reason. After agreement, cancellation requires approval from the other participant.
-- Japanese and English guides are available from both the provider and client flows.
+- Offerings and requests are stored in Supabase so the contractor and client can use separate devices and see records associated with their own authenticated wallet.
+- Contractor jobs are separated into new, approved, agreed, delivered, cancelled, and archived views. Contractors and clients can independently archive or restore items in their own lists. This does not change the job status, delete its history, or hide it from the other participant.
+- Clients have a wallet-linked list of the work they requested, including their own archive and restore controls.
+- Before terms are agreed, the contractor may decline with a reason. After agreement, cancellation requires approval from the other participant.
+- Japanese and English guides are available from both the contractor and client flows.
 
 ### Why Portaldot
 
@@ -47,11 +48,11 @@ Portaldot V3 supports EVM and Solidity contracts as well as ERC-style applicatio
 
 ### Browser-local MVP Scope (historical testnet flow)
 
-- Provider request and client brief input
-- Shareable provider request URL with service details and reference price
-- Dedicated client form opened from the provider's link
-- A provider dashboard with request-page settings and a multi-request inbox
-- A provider-only home screen linking to request setup, job management, and the public-page preview
+- Contractor request and client brief input
+- Shareable contractor request URL with service details and reference price
+- Dedicated client form opened from the contractor's link
+- A contractor dashboard with request-page settings and a multi-request inbox
+- A contractor-only home screen linking to request setup, job management, and the public-page preview
 - A visible local-demo / Portaldot V3 mode switch that prevents accidental on-chain writes while working locally
 - A fully separate public request-submission page for clients
 - A dedicated management workspace for each individual request
@@ -99,7 +100,7 @@ The completed test confirms that PortalProof can verify the native payment sende
 
 ```mermaid
 flowchart LR
-  Creator[Provider] --> DApp[PortalProof Web DApp]
+  Contractor[Contractor] --> DApp[PortalProof Web DApp]
   Client[Client] --> DApp
   DApp --> Shared[Supabase Auth and Shared Workflow DB]
   Shared --> Jobs[Offering, Request, Agreement History]
@@ -113,14 +114,14 @@ flowchart LR
 
 ### User Flow
 
-1. The provider signs in with a wallet and creates an offering with a service name and description. The verified login wallet is set automatically as the receiving wallet.
+1. The contractor signs in with a wallet and creates an offering with a service name and description. The verified login wallet is set automatically as the receiving wallet.
 2. PortalProof creates a dedicated public request URL that can be shared on social media or sent directly to a client.
 3. The client opens the URL on another device, signs in with a different wallet, and submits a name, brief, proposed amount, and requested deadline. Submission itself is off-chain and costs no gas.
-4. The request is stored in the shared database with an immutable history entry and appears in both the provider's job list and the client's commission list.
-5. The provider starts negotiation, accepts the original terms, proposes changed terms, or declines with a reason. Changed terms require client approval.
-6. Before agreement the provider may decline; after agreement, a cancellation request must be approved by the other participant.
-7. The provider manages the job by stage. Both participants can independently archive or restore the job in their own list without changing its actual status or the other participant's view.
-8. After agreement, the provider records the order proof and delivery URL hash on Portaldot V3. The client submits the payment transaction hash, PortalProof verifies the transfer, and the provider records the verified payment evidence. Both participants can then view a QR proof certificate.
+4. The request is stored in the shared database with an immutable history entry and appears in both the contractor's job list and the client's request list.
+5. The contractor starts negotiation, accepts the original terms, proposes changed terms, or declines with a reason. Changed terms require client approval.
+6. Before agreement the contractor may decline; after agreement, a cancellation request must be approved by the other participant.
+7. The contractor manages the job by stage. Both participants can independently archive or restore the job in their own list without changing its actual status or the other participant's view.
+8. After agreement, the contractor records the order proof and delivery URL hash on Portaldot V3. The client submits the payment transaction hash, PortalProof verifies the transfer, and the contractor records the verified payment evidence. Both participants can then view a QR-linked public proof certificate.
 
 ### Local Setup
 
@@ -139,7 +140,7 @@ npm run compile:contract
 
 ### Deploy to Portaldot V3
 
-The production testnet contract has already been deployed once for the whole PortalProof application. Providers and clients reuse this shared contract and must not deploy their own copies.
+The production testnet contract has already been deployed once for the whole PortalProof application. Contractors and clients reuse this shared contract and must not deploy their own copies.
 
 For a future replacement deployment:
 
@@ -156,17 +157,19 @@ npm run check:portaldot
 
 Never commit `.env` files or private keys.
 
-### AI and Open-source Software Disclosure
+### ChatGPT, Codex, and Open-source Software Disclosure
 
-AI-assisted development was used for implementation support, documentation drafting, and debugging. The project direction, product decisions, testing, and final submission are managed by the participant.
+This project used **OpenAI ChatGPT and Codex** as development assistants for implementation support, code review, debugging, test assistance, UI copy, English translation, documentation, README maintenance, and pitch/demo material preparation.
 
-Open-source dependencies are listed in `package.json`.
+The participant defined the requirements, made the final product and architecture decisions, protected credentials, approved wallet and blockchain actions, performed physical-device testing, reviewed generated work, and remains responsible for the submitted project. AI assistance did not replace human approval for transactions or deployment actions.
+
+Open-source dependencies and their versions are listed in `package.json`.
 
 ### Known Limitations
 
-- Order proof, delivery URL/hash, verified native-payment evidence, and QR certificate UI are implemented for signed shared jobs. Public Supabase workflow version 4 is applied, including independent provider/client archives. A fresh two-wallet testnet run must still be completed before the proof flow is claimed as end-to-end verified.
+- Order proof, delivery URL/hash, verified native-payment evidence, and a QR-linked public proof page are implemented for signed shared jobs. Public Supabase workflow version 4 is applied, including independent contractor/client archives.
 - The deployed Portaldot V3 contract and historical end-to-end evidence remain valid, but they must not be presented as proof that every newly submitted shared request is already recorded on-chain.
-- Offerings created by the earlier email-auth prototype remain preserved under that earlier account. They are not silently transferred to a wallet account; create a new wallet-owned offering if an old offering does not appear in the provider's offering list.
+- Offerings created by the earlier email-auth prototype remain preserved under that earlier account. They are not silently transferred to a wallet account; create a new wallet-owned offering if an old offering does not appear in the contractor's offering list.
 - Payment verification currently supports native tPOTv3 transfers; token-contract payments are not supported yet.
 - The current MVP records payment evidence after delivery but does not escrow funds, so payment is not guaranteed.
 - The application must not claim payment success from an arbitrary transaction hash.
@@ -179,17 +182,16 @@ Open-source dependencies are listed in `package.json`.
 - Completed and demonstrated the deployed order, delivery, and verified native-payment proof flow.
 - Kept the non-custodial model: PortalProof records evidence but does not hold user funds.
 
-#### Milestone 2 — Shared workflow completion (current)
+#### Milestone 2 — Shared workflow and public proof integration (completed MVP)
 
-- Complete the two-wallet, cross-device flow from offering publication through request, negotiation, agreement, delivery, and proof verification.
-- Complete final two-wallet verification of the connected order, delivery, verified-payment and QR-certificate flow for both participants.
-- Complete physical-device regression checks in mobile Safari and Chrome without losing navigation or wallet session state.
+- Maintain regression coverage for the two-wallet, cross-device flow from offering publication through request, negotiation, agreement, delivery, payment verification, and public proof.
+- Continue physical-device checks in mobile Safari and Chrome without losing navigation or wallet session state.
 
 #### Milestone 3 — Escrow deposit and production hardening
 
-- When the provider accepts a request, require the client to deposit the agreed native tPOTv3 amount into a dedicated escrow contract.
-- Lock the deposit to the proof ID and the client and provider wallets.
-- After delivery, let the client approve release to the creator.
+- When the contractor accepts a request, require the client to deposit the agreed native tPOTv3 amount into a dedicated escrow contract.
+- Lock the deposit to the proof ID and the client and contractor wallets.
+- After delivery, let the client approve release to the contractor.
 - Support cancellation and refund before acceptance, plus a deadline-based refund when delivery does not occur.
 - Do not reveal a protected delivery asset until the deposit is confirmed.
 
@@ -351,15 +353,17 @@ npm run check:portaldot
 
 `.env`ファイルや秘密鍵は絶対にコミットしないでください。
 
-### AIとオープンソースソフトウェアの開示
+### ChatGPT・Codex・オープンソースソフトウェアの開示
 
-AI支援は、実装補助、ドキュメント作成、デバッグに使用しました。プロジェクト方針、プロダクト判断、テスト、最終提出は参加者が管理しています。
+このプロジェクトでは、開発支援として**OpenAI ChatGPTおよびCodex**を使用しました。主な用途は、実装補助、コードレビュー、デバッグ、テスト支援、UI文章、英訳、ドキュメント、README・引き継ぎ資料の整理、ピッチ資料・デモ素材の作成支援です。
 
-使用しているオープンソース依存関係は`package.json`に記載しています。
+要件の決定、最終的な仕様・設計判断、認証情報の管理、ウォレット・ブロックチェーン操作の承認、実機テスト、生成内容の確認、最終提出は参加者本人が行っています。AIが本人の確認なしに取引やデプロイを承認したものではありません。
+
+使用しているオープンソース依存関係とバージョンは`package.json`に記載しています。
 
 ### 現在の制限事項
 
-- 署名付き共有案件に、発注証明、納品URL・ハッシュ、検証済みネイティブ支払い証跡、QR証明書画面を実装し、受注者・発注者それぞれの独立アーカイブを含む公開Supabaseワークフローバージョン4を適用済みです。証明フローは2つの実ウォレットで完走確認するまで、一連の動作確認済みとは表現しません。
+- 署名付き共有案件に、発注証明、納品URL・ハッシュ、検証済みネイティブ支払い証跡、QRコードから開く公開証明ページを実装し、受注者・発注者それぞれの独立アーカイブを含む公開Supabaseワークフローバージョン4を適用済みです。
 - デプロイ済みPortaldot V3コントラクトと過去の一連のテスト証跡は有効ですが、新しく送信したすべての共有依頼がすでにオンチェーン記録されるという意味ではありません。
 - 以前のメール認証試作版で作成した募集は、その以前のアカウントに保持されています。ウォレットアカウントへ自動移管しないため、募集一覧に表示されない古い募集は、ウォレットログイン後に新しく作り直してください。
 - 支払い検証はネイティブtPOTv3送金に対応しています。トークンコントラクト経由の支払いにはまだ対応していません。
@@ -374,11 +378,10 @@ AI支援は、実装補助、ドキュメント作成、デバッグに使用し
 - デプロイ済みの発注・納品・検証済みネイティブ支払い証明フローを完成させ、実演しました。
 - 資金を預からず、PortalProofは証跡のみを記録する構成を維持しました。
 
-#### マイルストーン2 — 共有ワークフローの完成（現在）
+#### マイルストーン2 — 共有ワークフローと公開証明の接続（MVP完了）
 
-- 2つのウォレットと別端末を使い、募集公開、依頼、商談、合意、納品、証明確認までを一連の流れとして完成させます。
-- 接続済みの発注・納品・検証済み支払い・QR証明書フローを、2つの実ウォレットと別端末で最終確認します。
-- スマホのSafari・Chromeで、導線やウォレットセッションを失わない実機回帰テストを完了します。
+- 募集公開、依頼、商談、合意、納品、支払い検証、公開証明までの2ウォレット・別端末フローを維持します。
+- スマホのSafari・Chromeで、導線やウォレットセッションを失わない実機回帰テストを継続します。
 
 #### マイルストーン3 — デポジット型エスクローと本番向け強化
 
