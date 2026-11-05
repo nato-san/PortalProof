@@ -28,6 +28,8 @@ Ecosystem DApps
 
 [Watch the short demo video](https://youtube.com/watch?v=5DtARDfIMM0)
 
+[Open the English pitch deck (PDF)](docs/PortalProof-Pitch-Deck.pdf)
+
 The public root opens the shared workspace with wallet-signature login. Wallet sign-in has been confirmed from a phone, and mobile Safari and Chrome connect through the MetaMask app. The browser-local MVP and its historical testnet evidence below are preserved as an isolated recovery/demo flow and are not mixed into the normal public navigation. Signed shared jobs include order proof, delivery URL/hash, native-payment verification, and a QR-linked public proof page. See [current navigation and mobile verification status](docs/NAVIGATION_MOBILE.md).
 
 ### Current Public Workflow
@@ -224,6 +226,8 @@ PortalProofは、イラストレーターやアーティスト、クリエイタ
 ### 公開デモ
 
 [PortalProofを開く](https://nato-san.github.io/PortalProof/)
+
+[英語版ピッチ資料を開く（PDF）](docs/PortalProof-Pitch-Deck.pdf)
 
 公開ルートは、ウォレット署名ログインを使う共有ワークスペースへ統一しています。スマホからのウォレットログインを確認済みで、Safari・ChromeからMetaMaskアプリへ接続します。以下の端末保存MVPとテストネット証跡は、通常の公開導線と混ざらない独立した復旧・実演用フローとして保持しています。共有案件にも発注証明、納品URL・ハッシュ、支払い検証、QR証明書を接続済みです。[現在の導線・スマホ検証状況](docs/NAVIGATION_MOBILE.md)を確認してください。
 
