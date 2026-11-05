@@ -1,14 +1,18 @@
 # PortalProof Project Handoff / 引継ぎ資料
 
-Last updated: 2026-10-22
+Last updated: 2026-11-05
+
+2026-11-05 pre-deadline check-in: **PASSED**. The review confirmed byte-identical recompilation of the deployed contract artifacts, video ownership, accurate disclosure of the append-only three-event design, escrow as roadmap work rather than a live claim, and passing tests. Mentor feedback identified technical viability and per-transaction commission as a clear business-model path.
+
+2026-11-05締切前チェックイン：**通過**。デプロイ済みコントラクト成果物のバイト単位再コンパイル一致、動画所有確認、追記専用3イベント設計の正確な説明、エスクローを未実装ロードマップとして扱っていること、テスト合格が確認されました。メンターからは技術的実現性と、取引ごとの手数料という明確なビジネスモデル候補が評価されました。
 
 2026-11-03 routing/mobile addendum: the public root now enters the shared workspace, not the historical browser-local App. Read `docs/NAVIGATION_MOBILE.md` for current navigation, mobile transport, test limits and outstanding shared-workflow integration. The completed state below describes the October MVP, not completion of the current cross-device flow.
 
 2026-11-03追記：公開ルートを共有画面へ統一。現在の導線・スマホ接続・未確認事項は`docs/NAVIGATION_MOBILE.md`を参照。以下は10月時点のMVP記録であり、現在の別端末フローの全機能完了を意味しません。
 
-2026-11-04 shared-proof addendum: order, delivery URL/hash, independently verified native-payment evidence, and QR certificate UI are now connected to signed shared jobs in code. The public migration `supabase/migrations/20261104_shared_proof_workflow.sql` is applied and workflow version 3 is confirmed. Perform a real two-wallet testnet run before claiming the new shared flow complete. See `docs/SHARED_PROOF_WORKFLOW.md`. The QR certificate is not a minted SBT.
+2026-11-05 shared-proof update: order, delivery URL/hash, independently verified native-payment evidence, and QR public proof are connected to signed shared jobs. Public workflow version 4 is active. A real two-wallet Portaldot V3 run completed through final QR proof transaction `0xea5f29c9f221539c811176990658885b293d572ae682f768cd746e0a1e5707fa`. See `docs/SHARED_PROOF_WORKFLOW.md`. The QR certificate is not a minted SBT.
 
-2026-11-04共有証明追記：署名付き共有案件に、発注証明、納品URL・ハッシュ、独立検証するネイティブ支払い証跡、QR証明書をコード上で接続しました。公開Supabaseへ`supabase/migrations/20261104_shared_proof_workflow.sql`を適用し、ワークフローバージョン3を確認済みです。2つの実ウォレットでテストネット確認を行うまでは、新しい共有フローを完了済みと表現しないでください。詳細は`docs/SHARED_PROOF_WORKFLOW.md`を参照。QR証明書はミントされたSBTではありません。
+2026-11-05共有証明更新：署名付き共有案件に、発注証明、納品URL・ハッシュ、独立検証するネイティブ支払い証跡、QR公開証明を接続しました。公開ワークフローはバージョン4です。2つの実ウォレットによるPortaldot V3の一連の確認を、最終QR証明Tx`0xea5f29c9f221539c811176990658885b293d572ae682f768cd746e0a1e5707fa`まで完了しました。詳細は`docs/SHARED_PROOF_WORKFLOW.md`を参照。QR証明書はミントされたSBTではありません。
 
 This file is the starting point for continuing PortalProof in a new ChatGPT or Codex version.
 
@@ -16,10 +20,10 @@ This file is the starting point for continuing PortalProof in a new ChatGPT or C
 
 ## Canonical locations / 正式な保存場所
 
-- Local repository: `/Users/nato-san/Documents/Codex/2026-10-14/referenced-chatgpt-conversation-this-is-an/outputs/portalproof-v3`
+- Local repository: `/Users/nato-san/Documents/Codex/2026-10-15/work-portalproof-portaldot-hacker-house-2026`
 - GitHub: https://github.com/nato-san/PortalProof
 - Live DApp: https://nato-san.github.io/PortalProof/
-- Demo video: https://youtube.com/watch?v=5DtARDfIMM0
+- Demo video: https://www.youtube.com/watch?v=QlODCrM-_1M (`PortalProof DEMO`, externally playable, approximately 2:05 on YouTube; verified 2026-11-05)
 
 The Git repository and GitHub `main` branch are the source of truth for code. Do not create a replacement project when continuing work.
 
@@ -29,14 +33,14 @@ The Git repository and GitHub `main` branch are the source of truth for code. Do
 
 - Public bilingual React/Vite DApp deployed on GitHub Pages.
 - Local-demo and Portaldot V3 execution modes.
-- Creator request-page setup, shareable client form, request inbox, and per-request management workspace.
+- Contractor offering setup, shareable client form, wallet-scoped request lists, independent archives, and per-request management workspace.
 - Agreement, delivery, payment, and certificate stages.
 - Shared `PortalProofOrder` Solidity contract deployed on Portaldot V3.
 - Agreement terms hash and delivery URL hash recorded on-chain.
 - Native tPOTv3 payment evidence accepted only after sender, recipient, amount, and receipt status verification.
 - Duplicate order-proof UI guard.
 - Completed end-to-end testnet flow and QR certificate.
-- English demo video under three minutes.
+- The corrected English demo video is uploaded to YouTube and externally playable in under three minutes.
 - English and Japanese pitch decks.
 - README, network setup, technical notes, roadmap, submission checklist, and DoraHacks submission draft.
 
@@ -98,16 +102,16 @@ The published site is built from the repository through GitHub Pages. After a de
 - Payment happens outside the contract; PortalProof verifies and records evidence afterward.
 - There is no escrow, so payment is not guaranteed.
 - Public delivery URLs can be copied.
-- The request inbox is browser-local and does not sync across devices.
+- The active shared workflow stores authenticated wallet-owned offerings and requests in Supabase for cross-device use. Historical browser-local links remain isolated for recovery only.
 - Creators manually handle several steps and transaction hashes.
-- Income management and completed-job archives are not implemented.
+- Income reporting and escrow are not implemented. Contractor and client list archives are implemented as independent organization preferences and do not alter job state.
 
 ## Next priorities / 次の優先事項
 
-1. Complete and safely submit the interim/check-in report if it is not yet submitted.
-2. Keep the current MVP stable for judging.
+1. Review and publish the prepared repository updates, verify the deployed DApp/PDF/video links, and complete the final DoraHacks submission before 2026-11-06 13:00 JST.
+2. Keep the current MVP stable for judging; do not deploy the tested V2 contract without a separate explicit decision.
 3. Design escrow as a separate reviewed milestone: client deposit after acceptance, release after approval, and explicit refund/timeout rules.
-4. Add protected delivery links, revision handling, income management, and completed-job archives.
+4. Add protected delivery links, revision handling, and income management; improve archive filtering without changing transaction state.
 5. Before any real-value escrow deployment, add security protections, invariant tests, and an external review.
 
 ## Secrets and wallet recovery / 秘密情報とウォレット復元

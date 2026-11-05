@@ -26,9 +26,9 @@ Ecosystem DApps
 
 [Open PortalProof](https://nato-san.github.io/PortalProof/)
 
-[Watch the short demo video](https://youtube.com/watch?v=5DtARDfIMM0)
+[Watch the short demo video](https://www.youtube.com/watch?v=QlODCrM-_1M)
 
-[Open the English pitch deck (PDF)](docs/PortalProof-Pitch-Deck.pdf)
+[Open the English pitch deck (PDF)](https://nato-san.github.io/PortalProof/PortalProof-Pitch-Deck.pdf)
 
 The public root opens the shared workspace with wallet-signature login. Wallet sign-in has been confirmed from a phone, and mobile Safari and Chrome connect through the MetaMask app. The browser-local MVP and its historical testnet evidence below are preserved as an isolated recovery/demo flow and are not mixed into the normal public navigation. Signed shared jobs include order proof, delivery URL/hash, native-payment verification, and a QR-linked public proof page. See [current navigation and mobile verification status](docs/NAVIGATION_MOBILE.md).
 
@@ -95,6 +95,17 @@ The lightweight proof contract was deployed successfully to the Portaldot V3 tes
 | Native payment transaction hash | `0x632700e4ca21e59e47b0f9fa60beefd460b1c176695ab33438548cdcc7d8a3a0` |
 | PaymentRecorded transaction hash | `0xed7830c50ad616b4fa9e1218f38f6604bb893f45691e13662f593ca8c1ec9a72` |
 | End-to-end test | Completed: order, delivery, verified native payment, and certificate |
+
+The current shared two-wallet workflow also completed a real Portaldot V3 proof chain on November 5, 2026:
+
+| Shared-workflow evidence | Transaction hash |
+| --- | --- |
+| OrderCreated | `0x228e78e4878540a08c9234d0565351423cddac4233780275814cca06cbcdc775` |
+| DeliverySubmitted | `0xf440c8d852e6bc9e069d96ebabc076c8611f1c5bded46ff0f4c1d56c636cb8b0` |
+| Native payment (10 tPOTv3) | `0xdcd5fe65db4b0d037c0c9d7e39ac18a3509a4b0f284c4e231535565e726190b5` |
+| PaymentRecorded / public QR proof | `0xea5f29c9f221539c811176990658885b293d572ae682f768cd746e0a1e5707fa` |
+
+[Open the public QR proof verification page](https://nato-san.github.io/PortalProof/?proofTx=0xea5f29c9f221539c811176990658885b293d572ae682f768cd746e0a1e5707fa&lang=en)
 
 The completed test confirms that PortalProof can verify the native payment sender, recipient, amount, and receipt status before recording the payment evidence on-chain. The generated certificate references the real order, delivery, and payment transactions shown above.
 
@@ -170,6 +181,8 @@ Open-source dependencies and their versions are listed in `package.json`.
 ### Known Limitations
 
 - Order proof, delivery URL/hash, verified native-payment evidence, and a QR-linked public proof page are implemented for signed shared jobs. Public Supabase workflow version 4 is applied, including independent contractor/client archives.
+- The deployed V1 proof contract is an append-only event log. In V1, the on-chain proof ID equals the terms hash, and contract-level state, participant authorization for later events, and replay prevention are not stored in the contract. The authenticated shared database and DApp enforce participant roles, stage order, optimistic versions, duplicate guards, and exact native-payment checks before the final proof is recorded. `PortalProofOrderV2.sol` separates `orderId` from `termsHash` and adds contract-level authorization, state transitions, nonce uniqueness, and payment-hash replay prevention, but V2 is tested locally and is not deployed or used by the public DApp.
+- The public QR page independently confirms the on-chain order/delivery/payment-event sequence, submitting wallet, referenced payment sender and recipient, transaction success, and transferred amount. The exact amount agreed in the off-chain job is enforced before recording by the signed workflow, but it is not encoded in the deployed V1 order event and therefore cannot be independently reconstructed from V1 chain data alone.
 - The deployed Portaldot V3 contract and historical end-to-end evidence remain valid, but they must not be presented as proof that every newly submitted shared request is already recorded on-chain.
 - Offerings created by the earlier email-auth prototype remain preserved under that earlier account. They are not silently transferred to a wallet account; create a new wallet-owned offering if an old offering does not appear in the contractor's offering list.
 - Payment verification currently supports native tPOTv3 transfers; token-contract payments are not supported yet.
@@ -227,7 +240,7 @@ PortalProofは、イラストレーターやアーティスト、クリエイタ
 
 [PortalProofを開く](https://nato-san.github.io/PortalProof/)
 
-[英語版ピッチ資料を開く（PDF）](docs/PortalProof-Pitch-Deck.pdf)
+[英語版ピッチ資料を開く（PDF）](https://nato-san.github.io/PortalProof/PortalProof-Pitch-Deck.pdf)
 
 公開ルートは、ウォレット署名ログインを使う共有ワークスペースへ統一しています。スマホからのウォレットログインを確認済みで、Safari・ChromeからMetaMaskアプリへ接続します。以下の端末保存MVPとテストネット証跡は、通常の公開導線と混ざらない独立した復旧・実演用フローとして保持しています。共有案件にも発注証明、納品URL・ハッシュ、支払い検証、QR証明書を接続済みです。[現在の導線・スマホ検証状況](docs/NAVIGATION_MOBILE.md)を確認してください。
 
@@ -293,6 +306,17 @@ Portaldot V3はEVM・SolidityコントラクトとERC形式のアプリケーシ
 | ネイティブ支払いのトランザクションハッシュ | `0x632700e4ca21e59e47b0f9fa60beefd460b1c176695ab33438548cdcc7d8a3a0` |
 | 支払い記録のトランザクションハッシュ | `0xed7830c50ad616b4fa9e1218f38f6604bb893f45691e13662f593ca8c1ec9a72` |
 | 一連の動作確認 | 発注・納品・検証済みネイティブ支払い・証明書まで完了 |
+
+現在の2ウォレット共有フローでも、2026年11月5日にPortaldot V3上で一連の実取引を完了しました。
+
+| 共有フローの証跡 | トランザクションハッシュ |
+| --- | --- |
+| 発注記録 | `0x228e78e4878540a08c9234d0565351423cddac4233780275814cca06cbcdc775` |
+| 納品記録 | `0xf440c8d852e6bc9e069d96ebabc076c8611f1c5bded46ff0f4c1d56c636cb8b0` |
+| ネイティブ支払い（10 tPOTv3） | `0xdcd5fe65db4b0d037c0c9d7e39ac18a3509a4b0f284c4e231535565e726190b5` |
+| 支払い記録・公開QR証明 | `0xea5f29c9f221539c811176990658885b293d572ae682f768cd746e0a1e5707fa` |
+
+[公開QR証明ページを開く](https://nato-san.github.io/PortalProof/?proofTx=0xea5f29c9f221539c811176990658885b293d572ae682f768cd746e0a1e5707fa&lang=ja)
 
 今回の一連のテストにより、PortalProofがネイティブ支払いの送金元、送金先、金額、成功状態を検証してから、支払い証跡をオンチェーンへ記録できることを確認しました。生成された証明書は、上記の実際の発注・納品・支払いトランザクションを参照します。
 
@@ -368,6 +392,8 @@ npm run check:portaldot
 ### 現在の制限事項
 
 - 署名付き共有案件に、発注証明、納品URL・ハッシュ、検証済みネイティブ支払い証跡、QRコードから開く公開証明ページを実装し、受注者・発注者それぞれの独立アーカイブを含む公開Supabaseワークフローバージョン4を適用済みです。
+- デプロイ済みV1証明コントラクトは、追記専用のイベントログです。V1ではオンチェーンの証明IDと条件ハッシュが同一で、後続イベントの当事者権限、状態遷移、再利用防止をコントラクト内部には保持しません。認証済み共有DBとDAppが、当事者権限、段階順序、楽観的バージョン、重複防止、正確なネイティブ支払い検証を行ってから最終証明を記録します。`PortalProofOrderV2.sol`では`orderId`と`termsHash`を分離し、コントラクト側の権限・状態遷移・nonce一意性・支払いハッシュ再利用防止を追加していますが、V2はローカルテスト済み・未デプロイであり、公開DAppでは使用していません。
+- 公開QRページは、オンチェーンの発注・納品・支払いイベントのつながり、記録ウォレット、参照支払いの送金元・送金先、成功状態、送金額を独立確認します。オフチェーン案件で合意した正確な金額との一致は、記録前に署名付きワークフローで強制します。ただし、合意額はV1の発注イベントに含まれないため、V1のチェーン情報だけから合意額を再構成することはできません。
 - デプロイ済みPortaldot V3コントラクトと過去の一連のテスト証跡は有効ですが、新しく送信したすべての共有依頼がすでにオンチェーン記録されるという意味ではありません。
 - 以前のメール認証試作版で作成した募集は、その以前のアカウントに保持されています。ウォレットアカウントへ自動移管しないため、募集一覧に表示されない古い募集は、ウォレットログイン後に新しく作り直してください。
 - 支払い検証はネイティブtPOTv3送金に対応しています。トークンコントラクト経由の支払いにはまだ対応していません。

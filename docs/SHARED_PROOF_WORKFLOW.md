@@ -1,8 +1,8 @@
 # Shared proof workflow / 共有案件の証明フロー
 
-Status: implemented and tested locally on 2026-11-04. The public Supabase migration `20261104_shared_proof_workflow.sql` was applied and its workflow-version-3 RPC was confirmed on 2026-11-04. A real two-wallet Portaldot V3 end-to-end run is still required; local and isolated tests do not create testnet evidence.
+Status: implemented and tested locally on 2026-11-04. The public Supabase proof migration and the later client-archive migration are applied; the public workflow reports version 4. On 2026-11-05, a real two-wallet Portaldot V3 run completed order, delivery, 10 tPOTv3 native payment, final payment record, and QR public verification. The final proof transaction is `0xea5f29c9f221539c811176990658885b293d572ae682f768cd746e0a1e5707fa`.
 
-状態：2026年11月4日に実装し、ローカル・分離環境でテスト済みです。同日、公開Supabaseへ`20261104_shared_proof_workflow.sql`を適用し、RPCがワークフローバージョン3を返すことを確認しました。ローカルテストはテストネット証跡を作らないため、2つの実ウォレットを使ったPortaldot V3での一連の確認は別途必要です。
+状態：2026年11月4日に実装し、ローカル・分離環境でテスト済みです。公開Supabaseには証明マイグレーションと発注者アーカイブ用マイグレーションを適用し、公開ワークフローはバージョン4です。2026年11月5日、2つの実ウォレットで発注、納品、10 tPOTv3ネイティブ支払い、最終支払い記録、QR公開検証まで完了しました。最終証明Txは`0xea5f29c9f221539c811176990658885b293d572ae682f768cd746e0a1e5707fa`です。
 
 ## Sequence / 手順
 
@@ -33,3 +33,9 @@ Status: implemented and tested locally on 2026-11-04. The public Supabase migrat
 The current and historical PortalProof certificate is a QR-based evidence view. It is not an ERC-721/1155 soulbound token and does not mint a token into a wallet. A true SBT would require a separately reviewed contract and an explicit replacement deployment; the UI must not call the current certificate an SBT.
 
 現在および過去のPortalProof証明書は、QRコード付きの証跡表示です。ERC-721/1155形式の譲渡不能トークンをウォレットへミントするものではありません。実SBT化には、別途レビューしたコントラクトと明示的な追加デプロイが必要です。現在の証明書をSBTと表現してはいけません。
+
+## V1 boundary and tested V2 / V1の境界とテスト済みV2
+
+The deployed V1 contract uses the terms hash itself as the proof ID and acts as an append-only event log. The authenticated DApp and database enforce participant roles, stage order, versions, duplicate guards, and exact-payment matching before recording. `PortalProofOrderV2.sol` separates the order ID and terms hash and adds contract-level authorization, state, nonce uniqueness, and payment-hash replay prevention. V2 passes local EVM tests but is not deployed or used by the public DApp.
+
+デプロイ済みV1は条件ハッシュ自体を証明IDとして使う追記専用イベントログです。当事者権限、段階順序、バージョン、重複防止、正確な支払い一致は、記録前に認証済みDAppとDBが強制します。`PortalProofOrderV2.sol`では注文IDと条件ハッシュを分離し、コントラクト側の権限・状態・nonce一意性・支払いハッシュ再利用防止を追加しています。V2はローカルEVMテストに合格していますが、未デプロイで公開DAppには使用していません。
